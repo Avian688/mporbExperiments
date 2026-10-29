@@ -1,0 +1,11 @@
+out/
+*.dylib
+*.so
+*.o
+*.pyc
+__pycache__/
+.DS_Store
+simulations/experiments/*/results/
+simulations/experiments/*/csvs/
+simulations/logs/
+simulations/plots/
