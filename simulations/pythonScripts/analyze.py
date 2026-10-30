@@ -17,6 +17,7 @@ BLOCK = 65536
 RECEIVER_THREAD = re.compile(r'\.server\[(\d+)\]\.app\[0\]\.thread_\d+$')
 RECEIVER_APP = re.compile(r'\.server\[(\d+)\]\.app\[0\]$')
 TCP_CONNECTION = re.compile(r'\.(client|server)\[\d+\]\.tcp\.conn-\d+$')
+SENDER_RTT = re.compile(r'\.client\[0\]\.tcp\.conn-\d+$')
 CORE_QUEUE = re.compile(r'\.(left|right)\[[01]\]\.ppp\[0\]\.queue$')
 
 
@@ -243,6 +244,59 @@ def average_capacity(records, start, end):
     return integral / (end - start)
 
 
+def average_base_rtt(records, start, end):
+    """Equal-path propagation RTT mean; outages contribute no RTT observations."""
+    means = []
+    for path in range(2):
+        rows = sorted((r for r in records if r['path'] == path), key=lambda r: r['time'])
+        integral = duration = 0.
+        for index, row in enumerate(rows):
+            next_down = rows[index + 1]['time'] if index + 1 < len(rows) else end
+            width = max(0., min(end, next_down) - max(start, row['up_time']))
+            integral += width * row['rtt_ms']
+            duration += width
+        means.append(integral / duration if duration > 0 else math.nan)
+    return float(np.mean(means))
+
+
+def rtt_observation(summary):
+    """OrbTCP's per-second averaging, with equal weight per sending subflow."""
+    root = directory(summary['experiment'])
+    out = root / 'csvs/extracted' / summary['config']
+    subflows = []
+    for path in sorted(out.glob('*__rtt.csv')):
+        module = path.stem.removesuffix('__rtt')
+        if not SENDER_RTT.search(module):
+            continue
+        seconds = {}
+        with path.open() as handle:
+            rows = csv.DictReader(handle)
+            for row in rows:
+                time, value = float(row['time']), float(row['value'])
+                if not (math.isfinite(time) and math.isfinite(value) and value > 0 and
+                        summary['measurement_start'] <= time < summary['measurement_end']):
+                    continue
+                bucket = seconds.setdefault(math.floor(time), [0., 0])
+                bucket[0] += value
+                bucket[1] += 1
+        if seconds:
+            subflows.append(dict(experiment=summary['experiment'], config=summary['config'],
+                protocol=summary['protocol'], run=summary['run'], module=module,
+                average_rtt_ms=float(np.mean([total / count for total, count in seconds.values()])) * 1000,
+                seconds=len(seconds), samples=sum(count for _, count in seconds.values())))
+    # Empty meta-level RTT vectors and receiver handshake RTTs never contribute.
+    # An incomplete or ambiguous set of sending subflows is reported as missing.
+    included = len(subflows) == summary['subflows']
+    records = json.loads((root / 'scenarios' / f'run{summary["run"]}.json').read_text())
+    row = dict(experiment=summary['experiment'], config=summary['config'], protocol=summary['protocol'],
+        run=summary['run'], seed=summary['seed'],
+        average_rtt_ms=float(np.mean([r['average_rtt_ms'] for r in subflows])) if included else math.nan,
+        base_rtt_ms=average_base_rtt(records, summary['measurement_start'], summary['measurement_end']),
+        observed_subflows=len(subflows), expected_subflows=summary['subflows'],
+        samples=sum(r['samples'] for r in subflows), included=included)
+    return row, subflows
+
+
 def cdf_points(values):
     ordered = np.sort([value for value in values if math.isfinite(value)])
     if not len(ordered):
@@ -319,6 +373,57 @@ def plot_cdf(summaries):
     print(f'Experiment {number} goodput CDF: {output}', flush=True)
 
 
+@plot_style(aggregate=True, cdf=True)
+def plot_rtt_cdf(summaries):
+    import matplotlib.pyplot as plt
+    from matplotlib.lines import Line2D
+    number = summaries[0]['experiment']
+    output = SIM_DIR / 'plots' / f'experiment{number}'
+    output.mkdir(parents=True, exist_ok=True)
+    observations, subflows, references = [], [], {}
+    for summary in summaries:
+        row, paths = rtt_observation(summary)
+        observations.append(row)
+        subflows.extend(paths)
+        if row['included'] and math.isfinite(row['base_rtt_ms']):
+            references[(row['run'], row['seed'], row['base_rtt_ms'])] = row['base_rtt_ms']
+    write_csv(output / 'rtt_plot_data.csv', observations)
+    if subflows:
+        write_csv(output / 'rtt_subflows.csv', subflows)
+    else:
+        (output / 'rtt_subflows.csv').unlink(missing_ok=True)
+    if not any(row['included'] for row in observations):
+        for name in ('rtt_cdf.png', 'rtt_cdf.pdf', 'base_rtt_reference.csv'):
+            (output / name).unlink(missing_ok=True)
+        raise ValueError(f'Experiment {number}: no trials with RTT measurements for both sending subflows; see rtt_plot_data.csv')
+    fig = plt.figure(figsize=CDF_SIZE)
+    ax = fig.add_axes([.16, .28, .82, .57])
+    handles = []
+    for protocol, (_, _, label, color) in PROTOCOLS.items():
+        x, y = cdf_points(r['average_rtt_ms'] for r in observations if r['protocol'] == protocol)
+        if len(x):
+            ax.step(x, y, where='post', color=color)
+            handles.append(Line2D([], [], color=color, label=label))
+    if references:
+        x, y = cdf_points(references.values())
+        ax.step(x, y, where='post', color='black')
+        handles.append(Line2D([], [], color='black', label='Propagation RTT'))
+        write_csv(output / 'base_rtt_reference.csv', [dict(run=run, seed=seed, average_base_rtt_ms=value)
+            for (run, seed, _), value in sorted(references.items())])
+    else:
+        (output / 'base_rtt_reference.csv').unlink(missing_ok=True)
+    ax.legend(handles=handles, loc='upper left', ncols=3, fontsize=7,
+              columnspacing=.8, handletextpad=.5)
+    ax.set(xlabel='Average RTT (ms)',
+           ylabel=r'\% of Trials' if plt.rcParams['text.usetex'] else '% of Trials',
+           ylim=(0, 105), yticks=[0, 50, 100])
+    ax.set_title('RTT without Loss' if number == 1 else 'RTT with Loss')
+    save_figure(fig, output / 'rtt_cdf', aggregate=True)
+    plt.close(fig)
+    included = sum(row['included'] for row in observations)
+    print(f'Experiment {number} RTT CDF: {output} ({included}/{len(observations)} valid trials)', flush=True)
+
+
 @plot_style(aggregate=True)
 def plot_ratios(summaries):
     import matplotlib.pyplot as plt
@@ -366,14 +471,18 @@ def plot_ratios(summaries):
     print(f'Goodput ratio plots: {output}')
 
 
-def plot(configs):
+def plot(configs, cdf_metrics=None):
     import matplotlib
     matplotlib.use('Agg')
     summaries = aggregate_summaries(configs)
+    cdf_metrics = ('goodput', 'rtt') if cdf_metrics is None else cdf_metrics
     for number in (1, 2, 3, 4):
         selected = [s for s in summaries if s['experiment'] == number]
         if selected:
             if number <= 2:
-                plot_cdf(selected)
+                if 'goodput' in cdf_metrics:
+                    plot_cdf(selected)
+                if 'rtt' in cdf_metrics:
+                    plot_rtt_cdf(selected)
             else:
                 plot_ratios(selected)

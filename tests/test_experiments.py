@@ -249,6 +249,63 @@ class ExperimentsTests(unittest.TestCase):
                    dict(path=1, time=30, up_time=30.1, bandwidth_mbps=60)]
         self.assertAlmostEqual(a.average_capacity(records, 10, 20), 154.5)
 
+    def test_base_rtt_averages_paths_and_excludes_outages_instead_of_using_zero(self):
+        records = [dict(path=0, time=0, up_time=0, rtt_ms=20),
+                   dict(path=1, time=0, up_time=0, rtt_ms=60),
+                   dict(path=0, time=15, up_time=16, rtt_ms=80)]
+        self.assertAlmostEqual(a.average_base_rtt(records, 10, 20), ((5 * 20 + 4 * 80) / 9 + 60) / 2)
+
+    def test_rtt_means_weight_seconds_then_subflows_and_ignore_receiver_meta(self):
+        config = dict(e.configurations(1)[0], measurement_start=10, measurement_end=12)
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            out = root / 'csvs/extracted' / config['config']
+            out.mkdir(parents=True)
+            (root / 'scenarios').mkdir()
+            (root / 'scenarios/run1.json').write_text(json.dumps([
+                dict(path=p, time=0, up_time=0, rtt_ms=rtt) for p, rtt in ((0, 20), (1, 40))]))
+            (out / 'n.client[0].tcp.conn-1__rtt.csv').write_text('time,value\n')
+            (out / 'n.server[0].tcp.conn-2__rtt.csv').write_text('time,value\n10.1,10\n')
+            (out / 'n.client[0].tcp.conn-2__rtt.csv').write_text(
+                'time,value\n9.9,99\n10.1,.02\n10.2,.04\n11.1,.06\n11.2,nan\n11.3,0\n12,99\n')
+            (out / 'n.client[0].tcp.conn-3__rtt.csv').write_text(
+                'time,value\n' + ''.join(f'{10 + i / 100},.1\n' for i in range(10)) + '11.1,.2\n')
+            with patch.object(a, 'directory', return_value=root):
+                row, paths = a.rtt_observation(config)
+                self.assertTrue(row['included'])
+                self.assertEqual(row['observed_subflows'], 2)
+                self.assertEqual(row['samples'], 14)
+                self.assertAlmostEqual(row['average_rtt_ms'], 97.5)
+                self.assertAlmostEqual(row['base_rtt_ms'], 30)
+                self.assertEqual([p['seconds'] for p in paths], [2, 2])
+                (out / 'n.client[0].tcp.conn-3__rtt.csv').write_text('time,value\n9,.1\n')
+                row, paths = a.rtt_observation(config)
+                self.assertFalse(row['included'])
+                self.assertEqual(row['observed_subflows'], 1)
+                self.assertTrue(math.isnan(row['average_rtt_ms']))
+
+    def test_missing_rtt_subflows_are_reported_without_leaving_a_stale_cdf(self):
+        config = e.configurations(1)[0]
+        with tempfile.TemporaryDirectory() as temp:
+            sim = Path(temp)
+            root = sim / 'experiments/experiment1'
+            (root / 'scenarios').mkdir(parents=True)
+            (root / 'scenarios/run1.json').write_text(json.dumps([
+                dict(path=p, time=0, up_time=0, rtt_ms=20) for p in (0, 1)]))
+            output = sim / 'plots/experiment1'
+            output.mkdir(parents=True)
+            for suffix in ('png', 'pdf'):
+                (output / f'rtt_cdf.{suffix}').write_bytes(b'old plot')
+            with patch.object(a, 'SIM_DIR', sim), patch.object(a, 'directory', return_value=root):
+                with self.assertRaisesRegex(ValueError, 'both sending subflows'):
+                    a.plot_rtt_cdf([config])
+            with (output / 'rtt_plot_data.csv').open() as handle:
+                row = next(csv.DictReader(handle))
+            self.assertEqual(row['included'], 'False')
+            self.assertEqual(row['observed_subflows'], '0')
+            self.assertFalse((output / 'rtt_cdf.png').exists())
+            self.assertFalse((output / 'rtt_cdf.pdf').exists())
+
     def test_rtt_ratio_averages_aligned_samples_not_overall_means(self):
         config = dict(e.configurations(3)[0], measurement_start=10, measurement_end=14,
                       goodput_mbps=[25.25, 50.25])
@@ -304,7 +361,11 @@ class ExperimentsTests(unittest.TestCase):
                 scenarios = root(number) / 'scenarios'
                 scenarios.mkdir(parents=True)
                 (scenarios / 'run1.json').write_text(json.dumps([
-                    dict(path=path, time=0, up_time=0, bandwidth_mbps=100) for path in (0, 1)]))
+                    dict(path=path, time=0, up_time=0, bandwidth_mbps=100, rtt_ms=20 + 20 * path) for path in (0, 1)]))
+                out = root(number) / 'csvs/extracted' / configs[number - 1]['config']
+                out.mkdir(parents=True)
+                for index, rtt in enumerate((.02, .04) if number == 1 else (.1, .14)):
+                    (out / f'n.client[0].tcp.conn-{index + 1}__rtt.csv').write_text(f'time,value\n10.1,{rtt}\n11.1,{rtt}\n')
             old = sim / 'plots/experiment1and2/joined_goodput_cdf.png'
             old.parent.mkdir(parents=True)
             old.write_bytes(b'old plot')
@@ -315,11 +376,19 @@ class ExperimentsTests(unittest.TestCase):
                 out = sim / 'plots' / f'experiment{number}'
                 for suffix in ('png', 'pdf'):
                     self.assertGreater((out / f'goodput_cdf.{suffix}').stat().st_size, 0)
+                    self.assertGreater((out / f'rtt_cdf.{suffix}').stat().st_size, 0)
                 with (out / 'plot_data.csv').open() as handle:
                     rows = list(csv.DictReader(handle))
                 self.assertEqual(len(rows), 1)
                 self.assertEqual(int(rows[0]['experiment']), number)
                 self.assertEqual(float(rows[0]['average_goodput_mbps']), expected)
+                with (out / 'rtt_plot_data.csv').open() as handle:
+                    rows = list(csv.DictReader(handle))
+                self.assertEqual(len(rows), 1)
+                self.assertEqual(int(rows[0]['experiment']), number)
+                self.assertAlmostEqual(float(rows[0]['average_rtt_ms']), 30 if number == 1 else 120)
+                with (out / 'base_rtt_reference.csv').open() as handle:
+                    self.assertEqual(len(list(csv.DictReader(handle))), 1)
             self.assertFalse(old.exists())
 
     def runner_events(self, options=(), fail_export=None):

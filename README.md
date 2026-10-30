@@ -144,6 +144,10 @@ MpORB libraries and the workspace Python environment:
 .venv/bin/python samples/mporbExperiments/simulations/pythonScripts/experiment1/plotGoodputCumulativeDistribution.py
 .venv/bin/python samples/mporbExperiments/simulations/pythonScripts/experiment2/plotGoodputCumulativeDistribution.py
 
+# Aggregate RTT CDFs from the existing recorded sender RTT vectors.
+.venv/bin/python samples/mporbExperiments/simulations/pythonScripts/experiment1/plotRttCumulativeDistribution.py
+.venv/bin/python samples/mporbExperiments/simulations/pythonScripts/experiment2/plotRttCumulativeDistribution.py
+
 # RTT goodput-ratio plots, using existing extracted results only.
 .venv/bin/python samples/mporbExperiments/simulations/pythonScripts/experiment3/plotGoodputRatio.py
 .venv/bin/python samples/mporbExperiments/simulations/pythonScripts/experiment4/plotGoodputRatio.py
@@ -203,8 +207,37 @@ Each experiment plots independently as it finishes, using only its own trials.
 The earlier combined `experiment1and2/joined_goodput_cdf.*` outputs are retired
 when a new CDF is generated.
 
+Each responsiveness experiment also writes `rtt_cdf.png` / `.pdf` in its own
+plot directory: **RTT without Loss** for experiment 1 and **RTT with Loss** for
+experiment 2. As in OrbTCP, positive finite sender RTT samples are averaged
+within integer-second bins, then those bin means are averaged. For multipath,
+this is done separately for each of the two sending subflows, and their means
+receive equal weight. Each complete trial contributes one average RTT in ms to
+its controller's CDF (50 observations when all trials have valid RTT data).
+The measurement window is the same [10 s, 299 s) window used for the other
+steady-state comparisons. Only bins containing valid recorded RTT samples
+contribute; missing seconds are not filled with zeros or stale values.
+
+Empty meta-connection vectors and receiver-side handshake RTTs are excluded.
+A trial without measurements for both sending subflows is marked incomplete
+and omitted; it does not become a zero-delay result. `rtt_plot_data.csv` gives
+each trial's mean and inclusion/coverage counts, and `rtt_subflows.csv` gives
+the original sender module IDs, individual means and sample/second counts.
+The black **Propagation RTT** reference averages the paths' configured base
+RTTs equally, time-weighting each path's available intervals in the measurement
+window. Down intervals contribute no RTT; path delays are averaged, not added.
+The reference appears once per valid trial/seed in `base_rtt_reference.csv`.
+It models propagation delay, not queuing or receiver head-of-line blocking.
+
+The normal `summary` / `all` plotting stage generates both goodput and RTT CDFs
+after each responsiveness experiment. The standalone `plotAggregates.py`
+defaults to both; `--metrics rtt` or `--metrics goodput` selects just one type.
+The named goodput/RTT CDF launchers default to their respective type. No extra
+vectors are recorded and existing exports need no simulation or re-extraction.
+
 Plot presentation follows the OrbTCP scripts: nominal **5 × 2 inch CDFs**, with
-`Average Goodput (Mbps)` / `% of Trials`, and **4.5 × 1.2 inch RTT ratio plots**,
+`Average Goodput (Mbps)` or `Average RTT (ms)` / `% of Trials`, and
+**4.5 × 1.2 inch RTT ratio plots**,
 with `RTT (ms)` / `Goodput Ratio`. Aggregate titles are concise: Responsiveness,
 Responsiveness with Loss, Inter-RTT Fairness, and Intra-RTT Fairness (aligned or
 mirrored). Serif fonts, inward ticks, thin lines/error bars, and controller
@@ -255,13 +288,14 @@ available bandwidth of both paths, with zero contribution during outages.
 PNG exports use 300 dpi and PDFs retain vector curves. Styling does not change
 the trial averages, CDF construction, capacity reference, or RTT statistics.
 
-Eighteen tests cover matrix membership, experiment-specific trial counts and
+Twenty-one tests cover matrix membership, experiment-specific trial counts and
 CLI/plot selections, generation/pairing of all 50 responsiveness scenarios,
 independent/matched path conditions,
 outage/loss XML, RTT arithmetic/queue scope, the exact recording set,
 application-only goodput accounting, bounded individual plotting, trial-level
 CDF counts, capacity integration, aligned goodput ratios, selected result
-freshness, separate loss/no-loss CDFs, per-experiment stage ordering, resumed
+freshness, separate loss/no-loss goodput and RTT CDFs, RTT time-bin/subflow
+weighting, base-RTT outage handling, incomplete RTT trials, per-experiment stage ordering, resumed
 processing, and stopping after failure while retaining earlier plots.
 Two additional 18 s checks with the final recording set completed simulation,
 export, extraction, summary plots, and all 22 individual metric figures. Their

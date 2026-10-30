@@ -1,4 +1,4 @@
-"""Replot separate responsiveness CDFs and RTT ratios from extracted results."""
+"""Replot responsiveness goodput/RTT CDFs and RTT fairness from extracted results."""
 import argparse
 import json
 import math
@@ -7,7 +7,7 @@ from experiments import PROTOCOLS, RUN_COUNTS, run_numbers, directory
 from analyze import plot
 
 
-def main(default_experiments=None):
+def main(default_experiments=None, default_metrics=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--experiments', nargs='+', type=int, choices=range(1, 5),
                         default=default_experiments or [1, 2, 3, 4])
@@ -17,6 +17,8 @@ def main(default_experiments=None):
     parser.add_argument('--configs', nargs='+', help='Exact configuration names')
     parser.add_argument('--rtts', nargs='+', type=int)
     parser.add_argument('--sim-time', type=float, help='Select a duration; otherwise infer it from extracted summaries')
+    parser.add_argument('--metrics', nargs='+', choices=('goodput', 'rtt'), default=default_metrics,
+                        help='Select responsiveness CDFs; default both. RTT fairness plots are unchanged.')
     args = parser.parse_args()
     if args.sim_time is not None and (not math.isfinite(args.sim_time) or not 11 < args.sim_time <= 300):
         parser.error('--sim-time must be finite and between 11 and 300 seconds (exclusive of 11)')
@@ -39,12 +41,12 @@ def main(default_experiments=None):
         if args.sim_time is not None and summary['sim_time'] != args.sim_time:
             continue
         selected.append(dict(config, sim_time=summary['sim_time'], measurement_end=summary['sim_time'] - 1))
-    plot(selected)
+    plot(selected, cdf_metrics=args.metrics)
 
 
-def run(default_experiments=None):
+def run(default_experiments=None, default_metrics=None):
     try:
-        main(default_experiments)
+        main(default_experiments, default_metrics)
     except (OSError, ValueError, RuntimeError) as error:
         raise SystemExit(str(error))
 

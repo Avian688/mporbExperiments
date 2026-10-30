@@ -3,4 +3,4 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from plotAggregates import run
 if __name__ == '__main__':
-    run([2])
+    run([2], ['goodput'])
