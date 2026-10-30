@@ -24,8 +24,10 @@ from plotMetrics import read_series
 
 class ExperimentsTests(unittest.TestCase):
     def test_matrix_has_only_requested_ccs_and_two_subflows(self):
-        self.assertEqual(tuple(e.PROTOCOLS), ('Delta', 'Omega', 'Alpha', 'CubicUncoupled'))
-        for number, expected in ((1, 200), (2, 200), (3, 220), (4, 380)):
+        self.assertEqual(tuple(e.PROTOCOLS), ('Delta', 'Omega', 'Alpha', 'OrbUncoupled', 'CubicUncoupled'))
+        self.assertEqual(e.PROTOCOLS['OrbUncoupled'][:3], ('MpOrb', 'MpOrbUncoupled', 'OrbCC uncoupled'))
+        self.assertNotIn('OrbUncoupled', e.SHUFFLE)
+        for number, expected in ((1, 250), (2, 250), (3, 275), (4, 475)):
             configs = e.configurations(number)
             self.assertEqual(len(configs), expected)
             self.assertEqual(len({c['config'] for c in configs}), expected)
@@ -41,7 +43,7 @@ class ExperimentsTests(unittest.TestCase):
         inter = e.configurations(3)
         self.assertTrue(any(c['path_rtts_ms'] == [[50, 50], [50, 50]] for c in inter))
         intra = e.configurations(4)
-        self.assertEqual(len([c for c in intra if c['rtt_ms'] == 20]), 20)
+        self.assertEqual(len([c for c in intra if c['rtt_ms'] == 20]), 25)
         self.assertTrue(any(c['path_rtts_ms'] == [[20, 20], [200, 20]] for c in intra))
         for case in {c['case'] for c in inter}:
             starts = [c['starts'] for c in inter if c['case'] == case and c['run'] == 1]
@@ -84,7 +86,7 @@ class ExperimentsTests(unittest.TestCase):
             for number, root in roots.items():
                 with patch.object(e, 'directory', return_value=root):
                     configs = e.generate(number)
-                self.assertEqual(len(configs), 200)
+                self.assertEqual(len(configs), 250)
                 self.assertEqual(len(list((root / 'scenarios').glob('run*.xml'))), 50)
                 self.assertEqual(len(list((root / 'scenarios').glob('run*.json'))), 50)
                 for protocol in e.PROTOCOLS:
@@ -106,7 +108,7 @@ class ExperimentsTests(unittest.TestCase):
             for number in range(1, 5):
                 (root / str(number)).mkdir()
                 (root / str(number) / 'matrix.json').write_text(json.dumps(e.configurations(number)))
-            for flags, expected in (([], 1000), (['--runs', '50'], 1000), (['--runs', '2'], 256)):
+            for flags, expected in (([], 1250), (['--runs', '50'], 1250), (['--runs', '2'], 320)):
                 output = io.StringIO()
                 with patch.object(runner, 'directory', side_effect=lambda n: root / str(n)), \
                      patch.object(sys, 'argv', ['runExperiments.py', '--skip-generate', '--dry-run', *flags]), \
@@ -154,6 +156,9 @@ class ExperimentsTests(unittest.TestCase):
                 ini = configparser.ConfigParser(interpolation=None, strict=False, delimiters=('=',))
                 ini.read(root / f'experiment4_{protocol.lower()}.ini')
                 general = ini['General']
+                if protocol == 'OrbUncoupled':
+                    self.assertEqual(general['**.tcp.typename'], '"MpOrb"')
+                    self.assertEqual(general['**.tcp.tcpalgorithmclass'], '"MpOrbUncoupled"')
                 self.assertEqual(general['**.numberOfSubflows'.lower()], '2')
                 expected = 'MpOrbDeltaQueue' if protocol in e.SHUFFLE else 'PintQueue'
                 for path in range(2):

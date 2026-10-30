@@ -14,6 +14,7 @@ PROTOCOLS = {
     'Delta': ('MpOrb', 'MpOrbDelta', 'Delta', '#882255'),
     'Omega': ('MpOrb', 'MpOrbOmega', 'Omega', '#E69F00'),
     'Alpha': ('MpOrb', 'MpOrbSemiCoupledAlpha', 'Alpha', '#0072B2'),
+    'OrbUncoupled': ('MpOrb', 'MpOrbUncoupled', 'OrbCC uncoupled', '#009E73'),
     'CubicUncoupled': ('MpTcp', 'MpTcpMetaCubic', 'CUBIC uncoupled', '#D55E00'),
 }
 SHUFFLE = {'Delta', 'Omega'}

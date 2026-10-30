@@ -7,7 +7,7 @@ import shutil
 CDF_SIZE = (5, 2)
 RTT_SIZE = (4.5, 1.2)
 TRACE_SIZE = (17, 5)
-MARKERS = {'Delta': '^', 'Omega': '.', 'Alpha': '_', 'CubicUncoupled': 'x'}
+MARKERS = {'Delta': '^', 'Omega': '.', 'Alpha': '_', 'OrbUncoupled': 'o', 'CubicUncoupled': 'x'}
 
 
 @lru_cache(maxsize=1)

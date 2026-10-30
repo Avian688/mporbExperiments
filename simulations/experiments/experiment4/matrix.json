@@ -9120,6 +9120,3046 @@
     "scenario": "scenarios/IntraRtt_R200_Mirrored.xml"
   },
   {
+    "config": "OrbUncoupled_IntraRtt_R20_Aligned_Run1",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R20_Aligned",
+    "run": 1,
+    "seed": 8000,
+    "starts": [
+      1.577701,
+      1.049034
+    ],
+    "rtt_ms": 20,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R20_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R20_Aligned_Run2",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R20_Aligned",
+    "run": 2,
+    "seed": 8001,
+    "starts": [
+      1.584629,
+      1.841862
+    ],
+    "rtt_ms": 20,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R20_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R20_Aligned_Run3",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R20_Aligned",
+    "run": 3,
+    "seed": 8002,
+    "starts": [
+      1.547612,
+      1.396781
+    ],
+    "rtt_ms": 20,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R20_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R20_Aligned_Run4",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R20_Aligned",
+    "run": 4,
+    "seed": 8003,
+    "starts": [
+      1.236528,
+      1.485419
+    ],
+    "rtt_ms": 20,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R20_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R20_Aligned_Run5",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R20_Aligned",
+    "run": 5,
+    "seed": 8004,
+    "starts": [
+      1.469026,
+      1.746181
+    ],
+    "rtt_ms": 20,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R20_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R40_Aligned_Run1",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R40_Aligned",
+    "run": 1,
+    "seed": 8000,
+    "starts": [
+      1.577701,
+      1.049034
+    ],
+    "rtt_ms": 40,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        40
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R40_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R40_Aligned_Run2",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R40_Aligned",
+    "run": 2,
+    "seed": 8001,
+    "starts": [
+      1.584629,
+      1.841862
+    ],
+    "rtt_ms": 40,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        40
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R40_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R40_Aligned_Run3",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R40_Aligned",
+    "run": 3,
+    "seed": 8002,
+    "starts": [
+      1.547612,
+      1.396781
+    ],
+    "rtt_ms": 40,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        40
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R40_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R40_Aligned_Run4",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R40_Aligned",
+    "run": 4,
+    "seed": 8003,
+    "starts": [
+      1.236528,
+      1.485419
+    ],
+    "rtt_ms": 40,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        40
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R40_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R40_Aligned_Run5",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R40_Aligned",
+    "run": 5,
+    "seed": 8004,
+    "starts": [
+      1.469026,
+      1.746181
+    ],
+    "rtt_ms": 40,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        40
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R40_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R40_Mirrored_Run1",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R40_Mirrored",
+    "run": 1,
+    "seed": 8000,
+    "starts": [
+      1.577701,
+      1.049034
+    ],
+    "rtt_ms": 40,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        40,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R40_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R40_Mirrored_Run2",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R40_Mirrored",
+    "run": 2,
+    "seed": 8001,
+    "starts": [
+      1.584629,
+      1.841862
+    ],
+    "rtt_ms": 40,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        40,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R40_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R40_Mirrored_Run3",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R40_Mirrored",
+    "run": 3,
+    "seed": 8002,
+    "starts": [
+      1.547612,
+      1.396781
+    ],
+    "rtt_ms": 40,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        40,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R40_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R40_Mirrored_Run4",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R40_Mirrored",
+    "run": 4,
+    "seed": 8003,
+    "starts": [
+      1.236528,
+      1.485419
+    ],
+    "rtt_ms": 40,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        40,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R40_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R40_Mirrored_Run5",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R40_Mirrored",
+    "run": 5,
+    "seed": 8004,
+    "starts": [
+      1.469026,
+      1.746181
+    ],
+    "rtt_ms": 40,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        40,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R40_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R60_Aligned_Run1",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R60_Aligned",
+    "run": 1,
+    "seed": 8000,
+    "starts": [
+      1.577701,
+      1.049034
+    ],
+    "rtt_ms": 60,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        60
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R60_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R60_Aligned_Run2",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R60_Aligned",
+    "run": 2,
+    "seed": 8001,
+    "starts": [
+      1.584629,
+      1.841862
+    ],
+    "rtt_ms": 60,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        60
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R60_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R60_Aligned_Run3",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R60_Aligned",
+    "run": 3,
+    "seed": 8002,
+    "starts": [
+      1.547612,
+      1.396781
+    ],
+    "rtt_ms": 60,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        60
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R60_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R60_Aligned_Run4",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R60_Aligned",
+    "run": 4,
+    "seed": 8003,
+    "starts": [
+      1.236528,
+      1.485419
+    ],
+    "rtt_ms": 60,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        60
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R60_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R60_Aligned_Run5",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R60_Aligned",
+    "run": 5,
+    "seed": 8004,
+    "starts": [
+      1.469026,
+      1.746181
+    ],
+    "rtt_ms": 60,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        60
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R60_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R60_Mirrored_Run1",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R60_Mirrored",
+    "run": 1,
+    "seed": 8000,
+    "starts": [
+      1.577701,
+      1.049034
+    ],
+    "rtt_ms": 60,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        60,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R60_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R60_Mirrored_Run2",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R60_Mirrored",
+    "run": 2,
+    "seed": 8001,
+    "starts": [
+      1.584629,
+      1.841862
+    ],
+    "rtt_ms": 60,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        60,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R60_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R60_Mirrored_Run3",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R60_Mirrored",
+    "run": 3,
+    "seed": 8002,
+    "starts": [
+      1.547612,
+      1.396781
+    ],
+    "rtt_ms": 60,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        60,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R60_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R60_Mirrored_Run4",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R60_Mirrored",
+    "run": 4,
+    "seed": 8003,
+    "starts": [
+      1.236528,
+      1.485419
+    ],
+    "rtt_ms": 60,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        60,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R60_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R60_Mirrored_Run5",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R60_Mirrored",
+    "run": 5,
+    "seed": 8004,
+    "starts": [
+      1.469026,
+      1.746181
+    ],
+    "rtt_ms": 60,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        60,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R60_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R80_Aligned_Run1",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R80_Aligned",
+    "run": 1,
+    "seed": 8000,
+    "starts": [
+      1.577701,
+      1.049034
+    ],
+    "rtt_ms": 80,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        80
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R80_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R80_Aligned_Run2",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R80_Aligned",
+    "run": 2,
+    "seed": 8001,
+    "starts": [
+      1.584629,
+      1.841862
+    ],
+    "rtt_ms": 80,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        80
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R80_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R80_Aligned_Run3",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R80_Aligned",
+    "run": 3,
+    "seed": 8002,
+    "starts": [
+      1.547612,
+      1.396781
+    ],
+    "rtt_ms": 80,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        80
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R80_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R80_Aligned_Run4",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R80_Aligned",
+    "run": 4,
+    "seed": 8003,
+    "starts": [
+      1.236528,
+      1.485419
+    ],
+    "rtt_ms": 80,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        80
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R80_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R80_Aligned_Run5",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R80_Aligned",
+    "run": 5,
+    "seed": 8004,
+    "starts": [
+      1.469026,
+      1.746181
+    ],
+    "rtt_ms": 80,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        80
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R80_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R80_Mirrored_Run1",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R80_Mirrored",
+    "run": 1,
+    "seed": 8000,
+    "starts": [
+      1.577701,
+      1.049034
+    ],
+    "rtt_ms": 80,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        80,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R80_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R80_Mirrored_Run2",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R80_Mirrored",
+    "run": 2,
+    "seed": 8001,
+    "starts": [
+      1.584629,
+      1.841862
+    ],
+    "rtt_ms": 80,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        80,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R80_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R80_Mirrored_Run3",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R80_Mirrored",
+    "run": 3,
+    "seed": 8002,
+    "starts": [
+      1.547612,
+      1.396781
+    ],
+    "rtt_ms": 80,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        80,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R80_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R80_Mirrored_Run4",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R80_Mirrored",
+    "run": 4,
+    "seed": 8003,
+    "starts": [
+      1.236528,
+      1.485419
+    ],
+    "rtt_ms": 80,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        80,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R80_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R80_Mirrored_Run5",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R80_Mirrored",
+    "run": 5,
+    "seed": 8004,
+    "starts": [
+      1.469026,
+      1.746181
+    ],
+    "rtt_ms": 80,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        80,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R80_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R100_Aligned_Run1",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R100_Aligned",
+    "run": 1,
+    "seed": 8000,
+    "starts": [
+      1.577701,
+      1.049034
+    ],
+    "rtt_ms": 100,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        100
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R100_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R100_Aligned_Run2",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R100_Aligned",
+    "run": 2,
+    "seed": 8001,
+    "starts": [
+      1.584629,
+      1.841862
+    ],
+    "rtt_ms": 100,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        100
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R100_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R100_Aligned_Run3",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R100_Aligned",
+    "run": 3,
+    "seed": 8002,
+    "starts": [
+      1.547612,
+      1.396781
+    ],
+    "rtt_ms": 100,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        100
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R100_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R100_Aligned_Run4",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R100_Aligned",
+    "run": 4,
+    "seed": 8003,
+    "starts": [
+      1.236528,
+      1.485419
+    ],
+    "rtt_ms": 100,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        100
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R100_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R100_Aligned_Run5",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R100_Aligned",
+    "run": 5,
+    "seed": 8004,
+    "starts": [
+      1.469026,
+      1.746181
+    ],
+    "rtt_ms": 100,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        100
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R100_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R100_Mirrored_Run1",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R100_Mirrored",
+    "run": 1,
+    "seed": 8000,
+    "starts": [
+      1.577701,
+      1.049034
+    ],
+    "rtt_ms": 100,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        100,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R100_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R100_Mirrored_Run2",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R100_Mirrored",
+    "run": 2,
+    "seed": 8001,
+    "starts": [
+      1.584629,
+      1.841862
+    ],
+    "rtt_ms": 100,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        100,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R100_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R100_Mirrored_Run3",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R100_Mirrored",
+    "run": 3,
+    "seed": 8002,
+    "starts": [
+      1.547612,
+      1.396781
+    ],
+    "rtt_ms": 100,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        100,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R100_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R100_Mirrored_Run4",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R100_Mirrored",
+    "run": 4,
+    "seed": 8003,
+    "starts": [
+      1.236528,
+      1.485419
+    ],
+    "rtt_ms": 100,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        100,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R100_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R100_Mirrored_Run5",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R100_Mirrored",
+    "run": 5,
+    "seed": 8004,
+    "starts": [
+      1.469026,
+      1.746181
+    ],
+    "rtt_ms": 100,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        100,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R100_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R120_Aligned_Run1",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R120_Aligned",
+    "run": 1,
+    "seed": 8000,
+    "starts": [
+      1.577701,
+      1.049034
+    ],
+    "rtt_ms": 120,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        120
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R120_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R120_Aligned_Run2",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R120_Aligned",
+    "run": 2,
+    "seed": 8001,
+    "starts": [
+      1.584629,
+      1.841862
+    ],
+    "rtt_ms": 120,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        120
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R120_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R120_Aligned_Run3",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R120_Aligned",
+    "run": 3,
+    "seed": 8002,
+    "starts": [
+      1.547612,
+      1.396781
+    ],
+    "rtt_ms": 120,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        120
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R120_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R120_Aligned_Run4",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R120_Aligned",
+    "run": 4,
+    "seed": 8003,
+    "starts": [
+      1.236528,
+      1.485419
+    ],
+    "rtt_ms": 120,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        120
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R120_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R120_Aligned_Run5",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R120_Aligned",
+    "run": 5,
+    "seed": 8004,
+    "starts": [
+      1.469026,
+      1.746181
+    ],
+    "rtt_ms": 120,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        120
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R120_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R120_Mirrored_Run1",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R120_Mirrored",
+    "run": 1,
+    "seed": 8000,
+    "starts": [
+      1.577701,
+      1.049034
+    ],
+    "rtt_ms": 120,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        120,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R120_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R120_Mirrored_Run2",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R120_Mirrored",
+    "run": 2,
+    "seed": 8001,
+    "starts": [
+      1.584629,
+      1.841862
+    ],
+    "rtt_ms": 120,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        120,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R120_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R120_Mirrored_Run3",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R120_Mirrored",
+    "run": 3,
+    "seed": 8002,
+    "starts": [
+      1.547612,
+      1.396781
+    ],
+    "rtt_ms": 120,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        120,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R120_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R120_Mirrored_Run4",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R120_Mirrored",
+    "run": 4,
+    "seed": 8003,
+    "starts": [
+      1.236528,
+      1.485419
+    ],
+    "rtt_ms": 120,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        120,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R120_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R120_Mirrored_Run5",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R120_Mirrored",
+    "run": 5,
+    "seed": 8004,
+    "starts": [
+      1.469026,
+      1.746181
+    ],
+    "rtt_ms": 120,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        120,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R120_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R140_Aligned_Run1",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R140_Aligned",
+    "run": 1,
+    "seed": 8000,
+    "starts": [
+      1.577701,
+      1.049034
+    ],
+    "rtt_ms": 140,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        140
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R140_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R140_Aligned_Run2",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R140_Aligned",
+    "run": 2,
+    "seed": 8001,
+    "starts": [
+      1.584629,
+      1.841862
+    ],
+    "rtt_ms": 140,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        140
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R140_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R140_Aligned_Run3",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R140_Aligned",
+    "run": 3,
+    "seed": 8002,
+    "starts": [
+      1.547612,
+      1.396781
+    ],
+    "rtt_ms": 140,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        140
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R140_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R140_Aligned_Run4",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R140_Aligned",
+    "run": 4,
+    "seed": 8003,
+    "starts": [
+      1.236528,
+      1.485419
+    ],
+    "rtt_ms": 140,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        140
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R140_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R140_Aligned_Run5",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R140_Aligned",
+    "run": 5,
+    "seed": 8004,
+    "starts": [
+      1.469026,
+      1.746181
+    ],
+    "rtt_ms": 140,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        140
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R140_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R140_Mirrored_Run1",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R140_Mirrored",
+    "run": 1,
+    "seed": 8000,
+    "starts": [
+      1.577701,
+      1.049034
+    ],
+    "rtt_ms": 140,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        140,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R140_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R140_Mirrored_Run2",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R140_Mirrored",
+    "run": 2,
+    "seed": 8001,
+    "starts": [
+      1.584629,
+      1.841862
+    ],
+    "rtt_ms": 140,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        140,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R140_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R140_Mirrored_Run3",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R140_Mirrored",
+    "run": 3,
+    "seed": 8002,
+    "starts": [
+      1.547612,
+      1.396781
+    ],
+    "rtt_ms": 140,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        140,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R140_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R140_Mirrored_Run4",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R140_Mirrored",
+    "run": 4,
+    "seed": 8003,
+    "starts": [
+      1.236528,
+      1.485419
+    ],
+    "rtt_ms": 140,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        140,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R140_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R140_Mirrored_Run5",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R140_Mirrored",
+    "run": 5,
+    "seed": 8004,
+    "starts": [
+      1.469026,
+      1.746181
+    ],
+    "rtt_ms": 140,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        140,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R140_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R160_Aligned_Run1",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R160_Aligned",
+    "run": 1,
+    "seed": 8000,
+    "starts": [
+      1.577701,
+      1.049034
+    ],
+    "rtt_ms": 160,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        160
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R160_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R160_Aligned_Run2",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R160_Aligned",
+    "run": 2,
+    "seed": 8001,
+    "starts": [
+      1.584629,
+      1.841862
+    ],
+    "rtt_ms": 160,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        160
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R160_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R160_Aligned_Run3",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R160_Aligned",
+    "run": 3,
+    "seed": 8002,
+    "starts": [
+      1.547612,
+      1.396781
+    ],
+    "rtt_ms": 160,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        160
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R160_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R160_Aligned_Run4",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R160_Aligned",
+    "run": 4,
+    "seed": 8003,
+    "starts": [
+      1.236528,
+      1.485419
+    ],
+    "rtt_ms": 160,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        160
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R160_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R160_Aligned_Run5",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R160_Aligned",
+    "run": 5,
+    "seed": 8004,
+    "starts": [
+      1.469026,
+      1.746181
+    ],
+    "rtt_ms": 160,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        160
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R160_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R160_Mirrored_Run1",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R160_Mirrored",
+    "run": 1,
+    "seed": 8000,
+    "starts": [
+      1.577701,
+      1.049034
+    ],
+    "rtt_ms": 160,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        160,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R160_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R160_Mirrored_Run2",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R160_Mirrored",
+    "run": 2,
+    "seed": 8001,
+    "starts": [
+      1.584629,
+      1.841862
+    ],
+    "rtt_ms": 160,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        160,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R160_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R160_Mirrored_Run3",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R160_Mirrored",
+    "run": 3,
+    "seed": 8002,
+    "starts": [
+      1.547612,
+      1.396781
+    ],
+    "rtt_ms": 160,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        160,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R160_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R160_Mirrored_Run4",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R160_Mirrored",
+    "run": 4,
+    "seed": 8003,
+    "starts": [
+      1.236528,
+      1.485419
+    ],
+    "rtt_ms": 160,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        160,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R160_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R160_Mirrored_Run5",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R160_Mirrored",
+    "run": 5,
+    "seed": 8004,
+    "starts": [
+      1.469026,
+      1.746181
+    ],
+    "rtt_ms": 160,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        160,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R160_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R180_Aligned_Run1",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R180_Aligned",
+    "run": 1,
+    "seed": 8000,
+    "starts": [
+      1.577701,
+      1.049034
+    ],
+    "rtt_ms": 180,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        180
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R180_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R180_Aligned_Run2",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R180_Aligned",
+    "run": 2,
+    "seed": 8001,
+    "starts": [
+      1.584629,
+      1.841862
+    ],
+    "rtt_ms": 180,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        180
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R180_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R180_Aligned_Run3",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R180_Aligned",
+    "run": 3,
+    "seed": 8002,
+    "starts": [
+      1.547612,
+      1.396781
+    ],
+    "rtt_ms": 180,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        180
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R180_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R180_Aligned_Run4",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R180_Aligned",
+    "run": 4,
+    "seed": 8003,
+    "starts": [
+      1.236528,
+      1.485419
+    ],
+    "rtt_ms": 180,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        180
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R180_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R180_Aligned_Run5",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R180_Aligned",
+    "run": 5,
+    "seed": 8004,
+    "starts": [
+      1.469026,
+      1.746181
+    ],
+    "rtt_ms": 180,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        180
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R180_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R180_Mirrored_Run1",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R180_Mirrored",
+    "run": 1,
+    "seed": 8000,
+    "starts": [
+      1.577701,
+      1.049034
+    ],
+    "rtt_ms": 180,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        180,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R180_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R180_Mirrored_Run2",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R180_Mirrored",
+    "run": 2,
+    "seed": 8001,
+    "starts": [
+      1.584629,
+      1.841862
+    ],
+    "rtt_ms": 180,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        180,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R180_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R180_Mirrored_Run3",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R180_Mirrored",
+    "run": 3,
+    "seed": 8002,
+    "starts": [
+      1.547612,
+      1.396781
+    ],
+    "rtt_ms": 180,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        180,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R180_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R180_Mirrored_Run4",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R180_Mirrored",
+    "run": 4,
+    "seed": 8003,
+    "starts": [
+      1.236528,
+      1.485419
+    ],
+    "rtt_ms": 180,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        180,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R180_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R180_Mirrored_Run5",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R180_Mirrored",
+    "run": 5,
+    "seed": 8004,
+    "starts": [
+      1.469026,
+      1.746181
+    ],
+    "rtt_ms": 180,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        180,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R180_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R200_Aligned_Run1",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R200_Aligned",
+    "run": 1,
+    "seed": 8000,
+    "starts": [
+      1.577701,
+      1.049034
+    ],
+    "rtt_ms": 200,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        200
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R200_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R200_Aligned_Run2",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R200_Aligned",
+    "run": 2,
+    "seed": 8001,
+    "starts": [
+      1.584629,
+      1.841862
+    ],
+    "rtt_ms": 200,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        200
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R200_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R200_Aligned_Run3",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R200_Aligned",
+    "run": 3,
+    "seed": 8002,
+    "starts": [
+      1.547612,
+      1.396781
+    ],
+    "rtt_ms": 200,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        200
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R200_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R200_Aligned_Run4",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R200_Aligned",
+    "run": 4,
+    "seed": 8003,
+    "starts": [
+      1.236528,
+      1.485419
+    ],
+    "rtt_ms": 200,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        200
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R200_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R200_Aligned_Run5",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R200_Aligned",
+    "run": 5,
+    "seed": 8004,
+    "starts": [
+      1.469026,
+      1.746181
+    ],
+    "rtt_ms": 200,
+    "layout": "Aligned",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        20,
+        200
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R200_Aligned.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R200_Mirrored_Run1",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R200_Mirrored",
+    "run": 1,
+    "seed": 8000,
+    "starts": [
+      1.577701,
+      1.049034
+    ],
+    "rtt_ms": 200,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        200,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R200_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R200_Mirrored_Run2",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R200_Mirrored",
+    "run": 2,
+    "seed": 8001,
+    "starts": [
+      1.584629,
+      1.841862
+    ],
+    "rtt_ms": 200,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        200,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R200_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R200_Mirrored_Run3",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R200_Mirrored",
+    "run": 3,
+    "seed": 8002,
+    "starts": [
+      1.547612,
+      1.396781
+    ],
+    "rtt_ms": 200,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        200,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R200_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R200_Mirrored_Run4",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R200_Mirrored",
+    "run": 4,
+    "seed": 8003,
+    "starts": [
+      1.236528,
+      1.485419
+    ],
+    "rtt_ms": 200,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        200,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R200_Mirrored.xml"
+  },
+  {
+    "config": "OrbUncoupled_IntraRtt_R200_Mirrored_Run5",
+    "experiment": 4,
+    "protocol": "OrbUncoupled",
+    "tcp": "MpOrb",
+    "algorithm": "MpOrbUncoupled",
+    "case": "IntraRtt_R200_Mirrored",
+    "run": 5,
+    "seed": 8004,
+    "starts": [
+      1.469026,
+      1.746181
+    ],
+    "rtt_ms": 200,
+    "layout": "Mirrored",
+    "path_rtts_ms": [
+      [
+        20,
+        20
+      ],
+      [
+        200,
+        20
+      ]
+    ],
+    "connections": 2,
+    "subflows": 2,
+    "sim_time": 300,
+    "measurement_start": 10,
+    "measurement_end": 299,
+    "scenario": "scenarios/IntraRtt_R200_Mirrored.xml"
+  },
+  {
     "config": "CubicUncoupled_IntraRtt_R20_Aligned_Run1",
     "experiment": 4,
     "protocol": "CubicUncoupled",

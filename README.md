@@ -3,24 +3,26 @@
 This suite contains only four experiments: two-path responsiveness, responsiveness
 with loss, inter-connection RTT, and intra-connection RTT. Every connection has
 **two subflows**, one bound to each physical path. The controller order is
-**Delta, Omega, Alpha, CUBIC uncoupled**. Delta selects `MpOrbDelta`, the
+**Delta, Omega, Alpha, OrbCC uncoupled, CUBIC uncoupled**. Delta selects `MpOrbDelta`, the
 consolidated former Theta controller; Omega adds its underutilisation boost.
+The OrbCC baseline uses selector `OrbUncoupled` and algorithm `MpOrbUncoupled`,
+with independent OrbCC control on each of its two subflows.
 
 | Experiment | Setup | Default runs |
 | --- | --- | ---: |
-| 1 | One two-subflow connection; independent path RTT/bandwidth and brief outages every 15 s. | 200 |
-| 2 | Experiment 1 plus independent forward packet loss on each path. | 200 |
-| 3 | Two connections sharing both bottlenecks throughout; A RTTs=(50,50) ms, B=(R,R). | 220 |
-| 4 | Two connections sharing both bottlenecks throughout; A=(20,20) ms, B=(20,R), with mirrored B=(R,20). | 380 |
+| 1 | One two-subflow connection; independent path RTT/bandwidth and brief outages every 15 s. | 250 |
+| 2 | Experiment 1 plus independent forward packet loss on each path. | 250 |
+| 3 | Two connections sharing both bottlenecks throughout; A RTTs=(50,50) ms, B=(R,R). | 275 |
+| 4 | Two connections sharing both bottlenecks throughout; A=(20,20) ms, B=(20,R), with mirrored B=(R,20). | 475 |
 
-All four controllers use **50 paired trials each in experiments 1/2**, matching
+All five controllers use **50 paired trials each in experiments 1/2**, matching
 OrbTCP's responsiveness trial count. Each controller's CDF therefore contains
 50 per-run averages when all trials complete. Experiments 3/4 retain **five
 paired seeds per controller and RTT/layout case**. Experiment 3 sweeps
 R=20,40,50,60,80,100,120,140,160,180,200 ms;
 50 ms provides an equal-RTT control. Experiment 4 sweeps R=20,40,...,200 ms;
 the symmetric R=20 control runs once per seed/controller, while the other nine
-values have both path assignments. Total: **1,000 simulations**, not launched by
+values have both path assignments. Total: **1,250 simulations**, not launched by
 input generation. The default duration is 300 s, measuring [10 s, 299 s].
 
 ## Traffic and paths
@@ -72,7 +74,7 @@ ground stations, or terminal-specific catalogs are involved.
 ## Queues and telemetry
 
 Only forward bottleneck queues `left[0].ppp[0].queue` and
-`left[1].ppp[0].queue` use PINT. Alpha and the CUBIC comparison use `PintQueue`;
+`left[1].ppp[0].queue` use PINT. Alpha, OrbCC uncoupled, and the CUBIC comparison use `PintQueue`;
 Delta and Omega use `MpOrbDeltaQueue` with coefficient 0.05 and
 RTT-based interval selection. Access and reverse queues are ordinary DropTail,
 so they issue no shuffle. Base `PintQueue` is not changed.
@@ -124,7 +126,7 @@ MpORB libraries and the workspace Python environment:
 .venv/bin/python samples/mporbExperiments/simulations/pythonScripts/experiment1/runExperiment1.py --configs Alpha_Responsiveness_Run1 --cores 1
 
 # Run only the two RTT experiments, selecting selected RTT values and controllers.
-.venv/bin/python samples/mporbExperiments/simulations/pythonScripts/runExperiments.py --experiments 3 4 --protocols Delta Omega Alpha CubicUncoupled --rtts 20 50 100 200 --cores 10
+.venv/bin/python samples/mporbExperiments/simulations/pythonScripts/runExperiments.py --experiments 3 4 --protocols Delta Omega Alpha OrbUncoupled CubicUncoupled --rtts 20 50 100 200 --cores 10
 
 # A bounded smoke check that crosses the first 15 s outage.
 .venv/bin/python samples/mporbExperiments/simulations/pythonScripts/experiment2/runExperiment2.py --configs Delta_ResponsivenessLoss_Run1 --sim-time 18 --cores 1
@@ -265,4 +267,4 @@ Two additional 18 s checks with the final recording set completed simulation,
 export, extraction, summary plots, and all 22 individual metric figures. Their
 raw vectors contain only the requested metrics; queue vectors come only from
 bottleneck queues. These bounded runs are not full-duration controller comparisons.
-The complete 1,000-run matrix has not been executed.
+The complete 1,250-run matrix has not been executed.
