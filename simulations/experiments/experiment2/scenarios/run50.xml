@@ -1,0 +1,976 @@
+<scenario>
+  <at t="0s">
+    <set-channel-param src-module="left[0]" src-gate="pppg$o[0]" par="datarate" value="69Mbps" />
+    <set-channel-param src-module="left[0]" src-gate="pppg$o[0]" par="delay" value="7.5ms" />
+    <set-channel-param src-module="left[0]" src-gate="pppg$o[0]" par="per" value="0.0076" />
+    <set-channel-param src-module="right[0]" src-gate="pppg$o[0]" par="datarate" value="69Mbps" />
+    <set-channel-param src-module="right[0]" src-gate="pppg$o[0]" par="delay" value="7.5ms" />
+    <set-channel-param src-module="right[0]" src-gate="pppg$o[0]" par="per" value="0" />
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[0]" par="delay" value="7.5ms" />
+    <set-channel-param src-module="left[0]" src-gate="pppg$o[1]" par="delay" value="7.5ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[0]" par="delay" value="7.5ms" />
+    <set-channel-param src-module="right[0]" src-gate="pppg$o[1]" par="delay" value="7.5ms" />
+  </at>
+  <at t="0s">
+    <set-channel-param src-module="left[1]" src-gate="pppg$o[0]" par="datarate" value="87Mbps" />
+    <set-channel-param src-module="left[1]" src-gate="pppg$o[0]" par="delay" value="2.66666666667ms" />
+    <set-channel-param src-module="left[1]" src-gate="pppg$o[0]" par="per" value="0.0087" />
+    <set-channel-param src-module="right[1]" src-gate="pppg$o[0]" par="datarate" value="87Mbps" />
+    <set-channel-param src-module="right[1]" src-gate="pppg$o[0]" par="delay" value="2.66666666667ms" />
+    <set-channel-param src-module="right[1]" src-gate="pppg$o[0]" par="per" value="0" />
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[1]" par="delay" value="2.66666666667ms" />
+    <set-channel-param src-module="left[1]" src-gate="pppg$o[1]" par="delay" value="2.66666666667ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[1]" par="delay" value="2.66666666667ms" />
+    <set-channel-param src-module="right[1]" src-gate="pppg$o[1]" par="delay" value="2.66666666667ms" />
+  </at>
+  <at t="15s">
+    <disconnect src-module="left[0]" src-gate="pppg$o[0]" />
+    <crash module="left[0].ppp[0]" />
+    <disconnect src-module="right[0]" src-gate="pppg$o[0]" />
+    <crash module="right[0].ppp[0]" />
+  </at>
+  <at t="15s">
+    <disconnect src-module="left[1]" src-gate="pppg$o[0]" />
+    <crash module="left[1].ppp[0]" />
+    <disconnect src-module="right[1]" src-gate="pppg$o[0]" />
+    <crash module="right[1].ppp[0]" />
+  </at>
+  <at t="15.082s">
+    <connect src-module="left[0]" src-gate="pppg$o[0]" dest-module="right[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="82Mbps" />
+      <param name="delay" value="6.83333333333ms" />
+      <param name="per" value="0.0071" />
+    </connect>
+    <connect src-module="right[0]" src-gate="pppg$o[0]" dest-module="left[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="82Mbps" />
+      <param name="delay" value="6.83333333333ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[0]" par="delay" value="6.83333333333ms" />
+    <set-channel-param src-module="left[0]" src-gate="pppg$o[1]" par="delay" value="6.83333333333ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[0]" par="delay" value="6.83333333333ms" />
+    <set-channel-param src-module="right[0]" src-gate="pppg$o[1]" par="delay" value="6.83333333333ms" />
+    <start module="left[0].ppp[0]" />
+    <start module="right[0].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="15.09s">
+    <connect src-module="left[1]" src-gate="pppg$o[0]" dest-module="right[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="68Mbps" />
+      <param name="delay" value="14.8333333333ms" />
+      <param name="per" value="0.0066" />
+    </connect>
+    <connect src-module="right[1]" src-gate="pppg$o[0]" dest-module="left[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="68Mbps" />
+      <param name="delay" value="14.8333333333ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[1]" par="delay" value="14.8333333333ms" />
+    <set-channel-param src-module="left[1]" src-gate="pppg$o[1]" par="delay" value="14.8333333333ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[1]" par="delay" value="14.8333333333ms" />
+    <set-channel-param src-module="right[1]" src-gate="pppg$o[1]" par="delay" value="14.8333333333ms" />
+    <start module="left[1].ppp[0]" />
+    <start module="right[1].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="30s">
+    <disconnect src-module="left[0]" src-gate="pppg$o[0]" />
+    <crash module="left[0].ppp[0]" />
+    <disconnect src-module="right[0]" src-gate="pppg$o[0]" />
+    <crash module="right[0].ppp[0]" />
+  </at>
+  <at t="30s">
+    <disconnect src-module="left[1]" src-gate="pppg$o[0]" />
+    <crash module="left[1].ppp[0]" />
+    <disconnect src-module="right[1]" src-gate="pppg$o[0]" />
+    <crash module="right[1].ppp[0]" />
+  </at>
+  <at t="30.103s">
+    <connect src-module="left[0]" src-gate="pppg$o[0]" dest-module="right[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="97Mbps" />
+      <param name="delay" value="12.3333333333ms" />
+      <param name="per" value="0.0062" />
+    </connect>
+    <connect src-module="right[0]" src-gate="pppg$o[0]" dest-module="left[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="97Mbps" />
+      <param name="delay" value="12.3333333333ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[0]" par="delay" value="12.3333333333ms" />
+    <set-channel-param src-module="left[0]" src-gate="pppg$o[1]" par="delay" value="12.3333333333ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[0]" par="delay" value="12.3333333333ms" />
+    <set-channel-param src-module="right[0]" src-gate="pppg$o[1]" par="delay" value="12.3333333333ms" />
+    <start module="left[0].ppp[0]" />
+    <start module="right[0].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="30.105s">
+    <connect src-module="left[1]" src-gate="pppg$o[0]" dest-module="right[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="58Mbps" />
+      <param name="delay" value="14.8333333333ms" />
+      <param name="per" value="0.0093" />
+    </connect>
+    <connect src-module="right[1]" src-gate="pppg$o[0]" dest-module="left[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="58Mbps" />
+      <param name="delay" value="14.8333333333ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[1]" par="delay" value="14.8333333333ms" />
+    <set-channel-param src-module="left[1]" src-gate="pppg$o[1]" par="delay" value="14.8333333333ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[1]" par="delay" value="14.8333333333ms" />
+    <set-channel-param src-module="right[1]" src-gate="pppg$o[1]" par="delay" value="14.8333333333ms" />
+    <start module="left[1].ppp[0]" />
+    <start module="right[1].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="45s">
+    <disconnect src-module="left[0]" src-gate="pppg$o[0]" />
+    <crash module="left[0].ppp[0]" />
+    <disconnect src-module="right[0]" src-gate="pppg$o[0]" />
+    <crash module="right[0].ppp[0]" />
+  </at>
+  <at t="45s">
+    <disconnect src-module="left[1]" src-gate="pppg$o[0]" />
+    <crash module="left[1].ppp[0]" />
+    <disconnect src-module="right[1]" src-gate="pppg$o[0]" />
+    <crash module="right[1].ppp[0]" />
+  </at>
+  <at t="45.054s">
+    <connect src-module="left[1]" src-gate="pppg$o[0]" dest-module="right[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="66Mbps" />
+      <param name="delay" value="0.333333333333ms" />
+      <param name="per" value="0.0013" />
+    </connect>
+    <connect src-module="right[1]" src-gate="pppg$o[0]" dest-module="left[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="66Mbps" />
+      <param name="delay" value="0.333333333333ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[1]" par="delay" value="0.333333333333ms" />
+    <set-channel-param src-module="left[1]" src-gate="pppg$o[1]" par="delay" value="0.333333333333ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[1]" par="delay" value="0.333333333333ms" />
+    <set-channel-param src-module="right[1]" src-gate="pppg$o[1]" par="delay" value="0.333333333333ms" />
+    <start module="left[1].ppp[0]" />
+    <start module="right[1].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="45.061s">
+    <connect src-module="left[0]" src-gate="pppg$o[0]" dest-module="right[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="59Mbps" />
+      <param name="delay" value="7.83333333333ms" />
+      <param name="per" value="0.0086" />
+    </connect>
+    <connect src-module="right[0]" src-gate="pppg$o[0]" dest-module="left[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="59Mbps" />
+      <param name="delay" value="7.83333333333ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[0]" par="delay" value="7.83333333333ms" />
+    <set-channel-param src-module="left[0]" src-gate="pppg$o[1]" par="delay" value="7.83333333333ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[0]" par="delay" value="7.83333333333ms" />
+    <set-channel-param src-module="right[0]" src-gate="pppg$o[1]" par="delay" value="7.83333333333ms" />
+    <start module="left[0].ppp[0]" />
+    <start module="right[0].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="60s">
+    <disconnect src-module="left[0]" src-gate="pppg$o[0]" />
+    <crash module="left[0].ppp[0]" />
+    <disconnect src-module="right[0]" src-gate="pppg$o[0]" />
+    <crash module="right[0].ppp[0]" />
+  </at>
+  <at t="60s">
+    <disconnect src-module="left[1]" src-gate="pppg$o[0]" />
+    <crash module="left[1].ppp[0]" />
+    <disconnect src-module="right[1]" src-gate="pppg$o[0]" />
+    <crash module="right[1].ppp[0]" />
+  </at>
+  <at t="60.076s">
+    <connect src-module="left[0]" src-gate="pppg$o[0]" dest-module="right[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="53Mbps" />
+      <param name="delay" value="16.5ms" />
+      <param name="per" value="0.0024" />
+    </connect>
+    <connect src-module="right[0]" src-gate="pppg$o[0]" dest-module="left[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="53Mbps" />
+      <param name="delay" value="16.5ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[0]" par="delay" value="16.5ms" />
+    <set-channel-param src-module="left[0]" src-gate="pppg$o[1]" par="delay" value="16.5ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[0]" par="delay" value="16.5ms" />
+    <set-channel-param src-module="right[0]" src-gate="pppg$o[1]" par="delay" value="16.5ms" />
+    <start module="left[0].ppp[0]" />
+    <start module="right[0].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="60.115s">
+    <connect src-module="left[1]" src-gate="pppg$o[0]" dest-module="right[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="76Mbps" />
+      <param name="delay" value="7.83333333333ms" />
+      <param name="per" value="0.0099" />
+    </connect>
+    <connect src-module="right[1]" src-gate="pppg$o[0]" dest-module="left[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="76Mbps" />
+      <param name="delay" value="7.83333333333ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[1]" par="delay" value="7.83333333333ms" />
+    <set-channel-param src-module="left[1]" src-gate="pppg$o[1]" par="delay" value="7.83333333333ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[1]" par="delay" value="7.83333333333ms" />
+    <set-channel-param src-module="right[1]" src-gate="pppg$o[1]" par="delay" value="7.83333333333ms" />
+    <start module="left[1].ppp[0]" />
+    <start module="right[1].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="75s">
+    <disconnect src-module="left[0]" src-gate="pppg$o[0]" />
+    <crash module="left[0].ppp[0]" />
+    <disconnect src-module="right[0]" src-gate="pppg$o[0]" />
+    <crash module="right[0].ppp[0]" />
+  </at>
+  <at t="75s">
+    <disconnect src-module="left[1]" src-gate="pppg$o[0]" />
+    <crash module="left[1].ppp[0]" />
+    <disconnect src-module="right[1]" src-gate="pppg$o[0]" />
+    <crash module="right[1].ppp[0]" />
+  </at>
+  <at t="75.046s">
+    <connect src-module="left[1]" src-gate="pppg$o[0]" dest-module="right[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="73Mbps" />
+      <param name="delay" value="8.5ms" />
+      <param name="per" value="0.0012" />
+    </connect>
+    <connect src-module="right[1]" src-gate="pppg$o[0]" dest-module="left[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="73Mbps" />
+      <param name="delay" value="8.5ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[1]" par="delay" value="8.5ms" />
+    <set-channel-param src-module="left[1]" src-gate="pppg$o[1]" par="delay" value="8.5ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[1]" par="delay" value="8.5ms" />
+    <set-channel-param src-module="right[1]" src-gate="pppg$o[1]" par="delay" value="8.5ms" />
+    <start module="left[1].ppp[0]" />
+    <start module="right[1].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="75.074s">
+    <connect src-module="left[0]" src-gate="pppg$o[0]" dest-module="right[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="99Mbps" />
+      <param name="delay" value="9.16666666667ms" />
+      <param name="per" value="0.0046" />
+    </connect>
+    <connect src-module="right[0]" src-gate="pppg$o[0]" dest-module="left[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="99Mbps" />
+      <param name="delay" value="9.16666666667ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[0]" par="delay" value="9.16666666667ms" />
+    <set-channel-param src-module="left[0]" src-gate="pppg$o[1]" par="delay" value="9.16666666667ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[0]" par="delay" value="9.16666666667ms" />
+    <set-channel-param src-module="right[0]" src-gate="pppg$o[1]" par="delay" value="9.16666666667ms" />
+    <start module="left[0].ppp[0]" />
+    <start module="right[0].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="90s">
+    <disconnect src-module="left[0]" src-gate="pppg$o[0]" />
+    <crash module="left[0].ppp[0]" />
+    <disconnect src-module="right[0]" src-gate="pppg$o[0]" />
+    <crash module="right[0].ppp[0]" />
+  </at>
+  <at t="90s">
+    <disconnect src-module="left[1]" src-gate="pppg$o[0]" />
+    <crash module="left[1].ppp[0]" />
+    <disconnect src-module="right[1]" src-gate="pppg$o[0]" />
+    <crash module="right[1].ppp[0]" />
+  </at>
+  <at t="90.103s">
+    <connect src-module="left[1]" src-gate="pppg$o[0]" dest-module="right[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="97Mbps" />
+      <param name="delay" value="11.5ms" />
+      <param name="per" value="0.0046" />
+    </connect>
+    <connect src-module="right[1]" src-gate="pppg$o[0]" dest-module="left[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="97Mbps" />
+      <param name="delay" value="11.5ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[1]" par="delay" value="11.5ms" />
+    <set-channel-param src-module="left[1]" src-gate="pppg$o[1]" par="delay" value="11.5ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[1]" par="delay" value="11.5ms" />
+    <set-channel-param src-module="right[1]" src-gate="pppg$o[1]" par="delay" value="11.5ms" />
+    <start module="left[1].ppp[0]" />
+    <start module="right[1].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="90.111s">
+    <connect src-module="left[0]" src-gate="pppg$o[0]" dest-module="right[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="91Mbps" />
+      <param name="delay" value="13.8333333333ms" />
+      <param name="per" value="0.0061" />
+    </connect>
+    <connect src-module="right[0]" src-gate="pppg$o[0]" dest-module="left[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="91Mbps" />
+      <param name="delay" value="13.8333333333ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[0]" par="delay" value="13.8333333333ms" />
+    <set-channel-param src-module="left[0]" src-gate="pppg$o[1]" par="delay" value="13.8333333333ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[0]" par="delay" value="13.8333333333ms" />
+    <set-channel-param src-module="right[0]" src-gate="pppg$o[1]" par="delay" value="13.8333333333ms" />
+    <start module="left[0].ppp[0]" />
+    <start module="right[0].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="105s">
+    <disconnect src-module="left[0]" src-gate="pppg$o[0]" />
+    <crash module="left[0].ppp[0]" />
+    <disconnect src-module="right[0]" src-gate="pppg$o[0]" />
+    <crash module="right[0].ppp[0]" />
+  </at>
+  <at t="105s">
+    <disconnect src-module="left[1]" src-gate="pppg$o[0]" />
+    <crash module="left[1].ppp[0]" />
+    <disconnect src-module="right[1]" src-gate="pppg$o[0]" />
+    <crash module="right[1].ppp[0]" />
+  </at>
+  <at t="105.063s">
+    <connect src-module="left[1]" src-gate="pppg$o[0]" dest-module="right[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="76Mbps" />
+      <param name="delay" value="5.5ms" />
+      <param name="per" value="0.0023" />
+    </connect>
+    <connect src-module="right[1]" src-gate="pppg$o[0]" dest-module="left[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="76Mbps" />
+      <param name="delay" value="5.5ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[1]" par="delay" value="5.5ms" />
+    <set-channel-param src-module="left[1]" src-gate="pppg$o[1]" par="delay" value="5.5ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[1]" par="delay" value="5.5ms" />
+    <set-channel-param src-module="right[1]" src-gate="pppg$o[1]" par="delay" value="5.5ms" />
+    <start module="left[1].ppp[0]" />
+    <start module="right[1].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="105.078s">
+    <connect src-module="left[0]" src-gate="pppg$o[0]" dest-module="right[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="70Mbps" />
+      <param name="delay" value="3.66666666667ms" />
+      <param name="per" value="0.0054" />
+    </connect>
+    <connect src-module="right[0]" src-gate="pppg$o[0]" dest-module="left[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="70Mbps" />
+      <param name="delay" value="3.66666666667ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[0]" par="delay" value="3.66666666667ms" />
+    <set-channel-param src-module="left[0]" src-gate="pppg$o[1]" par="delay" value="3.66666666667ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[0]" par="delay" value="3.66666666667ms" />
+    <set-channel-param src-module="right[0]" src-gate="pppg$o[1]" par="delay" value="3.66666666667ms" />
+    <start module="left[0].ppp[0]" />
+    <start module="right[0].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="120s">
+    <disconnect src-module="left[0]" src-gate="pppg$o[0]" />
+    <crash module="left[0].ppp[0]" />
+    <disconnect src-module="right[0]" src-gate="pppg$o[0]" />
+    <crash module="right[0].ppp[0]" />
+  </at>
+  <at t="120s">
+    <disconnect src-module="left[1]" src-gate="pppg$o[0]" />
+    <crash module="left[1].ppp[0]" />
+    <disconnect src-module="right[1]" src-gate="pppg$o[0]" />
+    <crash module="right[1].ppp[0]" />
+  </at>
+  <at t="120.048s">
+    <connect src-module="left[1]" src-gate="pppg$o[0]" dest-module="right[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="76Mbps" />
+      <param name="delay" value="5.16666666667ms" />
+      <param name="per" value="0.0029" />
+    </connect>
+    <connect src-module="right[1]" src-gate="pppg$o[0]" dest-module="left[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="76Mbps" />
+      <param name="delay" value="5.16666666667ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[1]" par="delay" value="5.16666666667ms" />
+    <set-channel-param src-module="left[1]" src-gate="pppg$o[1]" par="delay" value="5.16666666667ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[1]" par="delay" value="5.16666666667ms" />
+    <set-channel-param src-module="right[1]" src-gate="pppg$o[1]" par="delay" value="5.16666666667ms" />
+    <start module="left[1].ppp[0]" />
+    <start module="right[1].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="120.088s">
+    <connect src-module="left[0]" src-gate="pppg$o[0]" dest-module="right[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="77Mbps" />
+      <param name="delay" value="2.33333333333ms" />
+      <param name="per" value="0.0006" />
+    </connect>
+    <connect src-module="right[0]" src-gate="pppg$o[0]" dest-module="left[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="77Mbps" />
+      <param name="delay" value="2.33333333333ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[0]" par="delay" value="2.33333333333ms" />
+    <set-channel-param src-module="left[0]" src-gate="pppg$o[1]" par="delay" value="2.33333333333ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[0]" par="delay" value="2.33333333333ms" />
+    <set-channel-param src-module="right[0]" src-gate="pppg$o[1]" par="delay" value="2.33333333333ms" />
+    <start module="left[0].ppp[0]" />
+    <start module="right[0].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="135s">
+    <disconnect src-module="left[0]" src-gate="pppg$o[0]" />
+    <crash module="left[0].ppp[0]" />
+    <disconnect src-module="right[0]" src-gate="pppg$o[0]" />
+    <crash module="right[0].ppp[0]" />
+  </at>
+  <at t="135s">
+    <disconnect src-module="left[1]" src-gate="pppg$o[0]" />
+    <crash module="left[1].ppp[0]" />
+    <disconnect src-module="right[1]" src-gate="pppg$o[0]" />
+    <crash module="right[1].ppp[0]" />
+  </at>
+  <at t="135.067s">
+    <connect src-module="left[0]" src-gate="pppg$o[0]" dest-module="right[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="68Mbps" />
+      <param name="delay" value="12.1666666667ms" />
+      <param name="per" value="0.0049" />
+    </connect>
+    <connect src-module="right[0]" src-gate="pppg$o[0]" dest-module="left[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="68Mbps" />
+      <param name="delay" value="12.1666666667ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[0]" par="delay" value="12.1666666667ms" />
+    <set-channel-param src-module="left[0]" src-gate="pppg$o[1]" par="delay" value="12.1666666667ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[0]" par="delay" value="12.1666666667ms" />
+    <set-channel-param src-module="right[0]" src-gate="pppg$o[1]" par="delay" value="12.1666666667ms" />
+    <start module="left[0].ppp[0]" />
+    <start module="right[0].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="135.093s">
+    <connect src-module="left[1]" src-gate="pppg$o[0]" dest-module="right[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="69Mbps" />
+      <param name="delay" value="15.3333333333ms" />
+      <param name="per" value="0.0079" />
+    </connect>
+    <connect src-module="right[1]" src-gate="pppg$o[0]" dest-module="left[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="69Mbps" />
+      <param name="delay" value="15.3333333333ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[1]" par="delay" value="15.3333333333ms" />
+    <set-channel-param src-module="left[1]" src-gate="pppg$o[1]" par="delay" value="15.3333333333ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[1]" par="delay" value="15.3333333333ms" />
+    <set-channel-param src-module="right[1]" src-gate="pppg$o[1]" par="delay" value="15.3333333333ms" />
+    <start module="left[1].ppp[0]" />
+    <start module="right[1].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="150s">
+    <disconnect src-module="left[0]" src-gate="pppg$o[0]" />
+    <crash module="left[0].ppp[0]" />
+    <disconnect src-module="right[0]" src-gate="pppg$o[0]" />
+    <crash module="right[0].ppp[0]" />
+  </at>
+  <at t="150s">
+    <disconnect src-module="left[1]" src-gate="pppg$o[0]" />
+    <crash module="left[1].ppp[0]" />
+    <disconnect src-module="right[1]" src-gate="pppg$o[0]" />
+    <crash module="right[1].ppp[0]" />
+  </at>
+  <at t="150.057s">
+    <connect src-module="left[1]" src-gate="pppg$o[0]" dest-module="right[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="96Mbps" />
+      <param name="delay" value="0.333333333333ms" />
+      <param name="per" value="0.0032" />
+    </connect>
+    <connect src-module="right[1]" src-gate="pppg$o[0]" dest-module="left[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="96Mbps" />
+      <param name="delay" value="0.333333333333ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[1]" par="delay" value="0.333333333333ms" />
+    <set-channel-param src-module="left[1]" src-gate="pppg$o[1]" par="delay" value="0.333333333333ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[1]" par="delay" value="0.333333333333ms" />
+    <set-channel-param src-module="right[1]" src-gate="pppg$o[1]" par="delay" value="0.333333333333ms" />
+    <start module="left[1].ppp[0]" />
+    <start module="right[1].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="150.118s">
+    <connect src-module="left[0]" src-gate="pppg$o[0]" dest-module="right[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="64Mbps" />
+      <param name="delay" value="0.166666666667ms" />
+      <param name="per" value="0.0088" />
+    </connect>
+    <connect src-module="right[0]" src-gate="pppg$o[0]" dest-module="left[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="64Mbps" />
+      <param name="delay" value="0.166666666667ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[0]" par="delay" value="0.166666666667ms" />
+    <set-channel-param src-module="left[0]" src-gate="pppg$o[1]" par="delay" value="0.166666666667ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[0]" par="delay" value="0.166666666667ms" />
+    <set-channel-param src-module="right[0]" src-gate="pppg$o[1]" par="delay" value="0.166666666667ms" />
+    <start module="left[0].ppp[0]" />
+    <start module="right[0].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="165s">
+    <disconnect src-module="left[0]" src-gate="pppg$o[0]" />
+    <crash module="left[0].ppp[0]" />
+    <disconnect src-module="right[0]" src-gate="pppg$o[0]" />
+    <crash module="right[0].ppp[0]" />
+  </at>
+  <at t="165s">
+    <disconnect src-module="left[1]" src-gate="pppg$o[0]" />
+    <crash module="left[1].ppp[0]" />
+    <disconnect src-module="right[1]" src-gate="pppg$o[0]" />
+    <crash module="right[1].ppp[0]" />
+  </at>
+  <at t="165.061s">
+    <connect src-module="left[1]" src-gate="pppg$o[0]" dest-module="right[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="52Mbps" />
+      <param name="delay" value="9.16666666667ms" />
+      <param name="per" value="0.0069" />
+    </connect>
+    <connect src-module="right[1]" src-gate="pppg$o[0]" dest-module="left[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="52Mbps" />
+      <param name="delay" value="9.16666666667ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[1]" par="delay" value="9.16666666667ms" />
+    <set-channel-param src-module="left[1]" src-gate="pppg$o[1]" par="delay" value="9.16666666667ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[1]" par="delay" value="9.16666666667ms" />
+    <set-channel-param src-module="right[1]" src-gate="pppg$o[1]" par="delay" value="9.16666666667ms" />
+    <start module="left[1].ppp[0]" />
+    <start module="right[1].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="165.065s">
+    <connect src-module="left[0]" src-gate="pppg$o[0]" dest-module="right[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="62Mbps" />
+      <param name="delay" value="9.66666666667ms" />
+      <param name="per" value="0.0006" />
+    </connect>
+    <connect src-module="right[0]" src-gate="pppg$o[0]" dest-module="left[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="62Mbps" />
+      <param name="delay" value="9.66666666667ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[0]" par="delay" value="9.66666666667ms" />
+    <set-channel-param src-module="left[0]" src-gate="pppg$o[1]" par="delay" value="9.66666666667ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[0]" par="delay" value="9.66666666667ms" />
+    <set-channel-param src-module="right[0]" src-gate="pppg$o[1]" par="delay" value="9.66666666667ms" />
+    <start module="left[0].ppp[0]" />
+    <start module="right[0].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="180s">
+    <disconnect src-module="left[0]" src-gate="pppg$o[0]" />
+    <crash module="left[0].ppp[0]" />
+    <disconnect src-module="right[0]" src-gate="pppg$o[0]" />
+    <crash module="right[0].ppp[0]" />
+  </at>
+  <at t="180s">
+    <disconnect src-module="left[1]" src-gate="pppg$o[0]" />
+    <crash module="left[1].ppp[0]" />
+    <disconnect src-module="right[1]" src-gate="pppg$o[0]" />
+    <crash module="right[1].ppp[0]" />
+  </at>
+  <at t="180.062s">
+    <connect src-module="left[1]" src-gate="pppg$o[0]" dest-module="right[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="80Mbps" />
+      <param name="delay" value="6.5ms" />
+      <param name="per" value="0.0065" />
+    </connect>
+    <connect src-module="right[1]" src-gate="pppg$o[0]" dest-module="left[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="80Mbps" />
+      <param name="delay" value="6.5ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[1]" par="delay" value="6.5ms" />
+    <set-channel-param src-module="left[1]" src-gate="pppg$o[1]" par="delay" value="6.5ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[1]" par="delay" value="6.5ms" />
+    <set-channel-param src-module="right[1]" src-gate="pppg$o[1]" par="delay" value="6.5ms" />
+    <start module="left[1].ppp[0]" />
+    <start module="right[1].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="180.075s">
+    <connect src-module="left[0]" src-gate="pppg$o[0]" dest-module="right[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="68Mbps" />
+      <param name="delay" value="7.5ms" />
+      <param name="per" value="0.0053" />
+    </connect>
+    <connect src-module="right[0]" src-gate="pppg$o[0]" dest-module="left[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="68Mbps" />
+      <param name="delay" value="7.5ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[0]" par="delay" value="7.5ms" />
+    <set-channel-param src-module="left[0]" src-gate="pppg$o[1]" par="delay" value="7.5ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[0]" par="delay" value="7.5ms" />
+    <set-channel-param src-module="right[0]" src-gate="pppg$o[1]" par="delay" value="7.5ms" />
+    <start module="left[0].ppp[0]" />
+    <start module="right[0].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="195s">
+    <disconnect src-module="left[0]" src-gate="pppg$o[0]" />
+    <crash module="left[0].ppp[0]" />
+    <disconnect src-module="right[0]" src-gate="pppg$o[0]" />
+    <crash module="right[0].ppp[0]" />
+  </at>
+  <at t="195s">
+    <disconnect src-module="left[1]" src-gate="pppg$o[0]" />
+    <crash module="left[1].ppp[0]" />
+    <disconnect src-module="right[1]" src-gate="pppg$o[0]" />
+    <crash module="right[1].ppp[0]" />
+  </at>
+  <at t="195.078s">
+    <connect src-module="left[1]" src-gate="pppg$o[0]" dest-module="right[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="51Mbps" />
+      <param name="delay" value="2ms" />
+      <param name="per" value="0.0075" />
+    </connect>
+    <connect src-module="right[1]" src-gate="pppg$o[0]" dest-module="left[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="51Mbps" />
+      <param name="delay" value="2ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[1]" par="delay" value="2ms" />
+    <set-channel-param src-module="left[1]" src-gate="pppg$o[1]" par="delay" value="2ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[1]" par="delay" value="2ms" />
+    <set-channel-param src-module="right[1]" src-gate="pppg$o[1]" par="delay" value="2ms" />
+    <start module="left[1].ppp[0]" />
+    <start module="right[1].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="195.114s">
+    <connect src-module="left[0]" src-gate="pppg$o[0]" dest-module="right[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="76Mbps" />
+      <param name="delay" value="16ms" />
+      <param name="per" value="0.0077" />
+    </connect>
+    <connect src-module="right[0]" src-gate="pppg$o[0]" dest-module="left[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="76Mbps" />
+      <param name="delay" value="16ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[0]" par="delay" value="16ms" />
+    <set-channel-param src-module="left[0]" src-gate="pppg$o[1]" par="delay" value="16ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[0]" par="delay" value="16ms" />
+    <set-channel-param src-module="right[0]" src-gate="pppg$o[1]" par="delay" value="16ms" />
+    <start module="left[0].ppp[0]" />
+    <start module="right[0].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="210s">
+    <disconnect src-module="left[0]" src-gate="pppg$o[0]" />
+    <crash module="left[0].ppp[0]" />
+    <disconnect src-module="right[0]" src-gate="pppg$o[0]" />
+    <crash module="right[0].ppp[0]" />
+  </at>
+  <at t="210s">
+    <disconnect src-module="left[1]" src-gate="pppg$o[0]" />
+    <crash module="left[1].ppp[0]" />
+    <disconnect src-module="right[1]" src-gate="pppg$o[0]" />
+    <crash module="right[1].ppp[0]" />
+  </at>
+  <at t="210.085s">
+    <connect src-module="left[0]" src-gate="pppg$o[0]" dest-module="right[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="97Mbps" />
+      <param name="delay" value="3.33333333333ms" />
+      <param name="per" value="0.0001" />
+    </connect>
+    <connect src-module="right[0]" src-gate="pppg$o[0]" dest-module="left[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="97Mbps" />
+      <param name="delay" value="3.33333333333ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[0]" par="delay" value="3.33333333333ms" />
+    <set-channel-param src-module="left[0]" src-gate="pppg$o[1]" par="delay" value="3.33333333333ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[0]" par="delay" value="3.33333333333ms" />
+    <set-channel-param src-module="right[0]" src-gate="pppg$o[1]" par="delay" value="3.33333333333ms" />
+    <start module="left[0].ppp[0]" />
+    <start module="right[0].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="210.115s">
+    <connect src-module="left[1]" src-gate="pppg$o[0]" dest-module="right[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="55Mbps" />
+      <param name="delay" value="3.66666666667ms" />
+      <param name="per" value="0.0099" />
+    </connect>
+    <connect src-module="right[1]" src-gate="pppg$o[0]" dest-module="left[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="55Mbps" />
+      <param name="delay" value="3.66666666667ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[1]" par="delay" value="3.66666666667ms" />
+    <set-channel-param src-module="left[1]" src-gate="pppg$o[1]" par="delay" value="3.66666666667ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[1]" par="delay" value="3.66666666667ms" />
+    <set-channel-param src-module="right[1]" src-gate="pppg$o[1]" par="delay" value="3.66666666667ms" />
+    <start module="left[1].ppp[0]" />
+    <start module="right[1].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="225s">
+    <disconnect src-module="left[0]" src-gate="pppg$o[0]" />
+    <crash module="left[0].ppp[0]" />
+    <disconnect src-module="right[0]" src-gate="pppg$o[0]" />
+    <crash module="right[0].ppp[0]" />
+  </at>
+  <at t="225s">
+    <disconnect src-module="left[1]" src-gate="pppg$o[0]" />
+    <crash module="left[1].ppp[0]" />
+    <disconnect src-module="right[1]" src-gate="pppg$o[0]" />
+    <crash module="right[1].ppp[0]" />
+  </at>
+  <at t="225.067s">
+    <connect src-module="left[0]" src-gate="pppg$o[0]" dest-module="right[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="100Mbps" />
+      <param name="delay" value="16.1666666667ms" />
+      <param name="per" value="0.0078" />
+    </connect>
+    <connect src-module="right[0]" src-gate="pppg$o[0]" dest-module="left[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="100Mbps" />
+      <param name="delay" value="16.1666666667ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[0]" par="delay" value="16.1666666667ms" />
+    <set-channel-param src-module="left[0]" src-gate="pppg$o[1]" par="delay" value="16.1666666667ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[0]" par="delay" value="16.1666666667ms" />
+    <set-channel-param src-module="right[0]" src-gate="pppg$o[1]" par="delay" value="16.1666666667ms" />
+    <start module="left[0].ppp[0]" />
+    <start module="right[0].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="225.105s">
+    <connect src-module="left[1]" src-gate="pppg$o[0]" dest-module="right[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="64Mbps" />
+      <param name="delay" value="1.16666666667ms" />
+      <param name="per" value="0.0033" />
+    </connect>
+    <connect src-module="right[1]" src-gate="pppg$o[0]" dest-module="left[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="64Mbps" />
+      <param name="delay" value="1.16666666667ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[1]" par="delay" value="1.16666666667ms" />
+    <set-channel-param src-module="left[1]" src-gate="pppg$o[1]" par="delay" value="1.16666666667ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[1]" par="delay" value="1.16666666667ms" />
+    <set-channel-param src-module="right[1]" src-gate="pppg$o[1]" par="delay" value="1.16666666667ms" />
+    <start module="left[1].ppp[0]" />
+    <start module="right[1].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="240s">
+    <disconnect src-module="left[0]" src-gate="pppg$o[0]" />
+    <crash module="left[0].ppp[0]" />
+    <disconnect src-module="right[0]" src-gate="pppg$o[0]" />
+    <crash module="right[0].ppp[0]" />
+  </at>
+  <at t="240s">
+    <disconnect src-module="left[1]" src-gate="pppg$o[0]" />
+    <crash module="left[1].ppp[0]" />
+    <disconnect src-module="right[1]" src-gate="pppg$o[0]" />
+    <crash module="right[1].ppp[0]" />
+  </at>
+  <at t="240.084s">
+    <connect src-module="left[1]" src-gate="pppg$o[0]" dest-module="right[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="64Mbps" />
+      <param name="delay" value="2.33333333333ms" />
+      <param name="per" value="0.0098" />
+    </connect>
+    <connect src-module="right[1]" src-gate="pppg$o[0]" dest-module="left[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="64Mbps" />
+      <param name="delay" value="2.33333333333ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[1]" par="delay" value="2.33333333333ms" />
+    <set-channel-param src-module="left[1]" src-gate="pppg$o[1]" par="delay" value="2.33333333333ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[1]" par="delay" value="2.33333333333ms" />
+    <set-channel-param src-module="right[1]" src-gate="pppg$o[1]" par="delay" value="2.33333333333ms" />
+    <start module="left[1].ppp[0]" />
+    <start module="right[1].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="240.088s">
+    <connect src-module="left[0]" src-gate="pppg$o[0]" dest-module="right[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="52Mbps" />
+      <param name="delay" value="13.3333333333ms" />
+      <param name="per" value="0.0007" />
+    </connect>
+    <connect src-module="right[0]" src-gate="pppg$o[0]" dest-module="left[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="52Mbps" />
+      <param name="delay" value="13.3333333333ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[0]" par="delay" value="13.3333333333ms" />
+    <set-channel-param src-module="left[0]" src-gate="pppg$o[1]" par="delay" value="13.3333333333ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[0]" par="delay" value="13.3333333333ms" />
+    <set-channel-param src-module="right[0]" src-gate="pppg$o[1]" par="delay" value="13.3333333333ms" />
+    <start module="left[0].ppp[0]" />
+    <start module="right[0].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="255s">
+    <disconnect src-module="left[0]" src-gate="pppg$o[0]" />
+    <crash module="left[0].ppp[0]" />
+    <disconnect src-module="right[0]" src-gate="pppg$o[0]" />
+    <crash module="right[0].ppp[0]" />
+  </at>
+  <at t="255s">
+    <disconnect src-module="left[1]" src-gate="pppg$o[0]" />
+    <crash module="left[1].ppp[0]" />
+    <disconnect src-module="right[1]" src-gate="pppg$o[0]" />
+    <crash module="right[1].ppp[0]" />
+  </at>
+  <at t="255.063s">
+    <connect src-module="left[1]" src-gate="pppg$o[0]" dest-module="right[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="83Mbps" />
+      <param name="delay" value="0.5ms" />
+      <param name="per" value="0.0086" />
+    </connect>
+    <connect src-module="right[1]" src-gate="pppg$o[0]" dest-module="left[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="83Mbps" />
+      <param name="delay" value="0.5ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[1]" par="delay" value="0.5ms" />
+    <set-channel-param src-module="left[1]" src-gate="pppg$o[1]" par="delay" value="0.5ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[1]" par="delay" value="0.5ms" />
+    <set-channel-param src-module="right[1]" src-gate="pppg$o[1]" par="delay" value="0.5ms" />
+    <start module="left[1].ppp[0]" />
+    <start module="right[1].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="255.088s">
+    <connect src-module="left[0]" src-gate="pppg$o[0]" dest-module="right[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="70Mbps" />
+      <param name="delay" value="9.66666666667ms" />
+      <param name="per" value="0.008" />
+    </connect>
+    <connect src-module="right[0]" src-gate="pppg$o[0]" dest-module="left[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="70Mbps" />
+      <param name="delay" value="9.66666666667ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[0]" par="delay" value="9.66666666667ms" />
+    <set-channel-param src-module="left[0]" src-gate="pppg$o[1]" par="delay" value="9.66666666667ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[0]" par="delay" value="9.66666666667ms" />
+    <set-channel-param src-module="right[0]" src-gate="pppg$o[1]" par="delay" value="9.66666666667ms" />
+    <start module="left[0].ppp[0]" />
+    <start module="right[0].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="270s">
+    <disconnect src-module="left[0]" src-gate="pppg$o[0]" />
+    <crash module="left[0].ppp[0]" />
+    <disconnect src-module="right[0]" src-gate="pppg$o[0]" />
+    <crash module="right[0].ppp[0]" />
+  </at>
+  <at t="270s">
+    <disconnect src-module="left[1]" src-gate="pppg$o[0]" />
+    <crash module="left[1].ppp[0]" />
+    <disconnect src-module="right[1]" src-gate="pppg$o[0]" />
+    <crash module="right[1].ppp[0]" />
+  </at>
+  <at t="270.101s">
+    <connect src-module="left[0]" src-gate="pppg$o[0]" dest-module="right[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="92Mbps" />
+      <param name="delay" value="8.33333333333ms" />
+      <param name="per" value="0.0026" />
+    </connect>
+    <connect src-module="right[0]" src-gate="pppg$o[0]" dest-module="left[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="92Mbps" />
+      <param name="delay" value="8.33333333333ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[0]" par="delay" value="8.33333333333ms" />
+    <set-channel-param src-module="left[0]" src-gate="pppg$o[1]" par="delay" value="8.33333333333ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[0]" par="delay" value="8.33333333333ms" />
+    <set-channel-param src-module="right[0]" src-gate="pppg$o[1]" par="delay" value="8.33333333333ms" />
+    <start module="left[0].ppp[0]" />
+    <start module="right[0].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="270.111s">
+    <connect src-module="left[1]" src-gate="pppg$o[0]" dest-module="right[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="89Mbps" />
+      <param name="delay" value="9.33333333333ms" />
+      <param name="per" value="0.0023" />
+    </connect>
+    <connect src-module="right[1]" src-gate="pppg$o[0]" dest-module="left[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="89Mbps" />
+      <param name="delay" value="9.33333333333ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[1]" par="delay" value="9.33333333333ms" />
+    <set-channel-param src-module="left[1]" src-gate="pppg$o[1]" par="delay" value="9.33333333333ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[1]" par="delay" value="9.33333333333ms" />
+    <set-channel-param src-module="right[1]" src-gate="pppg$o[1]" par="delay" value="9.33333333333ms" />
+    <start module="left[1].ppp[0]" />
+    <start module="right[1].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="285s">
+    <disconnect src-module="left[0]" src-gate="pppg$o[0]" />
+    <crash module="left[0].ppp[0]" />
+    <disconnect src-module="right[0]" src-gate="pppg$o[0]" />
+    <crash module="right[0].ppp[0]" />
+  </at>
+  <at t="285s">
+    <disconnect src-module="left[1]" src-gate="pppg$o[0]" />
+    <crash module="left[1].ppp[0]" />
+    <disconnect src-module="right[1]" src-gate="pppg$o[0]" />
+    <crash module="right[1].ppp[0]" />
+  </at>
+  <at t="285.058s">
+    <connect src-module="left[1]" src-gate="pppg$o[0]" dest-module="right[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="97Mbps" />
+      <param name="delay" value="14.5ms" />
+      <param name="per" value="0.0051" />
+    </connect>
+    <connect src-module="right[1]" src-gate="pppg$o[0]" dest-module="left[1]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="97Mbps" />
+      <param name="delay" value="14.5ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[1]" par="delay" value="14.5ms" />
+    <set-channel-param src-module="left[1]" src-gate="pppg$o[1]" par="delay" value="14.5ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[1]" par="delay" value="14.5ms" />
+    <set-channel-param src-module="right[1]" src-gate="pppg$o[1]" par="delay" value="14.5ms" />
+    <start module="left[1].ppp[0]" />
+    <start module="right[1].ppp[0]" />
+    <update module="configurator" />
+  </at>
+  <at t="285.083s">
+    <connect src-module="left[0]" src-gate="pppg$o[0]" dest-module="right[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="54Mbps" />
+      <param name="delay" value="5ms" />
+      <param name="per" value="0.0021" />
+    </connect>
+    <connect src-module="right[0]" src-gate="pppg$o[0]" dest-module="left[0]" dest-gate="pppg$i[0]" channel-type="ned.DatarateChannel">
+      <param name="datarate" value="54Mbps" />
+      <param name="delay" value="5ms" />
+      <param name="per" value="0" />
+    </connect>
+    <set-channel-param src-module="client[0]" src-gate="pppg$o[0]" par="delay" value="5ms" />
+    <set-channel-param src-module="left[0]" src-gate="pppg$o[1]" par="delay" value="5ms" />
+    <set-channel-param src-module="server[0]" src-gate="pppg$o[0]" par="delay" value="5ms" />
+    <set-channel-param src-module="right[0]" src-gate="pppg$o[1]" par="delay" value="5ms" />
+    <start module="left[0].ppp[0]" />
+    <start module="right[0].ppp[0]" />
+    <update module="configurator" />
+  </at>
+</scenario>

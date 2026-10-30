@@ -1,10 +1,10 @@
 [
   {
-    "config": "SenderDelta_InterRtt_R20_Run1",
+    "config": "Delta_InterRtt_R20_Run1",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R20",
     "run": 1,
     "seed": 8000,
@@ -32,11 +32,11 @@
     "scenario": "scenarios/InterRtt_R20.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R20_Run2",
+    "config": "Delta_InterRtt_R20_Run2",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R20",
     "run": 2,
     "seed": 8001,
@@ -64,11 +64,11 @@
     "scenario": "scenarios/InterRtt_R20.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R20_Run3",
+    "config": "Delta_InterRtt_R20_Run3",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R20",
     "run": 3,
     "seed": 8002,
@@ -96,11 +96,11 @@
     "scenario": "scenarios/InterRtt_R20.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R20_Run4",
+    "config": "Delta_InterRtt_R20_Run4",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R20",
     "run": 4,
     "seed": 8003,
@@ -128,11 +128,11 @@
     "scenario": "scenarios/InterRtt_R20.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R20_Run5",
+    "config": "Delta_InterRtt_R20_Run5",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R20",
     "run": 5,
     "seed": 8004,
@@ -160,11 +160,11 @@
     "scenario": "scenarios/InterRtt_R20.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R40_Run1",
+    "config": "Delta_InterRtt_R40_Run1",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R40",
     "run": 1,
     "seed": 8000,
@@ -192,11 +192,11 @@
     "scenario": "scenarios/InterRtt_R40.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R40_Run2",
+    "config": "Delta_InterRtt_R40_Run2",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R40",
     "run": 2,
     "seed": 8001,
@@ -224,11 +224,11 @@
     "scenario": "scenarios/InterRtt_R40.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R40_Run3",
+    "config": "Delta_InterRtt_R40_Run3",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R40",
     "run": 3,
     "seed": 8002,
@@ -256,11 +256,11 @@
     "scenario": "scenarios/InterRtt_R40.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R40_Run4",
+    "config": "Delta_InterRtt_R40_Run4",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R40",
     "run": 4,
     "seed": 8003,
@@ -288,11 +288,11 @@
     "scenario": "scenarios/InterRtt_R40.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R40_Run5",
+    "config": "Delta_InterRtt_R40_Run5",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R40",
     "run": 5,
     "seed": 8004,
@@ -320,11 +320,11 @@
     "scenario": "scenarios/InterRtt_R40.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R50_Run1",
+    "config": "Delta_InterRtt_R50_Run1",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R50",
     "run": 1,
     "seed": 8000,
@@ -352,11 +352,11 @@
     "scenario": "scenarios/InterRtt_R50.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R50_Run2",
+    "config": "Delta_InterRtt_R50_Run2",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R50",
     "run": 2,
     "seed": 8001,
@@ -384,11 +384,11 @@
     "scenario": "scenarios/InterRtt_R50.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R50_Run3",
+    "config": "Delta_InterRtt_R50_Run3",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R50",
     "run": 3,
     "seed": 8002,
@@ -416,11 +416,11 @@
     "scenario": "scenarios/InterRtt_R50.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R50_Run4",
+    "config": "Delta_InterRtt_R50_Run4",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R50",
     "run": 4,
     "seed": 8003,
@@ -448,11 +448,11 @@
     "scenario": "scenarios/InterRtt_R50.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R50_Run5",
+    "config": "Delta_InterRtt_R50_Run5",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R50",
     "run": 5,
     "seed": 8004,
@@ -480,11 +480,11 @@
     "scenario": "scenarios/InterRtt_R50.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R60_Run1",
+    "config": "Delta_InterRtt_R60_Run1",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R60",
     "run": 1,
     "seed": 8000,
@@ -512,11 +512,11 @@
     "scenario": "scenarios/InterRtt_R60.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R60_Run2",
+    "config": "Delta_InterRtt_R60_Run2",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R60",
     "run": 2,
     "seed": 8001,
@@ -544,11 +544,11 @@
     "scenario": "scenarios/InterRtt_R60.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R60_Run3",
+    "config": "Delta_InterRtt_R60_Run3",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R60",
     "run": 3,
     "seed": 8002,
@@ -576,11 +576,11 @@
     "scenario": "scenarios/InterRtt_R60.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R60_Run4",
+    "config": "Delta_InterRtt_R60_Run4",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R60",
     "run": 4,
     "seed": 8003,
@@ -608,11 +608,11 @@
     "scenario": "scenarios/InterRtt_R60.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R60_Run5",
+    "config": "Delta_InterRtt_R60_Run5",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R60",
     "run": 5,
     "seed": 8004,
@@ -640,11 +640,11 @@
     "scenario": "scenarios/InterRtt_R60.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R80_Run1",
+    "config": "Delta_InterRtt_R80_Run1",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R80",
     "run": 1,
     "seed": 8000,
@@ -672,11 +672,11 @@
     "scenario": "scenarios/InterRtt_R80.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R80_Run2",
+    "config": "Delta_InterRtt_R80_Run2",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R80",
     "run": 2,
     "seed": 8001,
@@ -704,11 +704,11 @@
     "scenario": "scenarios/InterRtt_R80.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R80_Run3",
+    "config": "Delta_InterRtt_R80_Run3",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R80",
     "run": 3,
     "seed": 8002,
@@ -736,11 +736,11 @@
     "scenario": "scenarios/InterRtt_R80.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R80_Run4",
+    "config": "Delta_InterRtt_R80_Run4",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R80",
     "run": 4,
     "seed": 8003,
@@ -768,11 +768,11 @@
     "scenario": "scenarios/InterRtt_R80.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R80_Run5",
+    "config": "Delta_InterRtt_R80_Run5",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R80",
     "run": 5,
     "seed": 8004,
@@ -800,11 +800,11 @@
     "scenario": "scenarios/InterRtt_R80.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R100_Run1",
+    "config": "Delta_InterRtt_R100_Run1",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R100",
     "run": 1,
     "seed": 8000,
@@ -832,11 +832,11 @@
     "scenario": "scenarios/InterRtt_R100.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R100_Run2",
+    "config": "Delta_InterRtt_R100_Run2",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R100",
     "run": 2,
     "seed": 8001,
@@ -864,11 +864,11 @@
     "scenario": "scenarios/InterRtt_R100.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R100_Run3",
+    "config": "Delta_InterRtt_R100_Run3",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R100",
     "run": 3,
     "seed": 8002,
@@ -896,11 +896,11 @@
     "scenario": "scenarios/InterRtt_R100.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R100_Run4",
+    "config": "Delta_InterRtt_R100_Run4",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R100",
     "run": 4,
     "seed": 8003,
@@ -928,11 +928,11 @@
     "scenario": "scenarios/InterRtt_R100.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R100_Run5",
+    "config": "Delta_InterRtt_R100_Run5",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R100",
     "run": 5,
     "seed": 8004,
@@ -960,11 +960,11 @@
     "scenario": "scenarios/InterRtt_R100.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R120_Run1",
+    "config": "Delta_InterRtt_R120_Run1",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R120",
     "run": 1,
     "seed": 8000,
@@ -992,11 +992,11 @@
     "scenario": "scenarios/InterRtt_R120.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R120_Run2",
+    "config": "Delta_InterRtt_R120_Run2",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R120",
     "run": 2,
     "seed": 8001,
@@ -1024,11 +1024,11 @@
     "scenario": "scenarios/InterRtt_R120.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R120_Run3",
+    "config": "Delta_InterRtt_R120_Run3",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R120",
     "run": 3,
     "seed": 8002,
@@ -1056,11 +1056,11 @@
     "scenario": "scenarios/InterRtt_R120.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R120_Run4",
+    "config": "Delta_InterRtt_R120_Run4",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R120",
     "run": 4,
     "seed": 8003,
@@ -1088,11 +1088,11 @@
     "scenario": "scenarios/InterRtt_R120.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R120_Run5",
+    "config": "Delta_InterRtt_R120_Run5",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R120",
     "run": 5,
     "seed": 8004,
@@ -1120,11 +1120,11 @@
     "scenario": "scenarios/InterRtt_R120.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R140_Run1",
+    "config": "Delta_InterRtt_R140_Run1",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R140",
     "run": 1,
     "seed": 8000,
@@ -1152,11 +1152,11 @@
     "scenario": "scenarios/InterRtt_R140.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R140_Run2",
+    "config": "Delta_InterRtt_R140_Run2",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R140",
     "run": 2,
     "seed": 8001,
@@ -1184,11 +1184,11 @@
     "scenario": "scenarios/InterRtt_R140.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R140_Run3",
+    "config": "Delta_InterRtt_R140_Run3",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R140",
     "run": 3,
     "seed": 8002,
@@ -1216,11 +1216,11 @@
     "scenario": "scenarios/InterRtt_R140.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R140_Run4",
+    "config": "Delta_InterRtt_R140_Run4",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R140",
     "run": 4,
     "seed": 8003,
@@ -1248,11 +1248,11 @@
     "scenario": "scenarios/InterRtt_R140.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R140_Run5",
+    "config": "Delta_InterRtt_R140_Run5",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R140",
     "run": 5,
     "seed": 8004,
@@ -1280,11 +1280,11 @@
     "scenario": "scenarios/InterRtt_R140.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R160_Run1",
+    "config": "Delta_InterRtt_R160_Run1",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R160",
     "run": 1,
     "seed": 8000,
@@ -1312,11 +1312,11 @@
     "scenario": "scenarios/InterRtt_R160.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R160_Run2",
+    "config": "Delta_InterRtt_R160_Run2",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R160",
     "run": 2,
     "seed": 8001,
@@ -1344,11 +1344,11 @@
     "scenario": "scenarios/InterRtt_R160.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R160_Run3",
+    "config": "Delta_InterRtt_R160_Run3",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R160",
     "run": 3,
     "seed": 8002,
@@ -1376,11 +1376,11 @@
     "scenario": "scenarios/InterRtt_R160.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R160_Run4",
+    "config": "Delta_InterRtt_R160_Run4",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R160",
     "run": 4,
     "seed": 8003,
@@ -1408,11 +1408,11 @@
     "scenario": "scenarios/InterRtt_R160.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R160_Run5",
+    "config": "Delta_InterRtt_R160_Run5",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R160",
     "run": 5,
     "seed": 8004,
@@ -1440,11 +1440,11 @@
     "scenario": "scenarios/InterRtt_R160.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R180_Run1",
+    "config": "Delta_InterRtt_R180_Run1",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R180",
     "run": 1,
     "seed": 8000,
@@ -1472,11 +1472,11 @@
     "scenario": "scenarios/InterRtt_R180.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R180_Run2",
+    "config": "Delta_InterRtt_R180_Run2",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R180",
     "run": 2,
     "seed": 8001,
@@ -1504,11 +1504,11 @@
     "scenario": "scenarios/InterRtt_R180.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R180_Run3",
+    "config": "Delta_InterRtt_R180_Run3",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R180",
     "run": 3,
     "seed": 8002,
@@ -1536,11 +1536,11 @@
     "scenario": "scenarios/InterRtt_R180.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R180_Run4",
+    "config": "Delta_InterRtt_R180_Run4",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R180",
     "run": 4,
     "seed": 8003,
@@ -1568,11 +1568,11 @@
     "scenario": "scenarios/InterRtt_R180.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R180_Run5",
+    "config": "Delta_InterRtt_R180_Run5",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R180",
     "run": 5,
     "seed": 8004,
@@ -1600,11 +1600,11 @@
     "scenario": "scenarios/InterRtt_R180.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R200_Run1",
+    "config": "Delta_InterRtt_R200_Run1",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R200",
     "run": 1,
     "seed": 8000,
@@ -1632,11 +1632,11 @@
     "scenario": "scenarios/InterRtt_R200.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R200_Run2",
+    "config": "Delta_InterRtt_R200_Run2",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R200",
     "run": 2,
     "seed": 8001,
@@ -1664,11 +1664,11 @@
     "scenario": "scenarios/InterRtt_R200.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R200_Run3",
+    "config": "Delta_InterRtt_R200_Run3",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R200",
     "run": 3,
     "seed": 8002,
@@ -1696,11 +1696,11 @@
     "scenario": "scenarios/InterRtt_R200.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R200_Run4",
+    "config": "Delta_InterRtt_R200_Run4",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R200",
     "run": 4,
     "seed": 8003,
@@ -1728,11 +1728,11 @@
     "scenario": "scenarios/InterRtt_R200.xml"
   },
   {
-    "config": "SenderDelta_InterRtt_R200_Run5",
+    "config": "Delta_InterRtt_R200_Run5",
     "experiment": 3,
-    "protocol": "SenderDelta",
+    "protocol": "Delta",
     "tcp": "MpOrb",
-    "algorithm": "MpOrbSenderDelta",
+    "algorithm": "MpOrbDelta",
     "case": "InterRtt_R200",
     "run": 5,
     "seed": 8004,
@@ -5253,1766 +5253,6 @@
     "protocol": "Alpha",
     "tcp": "MpOrb",
     "algorithm": "MpOrbSemiCoupledAlpha",
-    "case": "InterRtt_R200",
-    "run": 5,
-    "seed": 8004,
-    "starts": [
-      1.469026,
-      1.746181
-    ],
-    "rtt_ms": 200,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        200,
-        200
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R200.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R20_Run1",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R20",
-    "run": 1,
-    "seed": 8000,
-    "starts": [
-      1.577701,
-      1.049034
-    ],
-    "rtt_ms": 20,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        20,
-        20
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R20.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R20_Run2",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R20",
-    "run": 2,
-    "seed": 8001,
-    "starts": [
-      1.584629,
-      1.841862
-    ],
-    "rtt_ms": 20,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        20,
-        20
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R20.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R20_Run3",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R20",
-    "run": 3,
-    "seed": 8002,
-    "starts": [
-      1.547612,
-      1.396781
-    ],
-    "rtt_ms": 20,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        20,
-        20
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R20.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R20_Run4",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R20",
-    "run": 4,
-    "seed": 8003,
-    "starts": [
-      1.236528,
-      1.485419
-    ],
-    "rtt_ms": 20,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        20,
-        20
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R20.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R20_Run5",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R20",
-    "run": 5,
-    "seed": 8004,
-    "starts": [
-      1.469026,
-      1.746181
-    ],
-    "rtt_ms": 20,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        20,
-        20
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R20.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R40_Run1",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R40",
-    "run": 1,
-    "seed": 8000,
-    "starts": [
-      1.577701,
-      1.049034
-    ],
-    "rtt_ms": 40,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        40,
-        40
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R40.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R40_Run2",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R40",
-    "run": 2,
-    "seed": 8001,
-    "starts": [
-      1.584629,
-      1.841862
-    ],
-    "rtt_ms": 40,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        40,
-        40
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R40.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R40_Run3",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R40",
-    "run": 3,
-    "seed": 8002,
-    "starts": [
-      1.547612,
-      1.396781
-    ],
-    "rtt_ms": 40,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        40,
-        40
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R40.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R40_Run4",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R40",
-    "run": 4,
-    "seed": 8003,
-    "starts": [
-      1.236528,
-      1.485419
-    ],
-    "rtt_ms": 40,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        40,
-        40
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R40.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R40_Run5",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R40",
-    "run": 5,
-    "seed": 8004,
-    "starts": [
-      1.469026,
-      1.746181
-    ],
-    "rtt_ms": 40,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        40,
-        40
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R40.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R50_Run1",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R50",
-    "run": 1,
-    "seed": 8000,
-    "starts": [
-      1.577701,
-      1.049034
-    ],
-    "rtt_ms": 50,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        50,
-        50
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R50.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R50_Run2",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R50",
-    "run": 2,
-    "seed": 8001,
-    "starts": [
-      1.584629,
-      1.841862
-    ],
-    "rtt_ms": 50,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        50,
-        50
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R50.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R50_Run3",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R50",
-    "run": 3,
-    "seed": 8002,
-    "starts": [
-      1.547612,
-      1.396781
-    ],
-    "rtt_ms": 50,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        50,
-        50
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R50.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R50_Run4",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R50",
-    "run": 4,
-    "seed": 8003,
-    "starts": [
-      1.236528,
-      1.485419
-    ],
-    "rtt_ms": 50,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        50,
-        50
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R50.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R50_Run5",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R50",
-    "run": 5,
-    "seed": 8004,
-    "starts": [
-      1.469026,
-      1.746181
-    ],
-    "rtt_ms": 50,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        50,
-        50
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R50.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R60_Run1",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R60",
-    "run": 1,
-    "seed": 8000,
-    "starts": [
-      1.577701,
-      1.049034
-    ],
-    "rtt_ms": 60,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        60,
-        60
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R60.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R60_Run2",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R60",
-    "run": 2,
-    "seed": 8001,
-    "starts": [
-      1.584629,
-      1.841862
-    ],
-    "rtt_ms": 60,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        60,
-        60
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R60.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R60_Run3",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R60",
-    "run": 3,
-    "seed": 8002,
-    "starts": [
-      1.547612,
-      1.396781
-    ],
-    "rtt_ms": 60,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        60,
-        60
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R60.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R60_Run4",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R60",
-    "run": 4,
-    "seed": 8003,
-    "starts": [
-      1.236528,
-      1.485419
-    ],
-    "rtt_ms": 60,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        60,
-        60
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R60.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R60_Run5",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R60",
-    "run": 5,
-    "seed": 8004,
-    "starts": [
-      1.469026,
-      1.746181
-    ],
-    "rtt_ms": 60,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        60,
-        60
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R60.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R80_Run1",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R80",
-    "run": 1,
-    "seed": 8000,
-    "starts": [
-      1.577701,
-      1.049034
-    ],
-    "rtt_ms": 80,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        80,
-        80
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R80.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R80_Run2",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R80",
-    "run": 2,
-    "seed": 8001,
-    "starts": [
-      1.584629,
-      1.841862
-    ],
-    "rtt_ms": 80,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        80,
-        80
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R80.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R80_Run3",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R80",
-    "run": 3,
-    "seed": 8002,
-    "starts": [
-      1.547612,
-      1.396781
-    ],
-    "rtt_ms": 80,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        80,
-        80
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R80.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R80_Run4",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R80",
-    "run": 4,
-    "seed": 8003,
-    "starts": [
-      1.236528,
-      1.485419
-    ],
-    "rtt_ms": 80,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        80,
-        80
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R80.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R80_Run5",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R80",
-    "run": 5,
-    "seed": 8004,
-    "starts": [
-      1.469026,
-      1.746181
-    ],
-    "rtt_ms": 80,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        80,
-        80
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R80.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R100_Run1",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R100",
-    "run": 1,
-    "seed": 8000,
-    "starts": [
-      1.577701,
-      1.049034
-    ],
-    "rtt_ms": 100,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        100,
-        100
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R100.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R100_Run2",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R100",
-    "run": 2,
-    "seed": 8001,
-    "starts": [
-      1.584629,
-      1.841862
-    ],
-    "rtt_ms": 100,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        100,
-        100
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R100.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R100_Run3",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R100",
-    "run": 3,
-    "seed": 8002,
-    "starts": [
-      1.547612,
-      1.396781
-    ],
-    "rtt_ms": 100,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        100,
-        100
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R100.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R100_Run4",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R100",
-    "run": 4,
-    "seed": 8003,
-    "starts": [
-      1.236528,
-      1.485419
-    ],
-    "rtt_ms": 100,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        100,
-        100
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R100.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R100_Run5",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R100",
-    "run": 5,
-    "seed": 8004,
-    "starts": [
-      1.469026,
-      1.746181
-    ],
-    "rtt_ms": 100,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        100,
-        100
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R100.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R120_Run1",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R120",
-    "run": 1,
-    "seed": 8000,
-    "starts": [
-      1.577701,
-      1.049034
-    ],
-    "rtt_ms": 120,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        120,
-        120
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R120.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R120_Run2",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R120",
-    "run": 2,
-    "seed": 8001,
-    "starts": [
-      1.584629,
-      1.841862
-    ],
-    "rtt_ms": 120,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        120,
-        120
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R120.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R120_Run3",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R120",
-    "run": 3,
-    "seed": 8002,
-    "starts": [
-      1.547612,
-      1.396781
-    ],
-    "rtt_ms": 120,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        120,
-        120
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R120.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R120_Run4",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R120",
-    "run": 4,
-    "seed": 8003,
-    "starts": [
-      1.236528,
-      1.485419
-    ],
-    "rtt_ms": 120,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        120,
-        120
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R120.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R120_Run5",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R120",
-    "run": 5,
-    "seed": 8004,
-    "starts": [
-      1.469026,
-      1.746181
-    ],
-    "rtt_ms": 120,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        120,
-        120
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R120.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R140_Run1",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R140",
-    "run": 1,
-    "seed": 8000,
-    "starts": [
-      1.577701,
-      1.049034
-    ],
-    "rtt_ms": 140,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        140,
-        140
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R140.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R140_Run2",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R140",
-    "run": 2,
-    "seed": 8001,
-    "starts": [
-      1.584629,
-      1.841862
-    ],
-    "rtt_ms": 140,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        140,
-        140
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R140.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R140_Run3",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R140",
-    "run": 3,
-    "seed": 8002,
-    "starts": [
-      1.547612,
-      1.396781
-    ],
-    "rtt_ms": 140,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        140,
-        140
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R140.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R140_Run4",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R140",
-    "run": 4,
-    "seed": 8003,
-    "starts": [
-      1.236528,
-      1.485419
-    ],
-    "rtt_ms": 140,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        140,
-        140
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R140.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R140_Run5",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R140",
-    "run": 5,
-    "seed": 8004,
-    "starts": [
-      1.469026,
-      1.746181
-    ],
-    "rtt_ms": 140,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        140,
-        140
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R140.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R160_Run1",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R160",
-    "run": 1,
-    "seed": 8000,
-    "starts": [
-      1.577701,
-      1.049034
-    ],
-    "rtt_ms": 160,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        160,
-        160
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R160.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R160_Run2",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R160",
-    "run": 2,
-    "seed": 8001,
-    "starts": [
-      1.584629,
-      1.841862
-    ],
-    "rtt_ms": 160,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        160,
-        160
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R160.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R160_Run3",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R160",
-    "run": 3,
-    "seed": 8002,
-    "starts": [
-      1.547612,
-      1.396781
-    ],
-    "rtt_ms": 160,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        160,
-        160
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R160.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R160_Run4",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R160",
-    "run": 4,
-    "seed": 8003,
-    "starts": [
-      1.236528,
-      1.485419
-    ],
-    "rtt_ms": 160,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        160,
-        160
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R160.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R160_Run5",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R160",
-    "run": 5,
-    "seed": 8004,
-    "starts": [
-      1.469026,
-      1.746181
-    ],
-    "rtt_ms": 160,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        160,
-        160
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R160.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R180_Run1",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R180",
-    "run": 1,
-    "seed": 8000,
-    "starts": [
-      1.577701,
-      1.049034
-    ],
-    "rtt_ms": 180,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        180,
-        180
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R180.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R180_Run2",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R180",
-    "run": 2,
-    "seed": 8001,
-    "starts": [
-      1.584629,
-      1.841862
-    ],
-    "rtt_ms": 180,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        180,
-        180
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R180.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R180_Run3",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R180",
-    "run": 3,
-    "seed": 8002,
-    "starts": [
-      1.547612,
-      1.396781
-    ],
-    "rtt_ms": 180,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        180,
-        180
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R180.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R180_Run4",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R180",
-    "run": 4,
-    "seed": 8003,
-    "starts": [
-      1.236528,
-      1.485419
-    ],
-    "rtt_ms": 180,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        180,
-        180
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R180.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R180_Run5",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R180",
-    "run": 5,
-    "seed": 8004,
-    "starts": [
-      1.469026,
-      1.746181
-    ],
-    "rtt_ms": 180,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        180,
-        180
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R180.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R200_Run1",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R200",
-    "run": 1,
-    "seed": 8000,
-    "starts": [
-      1.577701,
-      1.049034
-    ],
-    "rtt_ms": 200,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        200,
-        200
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R200.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R200_Run2",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R200",
-    "run": 2,
-    "seed": 8001,
-    "starts": [
-      1.584629,
-      1.841862
-    ],
-    "rtt_ms": 200,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        200,
-        200
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R200.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R200_Run3",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R200",
-    "run": 3,
-    "seed": 8002,
-    "starts": [
-      1.547612,
-      1.396781
-    ],
-    "rtt_ms": 200,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        200,
-        200
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R200.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R200_Run4",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
-    "case": "InterRtt_R200",
-    "run": 4,
-    "seed": 8003,
-    "starts": [
-      1.236528,
-      1.485419
-    ],
-    "rtt_ms": 200,
-    "layout": null,
-    "path_rtts_ms": [
-      [
-        50,
-        50
-      ],
-      [
-        200,
-        200
-      ]
-    ],
-    "connections": 2,
-    "subflows": 2,
-    "sim_time": 300,
-    "measurement_start": 10,
-    "measurement_end": 299,
-    "scenario": "scenarios/InterRtt_R200.xml"
-  },
-  {
-    "config": "Theta_InterRtt_R200_Run5",
-    "experiment": 3,
-    "protocol": "Theta",
-    "tcp": "MpOrb",
-    "algorithm": "MpOrbSemiCoupledTheta",
     "case": "InterRtt_R200",
     "run": 5,
     "seed": 8004,

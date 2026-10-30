@@ -12,7 +12,7 @@ import subprocess
 import sys
 import threading
 
-from experiments import SIM_DIR, SAMPLES_DIR, REPO_DIR, PROTOCOLS, METRICS, recorded_metrics, directory, generate
+from experiments import SIM_DIR, SAMPLES_DIR, REPO_DIR, PROTOCOLS, METRICS, RUN_COUNTS, run_numbers, recorded_metrics, directory, generate
 
 PROJECTS = ('inet4.5', 'tcpGoodputApplications', 'tcpPaced', 'cubic', 'orbtcp', 'mptcp', 'mporb')
 ACTIVE = set()
@@ -182,7 +182,8 @@ def main(default_experiment=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--experiments', nargs='+', type=int, choices=range(1, 5), default=[default_experiment] if default_experiment else [1, 2, 3, 4])
     parser.add_argument('--protocols', nargs='+', choices=tuple(PROTOCOLS), default=list(PROTOCOLS))
-    parser.add_argument('--runs', type=int, choices=range(1, 6), default=5, help='Run seeds 1..N (default five)')
+    parser.add_argument('--runs', type=int, choices=range(1, max(RUN_COUNTS.values()) + 1),
+                        help='Limit seeds to 1..N; defaults to 50 trials for experiments 1/2 and five seeds for 3/4')
     parser.add_argument('--configs', nargs='+', help='Exact configuration names')
     parser.add_argument('--rtts', nargs='+', type=int, help='Restrict RTT-sweep values in ms')
     parser.add_argument('--cores', type=int, default=int(os.environ.get('EXPERIMENT_CORES', '2')))
@@ -201,10 +202,11 @@ def main(default_experiment=None):
         not math.isfinite(args.sim_time) or not 0 < args.sim_time <= 300 or
         not math.isfinite(args.sim_timeout_seconds) or args.sim_timeout_seconds <= 0):
         parser.error('Invalid worker count, steps, retries, duration or timeout')
+    args.experiments = sorted(set(args.experiments))
     configs = []
     for number in args.experiments:
         matrix = generate(number) if args.start_step == 1 and not args.skip_generate else json.loads((directory(number) / 'matrix.json').read_text())
-        configs += [c for c in matrix if c['protocol'] in args.protocols and c['run'] <= args.runs
+        configs += [c for c in matrix if c['protocol'] in args.protocols and c['run'] in run_numbers(number, args.runs)
                     and (not args.rtts or c['rtt_ms'] is None or c['rtt_ms'] in args.rtts)]
     if args.configs:
         unknown = set(args.configs) - {c['config'] for c in configs}
@@ -216,7 +218,7 @@ def main(default_experiment=None):
     for config in configs:
         config['sim_time'] = args.sim_time
         config['measurement_end'] = args.sim_time - 1
-    print(f'Selected {len(configs)} simulations')
+    print(f'Selected {len(configs)} simulations', flush=True)
     if args.dry_run:
         for config in configs:
             print(f'Experiment {config["experiment"]}: {config["config"]}')
@@ -227,31 +229,38 @@ def main(default_experiment=None):
         for package in ('numpy', 'matplotlib') if args.end_step >= 4 else ('numpy',):
             if importlib.util.find_spec(package) is None:
                 parser.error(f'Missing {package}; activate the workspace Python environment')
-    if args.start_step <= 1 <= args.end_step:
-        parallel(simulate, [(c, args) for c in configs], args.cores)
-    if args.start_step <= 2 <= args.end_step:
-        parallel(export, configs, args.cores)
-    if args.start_step <= 3 <= args.end_step:
-        for config in configs:
-            previous = completion(config)
-            raw = raw_path(config)
-            if previous is None or not raw.is_file() or raw.stat().st_mtime_ns < max(s[1] for s in previous['outputs'].values()):
-                raise RuntimeError(f'{config["config"]}: missing or stale export; run step 2')
-        from analyze import extract, write_summaries
-        from extractionResources import extraction_workers
-        summaries = parallel(extract, configs, extraction_workers(args.cores, len(configs)), processes=True)
-        write_summaries(summaries)
-    if args.start_step <= 4 <= args.end_step:
-        from analyze import plot
-        from plotMetrics import plot_metrics
-        if 'summary' in args.plots or 'all' in args.plots:
-            plot(configs)
-        for number in args.experiments:
-            selected = [c for c in configs if c['experiment'] == number]
-            if selected:
-                metrics = list(recorded_metrics(number)) if 'all' in args.plots else [m for m in args.plots if m != 'summary']
-                if metrics:
-                    plot_metrics(selected, metrics)
+    for number in args.experiments:
+        selected = [c for c in configs if c['experiment'] == number]
+        if not selected:
+            continue
+        print(f'Experiment {number}: {len(selected)} selected runs', flush=True)
+        if args.start_step <= 1 <= args.end_step:
+            print(f'Experiment {number}: simulate', flush=True)
+            parallel(simulate, [(c, args) for c in selected], args.cores)
+        if args.start_step <= 2 <= args.end_step:
+            print(f'Experiment {number}: export', flush=True)
+            parallel(export, selected, args.cores)
+        if args.start_step <= 3 <= args.end_step:
+            print(f'Experiment {number}: extract', flush=True)
+            for config in selected:
+                previous = completion(config)
+                raw = raw_path(config)
+                if previous is None or not raw.is_file() or raw.stat().st_mtime_ns < max(s[1] for s in previous['outputs'].values()):
+                    raise RuntimeError(f'{config["config"]}: missing or stale export; run step 2')
+            from analyze import extract, write_summaries
+            from extractionResources import extraction_workers
+            summaries = parallel(extract, selected, extraction_workers(args.cores, len(selected)), processes=True)
+            write_summaries(summaries)
+        if args.start_step <= 4 <= args.end_step:
+            print(f'Experiment {number}: plot', flush=True)
+            from analyze import plot
+            from plotMetrics import plot_metrics
+            if 'summary' in args.plots or 'all' in args.plots:
+                plot(selected)
+            metrics = list(recorded_metrics(number)) if 'all' in args.plots else [m for m in args.plots if m != 'summary']
+            if metrics:
+                plot_metrics(selected, metrics)
+        print(f'Experiment {number}: completed selected steps', flush=True)
 
 
 def run(default_experiment=None):

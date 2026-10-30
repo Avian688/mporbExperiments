@@ -11,6 +11,7 @@ import tempfile
 import numpy as np
 from experiments import SIM_DIR, PROTOCOLS, TCP_METRICS, QUEUE_METRICS, recorded_metrics, directory
 from streamScaveCsv import vector_records, tokens
+from plotStyle import CDF_SIZE, RTT_SIZE, MARKERS, plot_style, save_figure
 
 BLOCK = 65536
 RECEIVER_THREAD = re.compile(r'\.server\[(\d+)\]\.app\[0\]\.thread_\d+$')
@@ -194,7 +195,7 @@ def write_summaries(summaries):
         write_csv(directory(number) / 'csvs/summary.csv', rows)
 
 
-def read_summary(config, optional=False):
+def read_summary(config):
     root = directory(config['experiment'])
     path = root / 'csvs/extracted' / config['config'] / 'summary.json'
     if not path.is_file():
@@ -204,37 +205,17 @@ def read_summary(config, optional=False):
     valid = (all(summary.get(key) == value for key, value in config.items()) and raw.is_file() and
              summary['raw_stat'] == [raw.stat().st_size, raw.stat().st_mtime_ns])
     if not valid:
-        if optional:
-            return None
         raise ValueError(f'Stale or mismatched extraction for {config["config"]}')
     return summary
 
 
 def aggregate_summaries(configs):
-    """Include available matched experiment-1/2 counterparts, even from one launcher."""
+    """Load only the selected experiments and require matching measurement windows."""
     summaries = {}
     for config in configs:
         summary = read_summary(config)
         if summary is not None:
             summaries[(config['experiment'], config['config'])] = summary
-    requested = {(c['experiment'], c['config']) for c in configs}
-    for number in (1, 2):
-        manifest = directory(number) / 'matrix.json'
-        if not manifest.is_file():
-            continue
-        candidates = json.loads(manifest.read_text())
-        for source in configs:
-            if source['experiment'] not in (1, 2) or source['experiment'] == number:
-                continue
-            for candidate in candidates:
-                key = (number, candidate['config'])
-                if key in requested or key in summaries or candidate['protocol'] != source['protocol'] or candidate['run'] != source['run']:
-                    continue
-                candidate = dict(candidate, sim_time=source['sim_time'], measurement_start=source['measurement_start'],
-                                 measurement_end=source['measurement_end'])
-                summary = read_summary(candidate, optional=True)
-                if summary is not None:
-                    summaries[key] = summary
     values = list(summaries.values())
     if not values:
         raise ValueError('No extracted results to plot')
@@ -287,10 +268,12 @@ def ratio_observation(summary):
                 samples=len(ratios), both_idle_samples=int(np.count_nonzero(window & finite & (maximum == 0))))
 
 
-def plot_joint_cdf(summaries):
+@plot_style(aggregate=True, cdf=True)
+def plot_cdf(summaries):
     import matplotlib.pyplot as plt
     from matplotlib.lines import Line2D
-    output = SIM_DIR / 'plots/experiment1and2'
+    number = summaries[0]['experiment']
+    output = SIM_DIR / 'plots' / f'experiment{number}'
     output.mkdir(parents=True, exist_ok=True)
     observations, references = [], {}
     for summary in summaries:
@@ -303,44 +286,43 @@ def plot_joint_cdf(summaries):
         if math.isfinite(mean):
             references[(summary['run'], summary['seed'], capacity)] = capacity
     if not any(row['included'] for row in observations):
-        raise ValueError('No valid per-run goodput averages for the joint CDF')
-    fig, ax = plt.subplots(figsize=(8, 4), constrained_layout=True)
+        raise ValueError(f'Experiment {number}: no valid per-run goodput averages for the CDF')
+    fig = plt.figure(figsize=CDF_SIZE)
+    ax = fig.add_axes([.16, .28, .82, .57])
     present = set()
     for protocol, (_, _, label, color) in PROTOCOLS.items():
-        for number, linestyle in ((1, '-'), (2, '--')):
-            values = [r['average_goodput_mbps'] for r in observations if r['protocol'] == protocol and r['experiment'] == number]
-            x, y = cdf_points(values)
-            if len(x):
-                ax.step(x, y, where='post', color=color, linestyle=linestyle)
-                present.add(protocol)
+        values = [r['average_goodput_mbps'] for r in observations if r['protocol'] == protocol]
+        x, y = cdf_points(values)
+        if len(x):
+            ax.step(x, y, where='post', color=color)
+            present.add(protocol)
     x, y = cdf_points(references.values())
     ax.step(x, y, where='post', color='black')
     controller_handles = [Line2D([], [], color=PROTOCOLS[p][3], label=PROTOCOLS[p][2]) for p in PROTOCOLS if p in present]
     controller_handles.append(Line2D([], [], color='black', label='Capacity reference'))
-    legend = ax.legend(handles=controller_handles, loc='upper left', ncols=3, fontsize=8)
-    ax.add_artist(legend)
-    counts = {n: sum(r['included'] for r in observations if r['experiment'] == n) for n in (1, 2)}
-    ax.legend(handles=[Line2D([], [], color='gray', linestyle=style, label=label)
-                       for n, style, label in ((1, '-', 'RTT + bandwidth'), (2, '--', 'RTT + bandwidth + loss')) if counts[n]],
-              loc='lower right', fontsize=8)
-    ax.set(xlabel='Average application goodput per run (Mbps)', ylabel='% of trials', ylim=(0, 105), yticks=[0, 50, 100])
-    ax.grid(alpha=.2)
-    ax.set_title(f'Experiments 1+2: joint goodput CDF ({summaries[0]["sim_time"]:g} s; {counts[1]} / {counts[2]} runs)')
-    for suffix in ('png', 'pdf'):
-        fig.savefig(output / f'joined_goodput_cdf.{suffix}', dpi=180)
+    ax.legend(handles=controller_handles, loc='upper left', ncols=3, fontsize=7,
+              columnspacing=.8, handletextpad=.5)
+    ax.set(xlabel='Average Goodput (Mbps)',
+           ylabel=r'\% of Trials' if plt.rcParams['text.usetex'] else '% of Trials',
+           ylim=(0, 105), yticks=[0, 50, 100])
+    ax.set_title('Responsiveness' if number == 1 else 'Responsiveness with Loss')
+    save_figure(fig, output / 'goodput_cdf', aggregate=True)
     plt.close(fig)
     write_csv(output / 'plot_data.csv', observations)
     write_csv(output / 'capacity_reference.csv', [dict(run=run, seed=seed, average_capacity_mbps=value)
         for (run, seed, _), value in sorted(references.items())])
-    # Replace the former generated time-sample CDF outputs; individual plots remain.
-    for number in (1, 2):
-        for name in ('responsiveness.png', 'responsiveness.pdf', 'plot_data.csv'):
-            (SIM_DIR / 'plots' / f'experiment{number}' / name).unlink(missing_ok=True)
-    print(f'Joint CDF: {output}')
+    # Retire earlier generated comparisons; individual plots remain.
+    for name in ('responsiveness.png', 'responsiveness.pdf'):
+        (output / name).unlink(missing_ok=True)
+    for name in ('joined_goodput_cdf.png', 'joined_goodput_cdf.pdf', 'plot_data.csv', 'capacity_reference.csv'):
+        (SIM_DIR / 'plots/experiment1and2' / name).unlink(missing_ok=True)
+    print(f'Experiment {number} goodput CDF: {output}', flush=True)
 
 
+@plot_style(aggregate=True)
 def plot_ratios(summaries):
     import matplotlib.pyplot as plt
+    from matplotlib.ticker import ScalarFormatter
     number = summaries[0]['experiment']
     output = SIM_DIR / 'plots' / f'experiment{number}'
     output.mkdir(parents=True, exist_ok=True)
@@ -349,7 +331,7 @@ def plot_ratios(summaries):
         if any(row['layout'] == layout or row['rtt_ms'] == 20 for row in observations)]
     plot_data = []
     for layout in layouts:
-        fig, ax = plt.subplots(figsize=(7, 3.5), constrained_layout=True)
+        fig, ax = plt.subplots(figsize=RTT_SIZE)
         layout_runs = [r for r in observations if number == 3 or r['layout'] == layout or r['rtt_ms'] == 20]
         for protocol, (_, _, label, color) in PROTOCOLS.items():
             selected = [r for r in layout_runs if r['protocol'] == protocol]
@@ -365,16 +347,19 @@ def plot_ratios(summaries):
                 deviations.append(std)
                 plot_data.append(dict(protocol=protocol, layout=layout, rtt_ms=rtt,
                                       metric='goodput_ratio', n=len(values), mean=mean, std=std))
-            ax.errorbar(rtts, means, yerr=deviations, marker='o', capsize=3, color=color, label=label)
-        ax.set(xlabel='Swept propagation RTT R (ms)', ylabel='Goodput ratio (min / max)', ylim=(0, 1.05))
-        ax.axhline(1, color='gray', linestyle=':', linewidth=1)
-        ax.grid(alpha=.2)
-        ax.legend(fontsize=8, ncols=3)
-        ax.set_title(f'Experiment {number}: ' + ('inter-RTT' if number == 3 else f'intra-RTT ({layout})') +
-                     f' ({summaries[0]["sim_time"]:g} s; {len(layout_runs)} selected runs)')
+            _, caps, bars = ax.errorbar(rtts, means, yerr=deviations, marker=MARKERS[protocol],
+                linewidth=.30, elinewidth=.75, capsize=2, capthick=.75, color=color, label=label)
+            for item in (*caps, *bars):
+                item.set_alpha(.5)
+        ax.set(xlabel='RTT (ms)', ylabel='Goodput Ratio', ylim=(0, 1.1))
+        for axis in (ax.xaxis, ax.yaxis):
+            axis.set_major_formatter(ScalarFormatter())
+        ax.legend(fontsize='small', ncols=len(PROTOCOLS), loc='upper center',
+                  bbox_to_anchor=(.5, 1.20), columnspacing=1., handletextpad=.5,
+                  labelspacing=.1, borderaxespad=0.)
+        ax.set_title('Inter-RTT Fairness' if number == 3 else f'Intra-RTT Fairness ({layout.lower()})', pad=27)
         name = 'inter_rtt' if number == 3 else f'intra_rtt_{layout.lower()}'
-        for suffix in ('png', 'pdf'):
-            fig.savefig(output / f'{name}.{suffix}', dpi=180)
+        save_figure(fig, output / name, aggregate=True)
         plt.close(fig)
     write_csv(output / 'plot_data.csv', plot_data)
     write_csv(output / 'ratio_runs.csv', observations)
@@ -385,10 +370,10 @@ def plot(configs):
     import matplotlib
     matplotlib.use('Agg')
     summaries = aggregate_summaries(configs)
-    responsiveness = [s for s in summaries if s['experiment'] in (1, 2)]
-    if responsiveness:
-        plot_joint_cdf(responsiveness)
-    for number in (3, 4):
+    for number in (1, 2, 3, 4):
         selected = [s for s in summaries if s['experiment'] == number]
         if selected:
-            plot_ratios(selected)
+            if number <= 2:
+                plot_cdf(selected)
+            else:
+                plot_ratios(selected)

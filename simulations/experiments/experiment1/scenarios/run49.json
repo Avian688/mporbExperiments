@@ -1,0 +1,362 @@
+[
+  {
+    "path": 0,
+    "time": 0,
+    "up_time": 0.0,
+    "bandwidth_mbps": 58,
+    "rtt_ms": 90,
+    "per": 0,
+    "outage_seconds": 0.0
+  },
+  {
+    "path": 1,
+    "time": 0,
+    "up_time": 0.0,
+    "bandwidth_mbps": 73,
+    "rtt_ms": 98,
+    "per": 0,
+    "outage_seconds": 0.0
+  },
+  {
+    "path": 0,
+    "time": 15,
+    "up_time": 15.118,
+    "bandwidth_mbps": 72,
+    "rtt_ms": 73,
+    "per": 0,
+    "outage_seconds": 0.118
+  },
+  {
+    "path": 1,
+    "time": 15,
+    "up_time": 15.1,
+    "bandwidth_mbps": 98,
+    "rtt_ms": 98,
+    "per": 0,
+    "outage_seconds": 0.1
+  },
+  {
+    "path": 0,
+    "time": 30,
+    "up_time": 30.045,
+    "bandwidth_mbps": 86,
+    "rtt_ms": 74,
+    "per": 0,
+    "outage_seconds": 0.045
+  },
+  {
+    "path": 1,
+    "time": 30,
+    "up_time": 30.053,
+    "bandwidth_mbps": 67,
+    "rtt_ms": 57,
+    "per": 0,
+    "outage_seconds": 0.053
+  },
+  {
+    "path": 0,
+    "time": 45,
+    "up_time": 45.075,
+    "bandwidth_mbps": 92,
+    "rtt_ms": 82,
+    "per": 0,
+    "outage_seconds": 0.075
+  },
+  {
+    "path": 1,
+    "time": 45,
+    "up_time": 45.102,
+    "bandwidth_mbps": 64,
+    "rtt_ms": 20,
+    "per": 0,
+    "outage_seconds": 0.102
+  },
+  {
+    "path": 0,
+    "time": 60,
+    "up_time": 60.063,
+    "bandwidth_mbps": 86,
+    "rtt_ms": 96,
+    "per": 0,
+    "outage_seconds": 0.063
+  },
+  {
+    "path": 1,
+    "time": 60,
+    "up_time": 60.063,
+    "bandwidth_mbps": 54,
+    "rtt_ms": 99,
+    "per": 0,
+    "outage_seconds": 0.063
+  },
+  {
+    "path": 0,
+    "time": 75,
+    "up_time": 75.061,
+    "bandwidth_mbps": 84,
+    "rtt_ms": 6,
+    "per": 0,
+    "outage_seconds": 0.061
+  },
+  {
+    "path": 1,
+    "time": 75,
+    "up_time": 75.063,
+    "bandwidth_mbps": 81,
+    "rtt_ms": 13,
+    "per": 0,
+    "outage_seconds": 0.063
+  },
+  {
+    "path": 0,
+    "time": 90,
+    "up_time": 90.071,
+    "bandwidth_mbps": 61,
+    "rtt_ms": 18,
+    "per": 0,
+    "outage_seconds": 0.071
+  },
+  {
+    "path": 1,
+    "time": 90,
+    "up_time": 90.076,
+    "bandwidth_mbps": 77,
+    "rtt_ms": 72,
+    "per": 0,
+    "outage_seconds": 0.076
+  },
+  {
+    "path": 0,
+    "time": 105,
+    "up_time": 105.119,
+    "bandwidth_mbps": 92,
+    "rtt_ms": 14,
+    "per": 0,
+    "outage_seconds": 0.119
+  },
+  {
+    "path": 1,
+    "time": 105,
+    "up_time": 105.052,
+    "bandwidth_mbps": 70,
+    "rtt_ms": 80,
+    "per": 0,
+    "outage_seconds": 0.052
+  },
+  {
+    "path": 0,
+    "time": 120,
+    "up_time": 120.097,
+    "bandwidth_mbps": 68,
+    "rtt_ms": 10,
+    "per": 0,
+    "outage_seconds": 0.097
+  },
+  {
+    "path": 1,
+    "time": 120,
+    "up_time": 120.117,
+    "bandwidth_mbps": 77,
+    "rtt_ms": 23,
+    "per": 0,
+    "outage_seconds": 0.117
+  },
+  {
+    "path": 0,
+    "time": 135,
+    "up_time": 135.059,
+    "bandwidth_mbps": 76,
+    "rtt_ms": 67,
+    "per": 0,
+    "outage_seconds": 0.059
+  },
+  {
+    "path": 1,
+    "time": 135,
+    "up_time": 135.088,
+    "bandwidth_mbps": 86,
+    "rtt_ms": 88,
+    "per": 0,
+    "outage_seconds": 0.088
+  },
+  {
+    "path": 0,
+    "time": 150,
+    "up_time": 150.118,
+    "bandwidth_mbps": 61,
+    "rtt_ms": 9,
+    "per": 0,
+    "outage_seconds": 0.118
+  },
+  {
+    "path": 1,
+    "time": 150,
+    "up_time": 150.097,
+    "bandwidth_mbps": 95,
+    "rtt_ms": 30,
+    "per": 0,
+    "outage_seconds": 0.097
+  },
+  {
+    "path": 0,
+    "time": 165,
+    "up_time": 165.066,
+    "bandwidth_mbps": 73,
+    "rtt_ms": 46,
+    "per": 0,
+    "outage_seconds": 0.066
+  },
+  {
+    "path": 1,
+    "time": 165,
+    "up_time": 165.116,
+    "bandwidth_mbps": 76,
+    "rtt_ms": 45,
+    "per": 0,
+    "outage_seconds": 0.116
+  },
+  {
+    "path": 0,
+    "time": 180,
+    "up_time": 180.05,
+    "bandwidth_mbps": 69,
+    "rtt_ms": 100,
+    "per": 0,
+    "outage_seconds": 0.05
+  },
+  {
+    "path": 1,
+    "time": 180,
+    "up_time": 180.066,
+    "bandwidth_mbps": 94,
+    "rtt_ms": 19,
+    "per": 0,
+    "outage_seconds": 0.066
+  },
+  {
+    "path": 0,
+    "time": 195,
+    "up_time": 195.111,
+    "bandwidth_mbps": 94,
+    "rtt_ms": 35,
+    "per": 0,
+    "outage_seconds": 0.111
+  },
+  {
+    "path": 1,
+    "time": 195,
+    "up_time": 195.09,
+    "bandwidth_mbps": 82,
+    "rtt_ms": 13,
+    "per": 0,
+    "outage_seconds": 0.09
+  },
+  {
+    "path": 0,
+    "time": 210,
+    "up_time": 210.054,
+    "bandwidth_mbps": 51,
+    "rtt_ms": 18,
+    "per": 0,
+    "outage_seconds": 0.054
+  },
+  {
+    "path": 1,
+    "time": 210,
+    "up_time": 210.058,
+    "bandwidth_mbps": 83,
+    "rtt_ms": 88,
+    "per": 0,
+    "outage_seconds": 0.058
+  },
+  {
+    "path": 0,
+    "time": 225,
+    "up_time": 225.099,
+    "bandwidth_mbps": 60,
+    "rtt_ms": 91,
+    "per": 0,
+    "outage_seconds": 0.099
+  },
+  {
+    "path": 1,
+    "time": 225,
+    "up_time": 225.09,
+    "bandwidth_mbps": 50,
+    "rtt_ms": 87,
+    "per": 0,
+    "outage_seconds": 0.09
+  },
+  {
+    "path": 0,
+    "time": 240,
+    "up_time": 240.096,
+    "bandwidth_mbps": 65,
+    "rtt_ms": 65,
+    "per": 0,
+    "outage_seconds": 0.096
+  },
+  {
+    "path": 1,
+    "time": 240,
+    "up_time": 240.093,
+    "bandwidth_mbps": 98,
+    "rtt_ms": 13,
+    "per": 0,
+    "outage_seconds": 0.093
+  },
+  {
+    "path": 0,
+    "time": 255,
+    "up_time": 255.075,
+    "bandwidth_mbps": 83,
+    "rtt_ms": 22,
+    "per": 0,
+    "outage_seconds": 0.075
+  },
+  {
+    "path": 1,
+    "time": 255,
+    "up_time": 255.092,
+    "bandwidth_mbps": 94,
+    "rtt_ms": 64,
+    "per": 0,
+    "outage_seconds": 0.092
+  },
+  {
+    "path": 0,
+    "time": 270,
+    "up_time": 270.093,
+    "bandwidth_mbps": 62,
+    "rtt_ms": 74,
+    "per": 0,
+    "outage_seconds": 0.093
+  },
+  {
+    "path": 1,
+    "time": 270,
+    "up_time": 270.083,
+    "bandwidth_mbps": 54,
+    "rtt_ms": 17,
+    "per": 0,
+    "outage_seconds": 0.083
+  },
+  {
+    "path": 0,
+    "time": 285,
+    "up_time": 285.05,
+    "bandwidth_mbps": 64,
+    "rtt_ms": 57,
+    "per": 0,
+    "outage_seconds": 0.05
+  },
+  {
+    "path": 1,
+    "time": 285,
+    "up_time": 285.101,
+    "bandwidth_mbps": 54,
+    "rtt_ms": 94,
+    "per": 0,
+    "outage_seconds": 0.101
+  }
+]

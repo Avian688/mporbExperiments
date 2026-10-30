@@ -3,21 +3,24 @@
 This suite contains only four experiments: two-path responsiveness, responsiveness
 with loss, inter-connection RTT, and intra-connection RTT. Every connection has
 **two subflows**, one bound to each physical path. The controller order is
-**Sender Delta, Omega, Alpha, Theta, CUBIC uncoupled**. Sender Delta selects
-`MpOrbSenderDelta`; this is not the retired switch-side Delta controller.
+**Delta, Omega, Alpha, CUBIC uncoupled**. Delta selects `MpOrbDelta`, the
+consolidated former Theta controller; Omega adds its underutilisation boost.
 
 | Experiment | Setup | Default runs |
 | --- | --- | ---: |
-| 1 | One two-subflow connection; independent path RTT/bandwidth and brief outages every 15 s. | 25 |
-| 2 | Experiment 1 plus independent forward packet loss on each path. | 25 |
-| 3 | Two connections sharing both bottlenecks throughout; A RTTs=(50,50) ms, B=(R,R). | 275 |
-| 4 | Two connections sharing both bottlenecks throughout; A=(20,20) ms, B=(20,R), with mirrored B=(R,20). | 475 |
+| 1 | One two-subflow connection; independent path RTT/bandwidth and brief outages every 15 s. | 200 |
+| 2 | Experiment 1 plus independent forward packet loss on each path. | 200 |
+| 3 | Two connections sharing both bottlenecks throughout; A RTTs=(50,50) ms, B=(R,R). | 220 |
+| 4 | Two connections sharing both bottlenecks throughout; A=(20,20) ms, B=(20,R), with mirrored B=(R,20). | 380 |
 
-All five controllers use five paired seeds. Experiments 1/2 therefore have 25
-runs each. Experiment 3 sweeps R=20,40,50,60,80,100,120,140,160,180,200 ms;
+All four controllers use **50 paired trials each in experiments 1/2**, matching
+OrbTCP's responsiveness trial count. Each controller's CDF therefore contains
+50 per-run averages when all trials complete. Experiments 3/4 retain **five
+paired seeds per controller and RTT/layout case**. Experiment 3 sweeps
+R=20,40,50,60,80,100,120,140,160,180,200 ms;
 50 ms provides an equal-RTT control. Experiment 4 sweeps R=20,40,...,200 ms;
 the symmetric R=20 control runs once per seed/controller, while the other nine
-values have both path assignments. Total: **800 simulations**, not launched by
+values have both path assignments. Total: **1,000 simulations**, not launched by
 input generation. The default duration is 300 s, measuring [10 s, 299 s].
 
 ## Traffic and paths
@@ -70,7 +73,7 @@ ground stations, or terminal-specific catalogs are involved.
 
 Only forward bottleneck queues `left[0].ppp[0].queue` and
 `left[1].ppp[0].queue` use PINT. Alpha and the CUBIC comparison use `PintQueue`;
-Sender Delta, Omega, and Theta use `MpOrbDeltaQueue` with coefficient 0.05 and
+Delta and Omega use `MpOrbDeltaQueue` with coefficient 0.05 and
 RTT-based interval selection. Access and reverse queues are ordinary DropTail,
 so they issue no shuffle. Base `PintQueue` is not changed.
 
@@ -111,6 +114,9 @@ MpORB libraries and the workspace Python environment:
 # Generate all INIs, scenarios, and manifests; no simulations.
 .venv/bin/python samples/mporbExperiments/simulations/pythonScripts/experiments.py
 
+# Complete simulation/export/extraction/plots for each experiment in order.
+.venv/bin/python samples/mporbExperiments/simulations/pythonScripts/runExperiments.py --experiments 1 2 3 4 --cores 30 --plots all
+
 # Inspect a small selection without executing it.
 .venv/bin/python samples/mporbExperiments/simulations/pythonScripts/runExperiments.py --experiments 1 2 --runs 1 --dry-run
 
@@ -118,10 +124,10 @@ MpORB libraries and the workspace Python environment:
 .venv/bin/python samples/mporbExperiments/simulations/pythonScripts/experiment1/runExperiment1.py --configs Alpha_Responsiveness_Run1 --cores 1
 
 # Run only the two RTT experiments, selecting selected RTT values and controllers.
-.venv/bin/python samples/mporbExperiments/simulations/pythonScripts/runExperiments.py --experiments 3 4 --protocols SenderDelta Omega Alpha Theta CubicUncoupled --rtts 20 50 100 200 --cores 10
+.venv/bin/python samples/mporbExperiments/simulations/pythonScripts/runExperiments.py --experiments 3 4 --protocols Delta Omega Alpha CubicUncoupled --rtts 20 50 100 200 --cores 10
 
 # A bounded smoke check that crosses the first 15 s outage.
-.venv/bin/python samples/mporbExperiments/simulations/pythonScripts/experiment2/runExperiment2.py --configs SenderDelta_ResponsivenessLoss_Run1 --sim-time 18 --cores 1
+.venv/bin/python samples/mporbExperiments/simulations/pythonScripts/experiment2/runExperiment2.py --configs Delta_ResponsivenessLoss_Run1 --sim-time 18 --cores 1
 
 # Re-extract and plot existing full-duration exports.
 .venv/bin/python samples/mporbExperiments/simulations/pythonScripts/experiment3/runExperiment3.py --start-step 3 --skip-generate --cores 10
@@ -132,8 +138,9 @@ MpORB libraries and the workspace Python environment:
 # Standalone per-run plot command; reads duration from the extracted summary.
 .venv/bin/python samples/mporbExperiments/simulations/pythonScripts/experiment1/plotCwnd.py --configs Alpha_Responsiveness_Run1
 
-# Joint experiment 1/2 CDF, using existing extracted results only.
+# Separate no-loss/loss CDFs, using existing extracted results only.
 .venv/bin/python samples/mporbExperiments/simulations/pythonScripts/experiment1/plotGoodputCumulativeDistribution.py
+.venv/bin/python samples/mporbExperiments/simulations/pythonScripts/experiment2/plotGoodputCumulativeDistribution.py
 
 # RTT goodput-ratio plots, using existing extracted results only.
 .venv/bin/python samples/mporbExperiments/simulations/pythonScripts/experiment3/plotGoodputRatio.py
@@ -143,8 +150,18 @@ MpORB libraries and the workspace Python environment:
 .venv/bin/python samples/mporbExperiments/simulations/pythonScripts/experiment1/plotQueueLength.py path/to/left_queue.csv path/to/right_queue.csv --output /tmp/bottleneck_queues
 ```
 
-Steps are 1=simulate, 2=export, 3=extract, 4=plot. `--runs N` selects seeds 1..N;
+Steps are 1=simulate, 2=export, 3=extract, 4=plot. By default, all 50 trials per
+controller are selected for experiments 1/2 and all five seeds for experiments
+3/4. `--runs N` limits selection to seeds 1..N, capped at each experiment's
+default; `--runs 50` never increases RTT experiments beyond five seeds.
 `--protocols`, `--configs`, `--rtts`, and `--experiments` restrict the matrix.
+Selected experiments run in ascending order. Each completes all selected steps
+before the next starts: experiment 1 simulate → export → extract → plot, then
+experiment 2, then 3, then 4. Runs within an experiment use the requested worker
+count. Aggregate and requested individual plots are available before the next
+experiment's simulations start. `--start-step` / `--end-step` apply separately
+to each experiment, and failures stop later experiments while keeping completed
+outputs. The console identifies each experiment and stage.
 `--skip-generate` preserves manual input edits. Simulations resume automatically
 only when configuration, input content, library metadata, and result-file
 metadata still match the completion marker. `--rerun` forces selected repeats.
@@ -170,16 +187,31 @@ Extracted runs include the retained per-module vectors, `connections.csv`,
 Missing receiver counters cause extraction failure. A late first goodput sample
 leaves the steady-window mean missing. All-zero goodput has undefined fairness.
 
-Experiments 1/2 share `simulations/plots/experiment1and2/joined_goodput_cdf.png`
-and `.pdf`, matching OrbTCP's joint comparison: controller colour, solid for
-experiment 1 and dashed for experiment 2. Each observation is **one run's
+Experiments 1/2 have **two separate CDF figures**, one without loss and one with
+loss: `simulations/plots/experiment1/goodput_cdf.png` / `.pdf` and
+`simulations/plots/experiment2/goodput_cdf.png` / `.pdf`. All controllers appear
+on each figure with consistent colours. Each observation is **one run's
 time-weighted average application goodput** over the measurement window. The
 empirical CDF uses the actual number of valid runs in each curve. Its black
 capacity reference is the time-weighted sum of both paths' raw capacities,
 including outages, once per seed. This reference does not model protocol
-overhead or loss. `plot_data.csv` contains trial-level means and inclusion flags;
-`capacity_reference.csv` contains the reference observations. Plotting either
-experiment automatically includes available matching runs from its counterpart.
+overhead or loss. Each directory's `plot_data.csv` contains trial-level means
+and inclusion flags; `capacity_reference.csv` contains the reference observations.
+Each experiment plots independently as it finishes, using only its own trials.
+The earlier combined `experiment1and2/joined_goodput_cdf.*` outputs are retired
+when a new CDF is generated.
+
+Plot presentation follows the OrbTCP scripts: nominal **5 × 2 inch CDFs**, with
+`Average Goodput (Mbps)` / `% of Trials`, and **4.5 × 1.2 inch RTT ratio plots**,
+with `RTT (ms)` / `Goodput Ratio`. Aggregate titles are concise: Responsiveness,
+Responsiveness with Loss, Inter-RTT Fairness, and Intra-RTT Fairness (aligned or
+mirrored). Serif fonts, inward ticks, thin lines/error bars, and controller
+markers follow OrbTCP's scientific style; controller colours stay consistent.
+The shared style is self-contained, following the
+[SciencePlots base settings](https://github.com/garrettj403/SciencePlots/blob/master/src/scienceplots/styles/science.mplstyle).
+It uses LaTeX when available and falls back to Matplotlib's native serif text,
+so plotting requires no new package or mandatory TeX installation. Aggregate
+exports use tight bounds, with room for titles and legends.
 
 Experiments 3/4 plot **min(A goodput, B goodput) / max(A goodput, B goodput)**
 against swept RTT, using each connection's application goodput across both
@@ -213,13 +245,24 @@ Individual PNG/PDF figures are written to
 connection/thread as a separate curve. Bounded time-bin reduction preserves
 first/last values and extrema when plotting long vectors. Missing/no-event
 vectors are labelled as having no recorded samples, rather than invented zeros.
+Individual traces use OrbTCP's **17 × 5 inch** layout, short metric/controller
+titles, upper-left legends, and grids. CWND and bytes in flight are displayed
+in **MSS units using this suite's 1200-byte MSS**; extracted vectors remain in
+their original units. Responsiveness goodput traces also show the summed
+available bandwidth of both paths, with zero contribution during outages.
+PNG exports use 300 dpi and PDFs retain vector curves. Styling does not change
+the trial averages, CDF construction, capacity reference, or RTT statistics.
 
-Eleven unit tests cover matrix membership, independent/matched path conditions,
+Eighteen tests cover matrix membership, experiment-specific trial counts and
+CLI/plot selections, generation/pairing of all 50 responsiveness scenarios,
+independent/matched path conditions,
 outage/loss XML, RTT arithmetic/queue scope, the exact recording set,
 application-only goodput accounting, bounded individual plotting, trial-level
-CDF counts, capacity integration, aligned goodput ratios, and matching joint runs.
+CDF counts, capacity integration, aligned goodput ratios, selected result
+freshness, separate loss/no-loss CDFs, per-experiment stage ordering, resumed
+processing, and stopping after failure while retaining earlier plots.
 Two additional 18 s checks with the final recording set completed simulation,
 export, extraction, summary plots, and all 22 individual metric figures. Their
 raw vectors contain only the requested metrics; queue vectors come only from
 bottleneck queues. These bounded runs are not full-duration controller comparisons.
-The complete 800-run matrix has not been executed.
+The complete 1,000-run matrix has not been executed.

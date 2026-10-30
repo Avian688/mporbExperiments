@@ -11,14 +11,13 @@ SIM_DIR = PROJECT_DIR / 'simulations'
 SAMPLES_DIR = PROJECT_DIR.parent
 REPO_DIR = SAMPLES_DIR.parent
 PROTOCOLS = {
-    'SenderDelta': ('MpOrb', 'MpOrbSenderDelta', 'Sender Delta', '#CC79A7'),
+    'Delta': ('MpOrb', 'MpOrbDelta', 'Delta', '#882255'),
     'Omega': ('MpOrb', 'MpOrbOmega', 'Omega', '#E69F00'),
     'Alpha': ('MpOrb', 'MpOrbSemiCoupledAlpha', 'Alpha', '#0072B2'),
-    'Theta': ('MpOrb', 'MpOrbSemiCoupledTheta', 'Theta', '#882255'),
     'CubicUncoupled': ('MpTcp', 'MpTcpMetaCubic', 'CUBIC uncoupled', '#D55E00'),
 }
-SHUFFLE = {'SenderDelta', 'Omega', 'Theta'}
-RUNS = range(1, 6)
+SHUFFLE = {'Delta', 'Omega'}
+RUN_COUNTS = {1: 50, 2: 50, 3: 5, 4: 5}
 INTRA_RTTS = tuple(range(20, 201, 20))
 INTER_RTTS = tuple(sorted({50, *INTRA_RTTS}))
 DURATION = 300
@@ -28,6 +27,11 @@ TCP_METRICS = ('cwnd', 'rtt', 'srtt', 'throughput', 'mbytesInFlight', 'retransmi
 QUEUE_METRICS = ('queueLength', 'bandwidth')
 MULTIPATH_METRICS = ('holBlockedBytes', 'metaReinjectedBytes')
 METRICS = ('goodput', *TCP_METRICS, *QUEUE_METRICS, *MULTIPATH_METRICS)
+
+
+def run_numbers(number, limit=None):
+    count = RUN_COUNTS[number]
+    return range(1, min(count, limit if limit is not None else count) + 1)
 
 
 def recorded_metrics(number):
@@ -66,7 +70,7 @@ def configurations(number):
     result = []
     for protocol, (tcp, algorithm, _, _) in PROTOCOLS.items():
         for case, rtt, layout in cases(number):
-            for run in RUNS:
+            for run in run_numbers(number):
                 rng = random.Random(7999 + run)
                 starts = [round(rng.uniform(1, 2), 6) for _ in range(1 if number <= 2 else 2)]
                 rtts = None if number <= 2 else ([[50, 50], [rtt, rtt]] if number == 3 else
@@ -210,10 +214,10 @@ def generate(number):
     root = directory(number)
     root.mkdir(parents=True, exist_ok=True)
     if number <= 2:
-        for run in RUNS:
+        for run in run_numbers(number):
             responsiveness_scenario(number, run, root)
     else:
-        for config in configs[::len(RUNS)]:
+        for config in configs[::len(run_numbers(number))]:
             rtt_scenario(config, root)
     # One fixed average BDP for responsiveness, and 100 Mbps/50 ms for RTT tests.
     queue_packets = math.ceil((75e6 * .0505 if number <= 2 else 100e6 * .05) / (8 * MSS))

@@ -6,20 +6,26 @@ import math
 from pathlib import Path
 
 import numpy as np
-from experiments import SIM_DIR, PROTOCOLS, METRICS, directory, recorded_metrics
+from experiments import SIM_DIR, PROTOCOLS, METRICS, MSS, RUN_COUNTS, run_numbers, directory, recorded_metrics
+from plotStyle import TRACE_SIZE, plot_style, save_figure
 
 LABELS = {
-    'goodput': ('Application goodput (Mbps)', 1e-6),
-    'cwnd': ('Congestion window (bytes)', 1),
+    'goodput': ('Goodput (Mbps)', 1e-6),
+    'cwnd': ('CWND (MSS)', 1 / MSS),
     'rtt': ('RTT (ms)', 1000), 'srtt': ('Smoothed RTT (ms)', 1000),
-    'throughput': ('TCP throughput (Mbps)', 1e-6),
-    'mbytesInFlight': ('Bytes in flight', 1),
+    'throughput': ('Throughput (Mbps)', 1e-6),
+    'mbytesInFlight': ('Bytes In-Flight (MSS)', 1 / MSS),
     'retransmissionRate': ('Retransmission rate (Mbps)', 1e-6),
-    'queueLength': ('Bottleneck queue length (packets)', 1),
-    'bandwidth': ('Recorded bottleneck bandwidth (Mbps)', 1e-6),
+    'queueLength': ('Queue Length (pkts)', 1),
+    'bandwidth': ('Bandwidth (Mbps)', 1e-6),
     'holBlockedBytes': ('HoL blocked bytes', 1),
     'metaReinjectedBytes': ('Cumulative meta-level reinjected bytes', 1),
 }
+TITLES = {'goodput': 'Goodput', 'cwnd': 'CWND', 'rtt': 'RTT', 'srtt': 'SRTT',
+          'throughput': 'Throughput', 'mbytesInFlight': 'Bytes In-Flight',
+          'retransmissionRate': 'Retransmission Rate', 'queueLength': 'Queue Length',
+          'bandwidth': 'Bandwidth', 'holBlockedBytes': 'HoL Blocking',
+          'metaReinjectedBytes': 'Reinjected Bytes'}
 RATES = {'goodput', 'throughput', 'retransmissionRate'}
 
 
@@ -69,13 +75,14 @@ def read_series(path, horizon=None, bins=3000):
     return np.asarray(points, dtype=float).reshape(-1, 2)
 
 
-def draw(paths, metric, output, title, horizon=None):
+@plot_style()
+def draw(paths, metric, output, title, horizon=None, capacity=None):
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
-    fig, ax = plt.subplots(figsize=(12, 4.5), constrained_layout=True)
+    fig, ax = plt.subplots(figsize=TRACE_SIZE)
     curves = 0
     for path in paths:
         series = read_series(path, horizon)
@@ -87,17 +94,20 @@ def draw(paths, metric, output, title, horizon=None):
         ax.step(series[:, 0], series[:, 1] * LABELS[metric][1],
                 where='pre' if metric in RATES else 'post', label=label)
         curves += 1
-    if curves:
-        ax.legend(fontsize=7, loc='upper left', bbox_to_anchor=(1.01, 1))
+    if capacity is not None:
+        ax.step(capacity[:, 0], capacity[:, 1], where='post', color='purple',
+                linestyle='--', label='Available Bandwidth')
+    if curves or capacity is not None:
+        ax.legend(fontsize=8, loc='upper left')
     else:
         ax.text(.5, .5, 'No recorded samples', ha='center', va='center', transform=ax.transAxes)
     ax.set(xlabel='Time (s)', ylabel=LABELS[metric][0], title=title)
     ax.set_ylim(bottom=0)
     if horizon is not None:
         ax.set_xlim(0, horizon)
-    ax.grid(alpha=.2)
-    for suffix in ('png', 'pdf'):
-        fig.savefig(output.with_suffix('.' + suffix), dpi=160)
+    ax.grid(True)
+    fig.tight_layout(rect=[0, 0, 1, 1], pad=1.)
+    save_figure(fig, output)
     plt.close(fig)
     return curves
 
@@ -120,7 +130,20 @@ def plot_metrics(configs, metrics):
                 continue
             paths = sorted(out.glob(f'*__{metric}.csv'))
             output = SIM_DIR / 'plots' / f'experiment{config["experiment"]}' / 'individual' / config['config'] / metric
-            draw(paths, metric, output, f'{config["config"]}: {LABELS[metric][0]} ({config["sim_time"]:g} s)', config['sim_time'])
+            title = f'{TITLES[metric]} - {PROTOCOLS[config["protocol"]][2]}'
+            if config['rtt_ms'] is not None:
+                title += f', R={config["rtt_ms"]} ms'
+            if config['layout'] is not None:
+                title += f' ({config["layout"].lower()})'
+            capacity = None
+            if metric == 'goodput' and config['experiment'] <= 2:
+                from analyze import available_capacity
+                records = json.loads((root / 'scenarios' / f'run{config["run"]}.json').read_text())
+                events = sorted({0, config['sim_time'], *(r[k] for r in records for k in ('time', 'up_time')
+                    if r[k] < config['sim_time'])})
+                times = np.asarray(events)
+                capacity = np.column_stack((times, available_capacity(records, times).sum(axis=0)))
+            draw(paths, metric, output, title, config['sim_time'], capacity)
             figures += 1
     if not figures:
         raise ValueError('No selected extracted runs to plot; run extraction first')
@@ -133,7 +156,8 @@ def main(default_experiment=None, default_metric=None):
     parser.add_argument('--experiment', type=int, choices=range(1, 5), default=default_experiment)
     parser.add_argument('--metrics', nargs='+', choices=('all', *METRICS), default=[default_metric or 'all'])
     parser.add_argument('--protocols', nargs='+', choices=tuple(PROTOCOLS), default=list(PROTOCOLS))
-    parser.add_argument('--runs', type=int, choices=range(1, 6), default=5)
+    parser.add_argument('--runs', type=int, choices=range(1, max(RUN_COUNTS.values()) + 1),
+                        help='Limit seeds to 1..N; defaults to 50 trials for experiments 1/2 and five seeds for 3/4')
     parser.add_argument('--configs', nargs='+')
     parser.add_argument('--rtts', nargs='+', type=int)
     parser.add_argument('--sim-time', type=float, help='Expected duration; otherwise read it from each extracted summary')
@@ -144,12 +168,12 @@ def main(default_experiment=None, default_metric=None):
         if len(metrics) != 1:
             parser.error('Direct CSV plotting requires one metric, e.g. --metrics cwnd')
         metric = metrics[0]
-        draw(args.files, metric, args.output or Path(metric), LABELS[metric][0], args.sim_time)
+        draw(args.files, metric, args.output or Path(metric), TITLES[metric], args.sim_time)
         return
     if args.experiment is None:
         parser.error('--experiment is required when no CSV files are supplied')
     configs = json.loads((directory(args.experiment) / 'matrix.json').read_text())
-    configs = [c for c in configs if c['protocol'] in args.protocols and c['run'] <= args.runs
+    configs = [c for c in configs if c['protocol'] in args.protocols and c['run'] in run_numbers(args.experiment, args.runs)
                and (not args.rtts or c['rtt_ms'] is None or c['rtt_ms'] in args.rtts)]
     if args.configs:
         unknown = set(args.configs) - {c['config'] for c in configs}

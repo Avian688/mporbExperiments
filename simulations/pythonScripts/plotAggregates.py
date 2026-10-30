@@ -1,9 +1,9 @@
-"""Replot the joint responsiveness CDF and RTT ratios from extracted results."""
+"""Replot separate responsiveness CDFs and RTT ratios from extracted results."""
 import argparse
 import json
 import math
 
-from experiments import PROTOCOLS, directory
+from experiments import PROTOCOLS, RUN_COUNTS, run_numbers, directory
 from analyze import plot
 
 
@@ -12,7 +12,8 @@ def main(default_experiments=None):
     parser.add_argument('--experiments', nargs='+', type=int, choices=range(1, 5),
                         default=default_experiments or [1, 2, 3, 4])
     parser.add_argument('--protocols', nargs='+', choices=tuple(PROTOCOLS), default=list(PROTOCOLS))
-    parser.add_argument('--runs', type=int, choices=range(1, 6), default=5)
+    parser.add_argument('--runs', type=int, choices=range(1, max(RUN_COUNTS.values()) + 1),
+                        help='Limit seeds to 1..N; defaults to 50 trials for experiments 1/2 and five seeds for 3/4')
     parser.add_argument('--configs', nargs='+', help='Exact configuration names')
     parser.add_argument('--rtts', nargs='+', type=int)
     parser.add_argument('--sim-time', type=float, help='Select a duration; otherwise infer it from extracted summaries')
@@ -22,7 +23,7 @@ def main(default_experiments=None):
     configs = []
     for number in args.experiments:
         matrix = json.loads((directory(number) / 'matrix.json').read_text())
-        configs.extend(c for c in matrix if c['protocol'] in args.protocols and c['run'] <= args.runs
+        configs.extend(c for c in matrix if c['protocol'] in args.protocols and c['run'] in run_numbers(number, args.runs)
                        and (not args.rtts or c['rtt_ms'] is None or c['rtt_ms'] in args.rtts))
     if args.configs:
         unknown = set(args.configs) - {c['config'] for c in configs}
