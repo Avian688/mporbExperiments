@@ -125,7 +125,8 @@ def main(argv=None):
     parser.add_argument('--start-step',type=int,choices=range(1,5),default=1)
     parser.add_argument('--end-step',type=int,choices=range(1,5),default=4)
     parser.add_argument('--retries',type=int,default=1)
-    parser.add_argument('--sim-timeout-seconds',type=float,default=5*3600)
+    parser.add_argument('--sim-timeout-seconds',type=float,default=12*3600,
+                        help='Wall-clock limit per simulation attempt, including the ping prepass (default: 12 hours)')
     parser.add_argument('--rerun',action='store_true',help='Replace selected outputs; normally matching completed simulations are reused')
     parser.add_argument('--skip-generate',action='store_true')
     parser.add_argument('--check-routes',action='store_true',help='Validate saved snapshot headers and time coverage; never simulate')

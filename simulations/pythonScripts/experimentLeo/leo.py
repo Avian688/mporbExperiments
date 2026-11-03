@@ -134,7 +134,9 @@ def replay_lines(store, root):
 
 def recording_lines(ping=False):
     entries = []
-    metrics = ('rtt', 'kPathAvailable') if ping else ('goodput', 'rtt')
+    metrics = ('rtt', 'kPathAvailable') if ping else (
+        'goodput', 'rtt', 'cwnd', 'U', 'holBlockedBytes', 'throughput', 'retransmissionRate',
+        'mbytesInFlight', 'metaReinjectedBytes', 'numRtos')
     if not ping:
         entries += ['**.tcp.conn-temp.**.statistic-recording = false',
                     '**.tcp.conn-temp.**.vector-recording = false']
@@ -143,9 +145,11 @@ def recording_lines(ping=False):
             scopes = [f'*.userTerminal[{p["source"]}].app[*]' for p in PAIRS]
         elif metric == 'goodput':
             scopes = [f'*.userTerminal[{p["destination"]}].app[0].thread_*' for p in PAIRS]
+        elif metric in ('holBlockedBytes', 'throughput'):
+            scopes = [f'*.userTerminal[{p["destination"]}].tcp.conn-*' for p in PAIRS]
         else:
             scopes = [f'*.userTerminal[{p["source"]}].tcp.conn-*' for p in PAIRS]
-        mode = 'vector' if metric in ('goodput', 'rtt') else 'vector(removeRepeats)'
+        mode = 'vector' if metric in ('goodput', 'rtt', 'throughput', 'retransmissionRate') else 'vector(removeRepeats)'
         for scope in scopes:
             entries += [f'{scope}.{metric}.statistic-recording = true',
                         f'{scope}.{metric}.result-recording-modes = {mode}',

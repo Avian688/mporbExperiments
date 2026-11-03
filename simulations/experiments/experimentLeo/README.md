@@ -64,10 +64,33 @@ The main simulations contain **only TCP apps**. They record exactly:
 
 - Receiving application goodput at terminals 10–14, every second.
 - Sender TCP RTT at terminals 5–9.
+- Sender congestion window (`cwnd`, in bytes) at terminals 5–9, including the
+  individual subflows. `vector(removeRepeats)` preserves changes while removing
+  consecutive duplicate values.
+- Sender congestion metric `U` at terminals 5–9, where supplied by the OrbCC/
+  MPORB controller; CUBIC does not emit this metric.
+- Receiver meta-connection `holBlockedBytes` at terminals 10–14, in bytes,
+  for the multipath transports. Native single-path OrbCC has no MPTCP HoL metric.
+- Per-subflow receiver `throughput` at terminals 10–14, every second. This
+  retains received transport traffic, including duplicates, separately from
+  application goodput.
+- Sender `retransmissionRate` at terminals 5–9, in bits/s, every second.
+- Sender `mbytesInFlight` at terminals 5–9: outstanding transport data, in bytes.
+- Sender meta-connection `metaReinjectedBytes` at terminals 5–9: cumulative
+  MPTCP reinjected bytes. Native single-path OrbCC does not emit this metric.
+- Sender `numRtos` at terminals 5–9: cumulative retransmission-timeout count.
 
-No satellite, ground-station, queue, link, cwnd, throughput, or other diagnostic
-vectors are enabled. Unused connection-template recording and all scalar/bin
+CWND, U, HoL, bytes-in-flight and cumulative-counter vectors remove consecutive
+repeats. Periodic throughput
+and retransmission-rate vectors retain repeats so flat and zero-rate intervals
+remain explicit.
+
+No satellite, ground-station, queue, link, or other diagnostic
+vectors are enabled. Receiver CWND and sender throughput are disabled. Unused connection-template recording and all scalar/bin
 recording are disabled. No ping or monitoring apps run during traffic tests.
+The added diagnostics are retained in the original result vectors for run
+inspection; the aggregate heatmaps still use goodput and RTT. Results recorded
+before a metric was enabled must be rerun to obtain that metric.
 
 `experimentLeoPing` runs first, once, using the same saved geometry and fixed
 seed. It sends small, staggered 64-byte probes every 100 ms for each of the five
@@ -141,7 +164,11 @@ python3 experimentLeo/runExperimentLeo.py --rerun --cores 30
 ```
 
 Stages are 1: simulate/extract the ping prepass, 2: simulate traffic,
-3: extract traffic, 4: plot. The runner normally reuses successful simulations
+3: extract traffic, 4: plot. Each simulation attempt, including the ping prepass,
+has a **12-hour wall-clock timeout** by default. Override it with
+`--sim-timeout-seconds`; the timeout applies per attempt, not to the whole suite.
+An already-running runner retains the timeout with which it was launched.
+The runner normally reuses successful simulations
 whose input, library and saved-route fingerprints match. Output names are fixed;
 reruns and retries replace their selected files rather than adding timestamped
 copies. Step 2 refuses a baseline from different routes or inputs. Step 3/4

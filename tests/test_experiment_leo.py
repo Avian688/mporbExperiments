@@ -92,9 +92,23 @@ class LeoTests(unittest.TestCase):
         self.assertNotIn('typename = "KShortestPathPingApp"',text)
         self.assertNotIn('typename = "PingApp"',text)
         enables=[line for line in text.splitlines() if '.statistic-recording = true' in line]
-        self.assertEqual(len(enables),10)
+        self.assertEqual(len(enables),50)
         self.assertTrue(all('userTerminal[' in line for line in enables))
-        self.assertTrue(all('.rtt.' in line or '.goodput.' in line for line in enables))
+        expected_metrics=('rtt','goodput','cwnd','U','holBlockedBytes','throughput','retransmissionRate',
+                          'mbytesInFlight','metaReinjectedBytes','numRtos')
+        self.assertTrue(all(any(f'.{metric}.' in line for metric in expected_metrics) for line in enables))
+        cwnd=[line for line in enables if '.cwnd.' in line]
+        self.assertEqual(cwnd,[f'*.userTerminal[{source}].tcp.conn-*.cwnd.statistic-recording = true' for source in range(5,10)])
+        for source in range(5,10):
+            self.assertIn(f'*.userTerminal[{source}].tcp.conn-*.cwnd.result-recording-modes = vector(removeRepeats)',text)
+            self.assertIn(f'*.userTerminal[{source}].tcp.conn-*.cwnd:vector(removeRepeats).vector-recording = true',text)
+        for metric in ('U','holBlockedBytes','throughput','retransmissionRate',
+                       'mbytesInFlight','metaReinjectedBytes','numRtos'):
+            terminals=range(10,15) if metric in ('holBlockedBytes','throughput') else range(5,10)
+            expected=[f'*.userTerminal[{i}].tcp.conn-*.{metric}.statistic-recording = true' for i in terminals]
+            self.assertEqual([line for line in enables if f'.{metric}.' in line],expected)
+            mode='vector' if metric in ('throughput','retransmissionRate') else 'vector(removeRepeats)'
+            self.assertIn(f'*.userTerminal[{terminals.start}].tcp.conn-*.{metric}.result-recording-modes = {mode}',text)
         self.assertNotIn('queueLength',text)
         self.assertIn('**.statistic-recording = false',text)
         topology=(leo.EXPERIMENT_DIR/'topology.ini').read_text()
@@ -105,6 +119,10 @@ class LeoTests(unittest.TestCase):
         self.assertEqual(ping.count('.typename = "KShortestPathPingApp"'),50)
         self.assertEqual(ping.count('.typename = "PingApp"'),5)
         self.assertNotIn('pingTxSeq',ping)
+        self.assertNotIn('.cwnd.',ping)
+        for metric in ('U','holBlockedBytes','throughput','retransmissionRate',
+                       'mbytesInFlight','metaReinjectedBytes','numRtos'):
+            self.assertNotIn(f'.{metric}.',ping)
         self.assertIn('**.ipv4.ip.kPathTcpPathGroups = "5 6 7 8 9"',text)
         self.assertIn('**.ipv4.ip.kPathTcpPathGroups = ""',text)
 
