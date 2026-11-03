@@ -5,6 +5,8 @@
 	<projects>
 		<project>mporb</project>
 		<project>mptcp</project>
+		<project>leosatellites</project>
+		<project>os3</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

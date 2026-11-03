@@ -1,0 +1,2262 @@
+{
+  "duration": 300,
+  "route_store": "/Users/av288/omnetpp-6.4.0/samples/leosatellites/simulations/leoSaves",
+  "configurations": [
+    {
+      "config": "Alpha_EdgeDisjoint_K1_Run1",
+      "protocol": "Alpha",
+      "k": 1,
+      "run": 1,
+      "seed": 1,
+      "starts": [
+        1.577701,
+        1.049034,
+        1.620261,
+        1.316619,
+        1.347866
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Alpha_EdgeDisjoint_K1_Run2",
+      "protocol": "Alpha",
+      "k": 1,
+      "run": 2,
+      "seed": 1,
+      "starts": [
+        1.584629,
+        1.841862,
+        1.738134,
+        1.202043,
+        1.575885
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Alpha_EdgeDisjoint_K1_Run3",
+      "protocol": "Alpha",
+      "k": 1,
+      "run": 3,
+      "seed": 1,
+      "starts": [
+        1.547612,
+        1.396781,
+        1.49523,
+        1.942639,
+        1.641096
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Alpha_EdgeDisjoint_K1_Run4",
+      "protocol": "Alpha",
+      "k": 1,
+      "run": 4,
+      "seed": 1,
+      "starts": [
+        1.236528,
+        1.485419,
+        1.261592,
+        1.932291,
+        1.354142
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Alpha_EdgeDisjoint_K1_Run5",
+      "protocol": "Alpha",
+      "k": 1,
+      "run": 5,
+      "seed": 1,
+      "starts": [
+        1.469026,
+        1.746181,
+        1.193142,
+        1.661974,
+        1.589918
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Alpha_EdgeDisjoint_K2_Run1",
+      "protocol": "Alpha",
+      "k": 2,
+      "run": 1,
+      "seed": 1,
+      "starts": [
+        1.577701,
+        1.049034,
+        1.620261,
+        1.316619,
+        1.347866
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Alpha_EdgeDisjoint_K2_Run2",
+      "protocol": "Alpha",
+      "k": 2,
+      "run": 2,
+      "seed": 1,
+      "starts": [
+        1.584629,
+        1.841862,
+        1.738134,
+        1.202043,
+        1.575885
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Alpha_EdgeDisjoint_K2_Run3",
+      "protocol": "Alpha",
+      "k": 2,
+      "run": 3,
+      "seed": 1,
+      "starts": [
+        1.547612,
+        1.396781,
+        1.49523,
+        1.942639,
+        1.641096
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Alpha_EdgeDisjoint_K2_Run4",
+      "protocol": "Alpha",
+      "k": 2,
+      "run": 4,
+      "seed": 1,
+      "starts": [
+        1.236528,
+        1.485419,
+        1.261592,
+        1.932291,
+        1.354142
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Alpha_EdgeDisjoint_K2_Run5",
+      "protocol": "Alpha",
+      "k": 2,
+      "run": 5,
+      "seed": 1,
+      "starts": [
+        1.469026,
+        1.746181,
+        1.193142,
+        1.661974,
+        1.589918
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Alpha_EdgeDisjoint_K3_Run1",
+      "protocol": "Alpha",
+      "k": 3,
+      "run": 1,
+      "seed": 1,
+      "starts": [
+        1.577701,
+        1.049034,
+        1.620261,
+        1.316619,
+        1.347866
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Alpha_EdgeDisjoint_K3_Run2",
+      "protocol": "Alpha",
+      "k": 3,
+      "run": 2,
+      "seed": 1,
+      "starts": [
+        1.584629,
+        1.841862,
+        1.738134,
+        1.202043,
+        1.575885
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Alpha_EdgeDisjoint_K3_Run3",
+      "protocol": "Alpha",
+      "k": 3,
+      "run": 3,
+      "seed": 1,
+      "starts": [
+        1.547612,
+        1.396781,
+        1.49523,
+        1.942639,
+        1.641096
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Alpha_EdgeDisjoint_K3_Run4",
+      "protocol": "Alpha",
+      "k": 3,
+      "run": 4,
+      "seed": 1,
+      "starts": [
+        1.236528,
+        1.485419,
+        1.261592,
+        1.932291,
+        1.354142
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Alpha_EdgeDisjoint_K3_Run5",
+      "protocol": "Alpha",
+      "k": 3,
+      "run": 5,
+      "seed": 1,
+      "starts": [
+        1.469026,
+        1.746181,
+        1.193142,
+        1.661974,
+        1.589918
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Alpha_EdgeDisjoint_K4_Run1",
+      "protocol": "Alpha",
+      "k": 4,
+      "run": 1,
+      "seed": 1,
+      "starts": [
+        1.577701,
+        1.049034,
+        1.620261,
+        1.316619,
+        1.347866
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Alpha_EdgeDisjoint_K4_Run2",
+      "protocol": "Alpha",
+      "k": 4,
+      "run": 2,
+      "seed": 1,
+      "starts": [
+        1.584629,
+        1.841862,
+        1.738134,
+        1.202043,
+        1.575885
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Alpha_EdgeDisjoint_K4_Run3",
+      "protocol": "Alpha",
+      "k": 4,
+      "run": 3,
+      "seed": 1,
+      "starts": [
+        1.547612,
+        1.396781,
+        1.49523,
+        1.942639,
+        1.641096
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Alpha_EdgeDisjoint_K4_Run4",
+      "protocol": "Alpha",
+      "k": 4,
+      "run": 4,
+      "seed": 1,
+      "starts": [
+        1.236528,
+        1.485419,
+        1.261592,
+        1.932291,
+        1.354142
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Alpha_EdgeDisjoint_K4_Run5",
+      "protocol": "Alpha",
+      "k": 4,
+      "run": 5,
+      "seed": 1,
+      "starts": [
+        1.469026,
+        1.746181,
+        1.193142,
+        1.661974,
+        1.589918
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Alpha_EdgeDisjoint_K5_Run1",
+      "protocol": "Alpha",
+      "k": 5,
+      "run": 1,
+      "seed": 1,
+      "starts": [
+        1.577701,
+        1.049034,
+        1.620261,
+        1.316619,
+        1.347866
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Alpha_EdgeDisjoint_K5_Run2",
+      "protocol": "Alpha",
+      "k": 5,
+      "run": 2,
+      "seed": 1,
+      "starts": [
+        1.584629,
+        1.841862,
+        1.738134,
+        1.202043,
+        1.575885
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Alpha_EdgeDisjoint_K5_Run3",
+      "protocol": "Alpha",
+      "k": 5,
+      "run": 3,
+      "seed": 1,
+      "starts": [
+        1.547612,
+        1.396781,
+        1.49523,
+        1.942639,
+        1.641096
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Alpha_EdgeDisjoint_K5_Run4",
+      "protocol": "Alpha",
+      "k": 5,
+      "run": 4,
+      "seed": 1,
+      "starts": [
+        1.236528,
+        1.485419,
+        1.261592,
+        1.932291,
+        1.354142
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Alpha_EdgeDisjoint_K5_Run5",
+      "protocol": "Alpha",
+      "k": 5,
+      "run": 5,
+      "seed": 1,
+      "starts": [
+        1.469026,
+        1.746181,
+        1.193142,
+        1.661974,
+        1.589918
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Delta_EdgeDisjoint_K1_Run1",
+      "protocol": "Delta",
+      "k": 1,
+      "run": 1,
+      "seed": 1,
+      "starts": [
+        1.577701,
+        1.049034,
+        1.620261,
+        1.316619,
+        1.347866
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Delta_EdgeDisjoint_K1_Run2",
+      "protocol": "Delta",
+      "k": 1,
+      "run": 2,
+      "seed": 1,
+      "starts": [
+        1.584629,
+        1.841862,
+        1.738134,
+        1.202043,
+        1.575885
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Delta_EdgeDisjoint_K1_Run3",
+      "protocol": "Delta",
+      "k": 1,
+      "run": 3,
+      "seed": 1,
+      "starts": [
+        1.547612,
+        1.396781,
+        1.49523,
+        1.942639,
+        1.641096
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Delta_EdgeDisjoint_K1_Run4",
+      "protocol": "Delta",
+      "k": 1,
+      "run": 4,
+      "seed": 1,
+      "starts": [
+        1.236528,
+        1.485419,
+        1.261592,
+        1.932291,
+        1.354142
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Delta_EdgeDisjoint_K1_Run5",
+      "protocol": "Delta",
+      "k": 1,
+      "run": 5,
+      "seed": 1,
+      "starts": [
+        1.469026,
+        1.746181,
+        1.193142,
+        1.661974,
+        1.589918
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Delta_EdgeDisjoint_K2_Run1",
+      "protocol": "Delta",
+      "k": 2,
+      "run": 1,
+      "seed": 1,
+      "starts": [
+        1.577701,
+        1.049034,
+        1.620261,
+        1.316619,
+        1.347866
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Delta_EdgeDisjoint_K2_Run2",
+      "protocol": "Delta",
+      "k": 2,
+      "run": 2,
+      "seed": 1,
+      "starts": [
+        1.584629,
+        1.841862,
+        1.738134,
+        1.202043,
+        1.575885
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Delta_EdgeDisjoint_K2_Run3",
+      "protocol": "Delta",
+      "k": 2,
+      "run": 3,
+      "seed": 1,
+      "starts": [
+        1.547612,
+        1.396781,
+        1.49523,
+        1.942639,
+        1.641096
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Delta_EdgeDisjoint_K2_Run4",
+      "protocol": "Delta",
+      "k": 2,
+      "run": 4,
+      "seed": 1,
+      "starts": [
+        1.236528,
+        1.485419,
+        1.261592,
+        1.932291,
+        1.354142
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Delta_EdgeDisjoint_K2_Run5",
+      "protocol": "Delta",
+      "k": 2,
+      "run": 5,
+      "seed": 1,
+      "starts": [
+        1.469026,
+        1.746181,
+        1.193142,
+        1.661974,
+        1.589918
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Delta_EdgeDisjoint_K3_Run1",
+      "protocol": "Delta",
+      "k": 3,
+      "run": 1,
+      "seed": 1,
+      "starts": [
+        1.577701,
+        1.049034,
+        1.620261,
+        1.316619,
+        1.347866
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Delta_EdgeDisjoint_K3_Run2",
+      "protocol": "Delta",
+      "k": 3,
+      "run": 2,
+      "seed": 1,
+      "starts": [
+        1.584629,
+        1.841862,
+        1.738134,
+        1.202043,
+        1.575885
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Delta_EdgeDisjoint_K3_Run3",
+      "protocol": "Delta",
+      "k": 3,
+      "run": 3,
+      "seed": 1,
+      "starts": [
+        1.547612,
+        1.396781,
+        1.49523,
+        1.942639,
+        1.641096
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Delta_EdgeDisjoint_K3_Run4",
+      "protocol": "Delta",
+      "k": 3,
+      "run": 4,
+      "seed": 1,
+      "starts": [
+        1.236528,
+        1.485419,
+        1.261592,
+        1.932291,
+        1.354142
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Delta_EdgeDisjoint_K3_Run5",
+      "protocol": "Delta",
+      "k": 3,
+      "run": 5,
+      "seed": 1,
+      "starts": [
+        1.469026,
+        1.746181,
+        1.193142,
+        1.661974,
+        1.589918
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Delta_EdgeDisjoint_K4_Run1",
+      "protocol": "Delta",
+      "k": 4,
+      "run": 1,
+      "seed": 1,
+      "starts": [
+        1.577701,
+        1.049034,
+        1.620261,
+        1.316619,
+        1.347866
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Delta_EdgeDisjoint_K4_Run2",
+      "protocol": "Delta",
+      "k": 4,
+      "run": 2,
+      "seed": 1,
+      "starts": [
+        1.584629,
+        1.841862,
+        1.738134,
+        1.202043,
+        1.575885
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Delta_EdgeDisjoint_K4_Run3",
+      "protocol": "Delta",
+      "k": 4,
+      "run": 3,
+      "seed": 1,
+      "starts": [
+        1.547612,
+        1.396781,
+        1.49523,
+        1.942639,
+        1.641096
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Delta_EdgeDisjoint_K4_Run4",
+      "protocol": "Delta",
+      "k": 4,
+      "run": 4,
+      "seed": 1,
+      "starts": [
+        1.236528,
+        1.485419,
+        1.261592,
+        1.932291,
+        1.354142
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Delta_EdgeDisjoint_K4_Run5",
+      "protocol": "Delta",
+      "k": 4,
+      "run": 5,
+      "seed": 1,
+      "starts": [
+        1.469026,
+        1.746181,
+        1.193142,
+        1.661974,
+        1.589918
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Delta_EdgeDisjoint_K5_Run1",
+      "protocol": "Delta",
+      "k": 5,
+      "run": 1,
+      "seed": 1,
+      "starts": [
+        1.577701,
+        1.049034,
+        1.620261,
+        1.316619,
+        1.347866
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Delta_EdgeDisjoint_K5_Run2",
+      "protocol": "Delta",
+      "k": 5,
+      "run": 2,
+      "seed": 1,
+      "starts": [
+        1.584629,
+        1.841862,
+        1.738134,
+        1.202043,
+        1.575885
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Delta_EdgeDisjoint_K5_Run3",
+      "protocol": "Delta",
+      "k": 5,
+      "run": 3,
+      "seed": 1,
+      "starts": [
+        1.547612,
+        1.396781,
+        1.49523,
+        1.942639,
+        1.641096
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Delta_EdgeDisjoint_K5_Run4",
+      "protocol": "Delta",
+      "k": 5,
+      "run": 4,
+      "seed": 1,
+      "starts": [
+        1.236528,
+        1.485419,
+        1.261592,
+        1.932291,
+        1.354142
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Delta_EdgeDisjoint_K5_Run5",
+      "protocol": "Delta",
+      "k": 5,
+      "run": 5,
+      "seed": 1,
+      "starts": [
+        1.469026,
+        1.746181,
+        1.193142,
+        1.661974,
+        1.589918
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Omega_EdgeDisjoint_K1_Run1",
+      "protocol": "Omega",
+      "k": 1,
+      "run": 1,
+      "seed": 1,
+      "starts": [
+        1.577701,
+        1.049034,
+        1.620261,
+        1.316619,
+        1.347866
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Omega_EdgeDisjoint_K1_Run2",
+      "protocol": "Omega",
+      "k": 1,
+      "run": 2,
+      "seed": 1,
+      "starts": [
+        1.584629,
+        1.841862,
+        1.738134,
+        1.202043,
+        1.575885
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Omega_EdgeDisjoint_K1_Run3",
+      "protocol": "Omega",
+      "k": 1,
+      "run": 3,
+      "seed": 1,
+      "starts": [
+        1.547612,
+        1.396781,
+        1.49523,
+        1.942639,
+        1.641096
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Omega_EdgeDisjoint_K1_Run4",
+      "protocol": "Omega",
+      "k": 1,
+      "run": 4,
+      "seed": 1,
+      "starts": [
+        1.236528,
+        1.485419,
+        1.261592,
+        1.932291,
+        1.354142
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Omega_EdgeDisjoint_K1_Run5",
+      "protocol": "Omega",
+      "k": 1,
+      "run": 5,
+      "seed": 1,
+      "starts": [
+        1.469026,
+        1.746181,
+        1.193142,
+        1.661974,
+        1.589918
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Omega_EdgeDisjoint_K2_Run1",
+      "protocol": "Omega",
+      "k": 2,
+      "run": 1,
+      "seed": 1,
+      "starts": [
+        1.577701,
+        1.049034,
+        1.620261,
+        1.316619,
+        1.347866
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Omega_EdgeDisjoint_K2_Run2",
+      "protocol": "Omega",
+      "k": 2,
+      "run": 2,
+      "seed": 1,
+      "starts": [
+        1.584629,
+        1.841862,
+        1.738134,
+        1.202043,
+        1.575885
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Omega_EdgeDisjoint_K2_Run3",
+      "protocol": "Omega",
+      "k": 2,
+      "run": 3,
+      "seed": 1,
+      "starts": [
+        1.547612,
+        1.396781,
+        1.49523,
+        1.942639,
+        1.641096
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Omega_EdgeDisjoint_K2_Run4",
+      "protocol": "Omega",
+      "k": 2,
+      "run": 4,
+      "seed": 1,
+      "starts": [
+        1.236528,
+        1.485419,
+        1.261592,
+        1.932291,
+        1.354142
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Omega_EdgeDisjoint_K2_Run5",
+      "protocol": "Omega",
+      "k": 2,
+      "run": 5,
+      "seed": 1,
+      "starts": [
+        1.469026,
+        1.746181,
+        1.193142,
+        1.661974,
+        1.589918
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Omega_EdgeDisjoint_K3_Run1",
+      "protocol": "Omega",
+      "k": 3,
+      "run": 1,
+      "seed": 1,
+      "starts": [
+        1.577701,
+        1.049034,
+        1.620261,
+        1.316619,
+        1.347866
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Omega_EdgeDisjoint_K3_Run2",
+      "protocol": "Omega",
+      "k": 3,
+      "run": 2,
+      "seed": 1,
+      "starts": [
+        1.584629,
+        1.841862,
+        1.738134,
+        1.202043,
+        1.575885
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Omega_EdgeDisjoint_K3_Run3",
+      "protocol": "Omega",
+      "k": 3,
+      "run": 3,
+      "seed": 1,
+      "starts": [
+        1.547612,
+        1.396781,
+        1.49523,
+        1.942639,
+        1.641096
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Omega_EdgeDisjoint_K3_Run4",
+      "protocol": "Omega",
+      "k": 3,
+      "run": 4,
+      "seed": 1,
+      "starts": [
+        1.236528,
+        1.485419,
+        1.261592,
+        1.932291,
+        1.354142
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Omega_EdgeDisjoint_K3_Run5",
+      "protocol": "Omega",
+      "k": 3,
+      "run": 5,
+      "seed": 1,
+      "starts": [
+        1.469026,
+        1.746181,
+        1.193142,
+        1.661974,
+        1.589918
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Omega_EdgeDisjoint_K4_Run1",
+      "protocol": "Omega",
+      "k": 4,
+      "run": 1,
+      "seed": 1,
+      "starts": [
+        1.577701,
+        1.049034,
+        1.620261,
+        1.316619,
+        1.347866
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Omega_EdgeDisjoint_K4_Run2",
+      "protocol": "Omega",
+      "k": 4,
+      "run": 2,
+      "seed": 1,
+      "starts": [
+        1.584629,
+        1.841862,
+        1.738134,
+        1.202043,
+        1.575885
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Omega_EdgeDisjoint_K4_Run3",
+      "protocol": "Omega",
+      "k": 4,
+      "run": 3,
+      "seed": 1,
+      "starts": [
+        1.547612,
+        1.396781,
+        1.49523,
+        1.942639,
+        1.641096
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Omega_EdgeDisjoint_K4_Run4",
+      "protocol": "Omega",
+      "k": 4,
+      "run": 4,
+      "seed": 1,
+      "starts": [
+        1.236528,
+        1.485419,
+        1.261592,
+        1.932291,
+        1.354142
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Omega_EdgeDisjoint_K4_Run5",
+      "protocol": "Omega",
+      "k": 4,
+      "run": 5,
+      "seed": 1,
+      "starts": [
+        1.469026,
+        1.746181,
+        1.193142,
+        1.661974,
+        1.589918
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Omega_EdgeDisjoint_K5_Run1",
+      "protocol": "Omega",
+      "k": 5,
+      "run": 1,
+      "seed": 1,
+      "starts": [
+        1.577701,
+        1.049034,
+        1.620261,
+        1.316619,
+        1.347866
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Omega_EdgeDisjoint_K5_Run2",
+      "protocol": "Omega",
+      "k": 5,
+      "run": 2,
+      "seed": 1,
+      "starts": [
+        1.584629,
+        1.841862,
+        1.738134,
+        1.202043,
+        1.575885
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Omega_EdgeDisjoint_K5_Run3",
+      "protocol": "Omega",
+      "k": 5,
+      "run": 3,
+      "seed": 1,
+      "starts": [
+        1.547612,
+        1.396781,
+        1.49523,
+        1.942639,
+        1.641096
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Omega_EdgeDisjoint_K5_Run4",
+      "protocol": "Omega",
+      "k": 5,
+      "run": 4,
+      "seed": 1,
+      "starts": [
+        1.236528,
+        1.485419,
+        1.261592,
+        1.932291,
+        1.354142
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "Omega_EdgeDisjoint_K5_Run5",
+      "protocol": "Omega",
+      "k": 5,
+      "run": 5,
+      "seed": 1,
+      "starts": [
+        1.469026,
+        1.746181,
+        1.193142,
+        1.661974,
+        1.589918
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "CubicUncoupled_EdgeDisjoint_K1_Run1",
+      "protocol": "CubicUncoupled",
+      "k": 1,
+      "run": 1,
+      "seed": 1,
+      "starts": [
+        1.577701,
+        1.049034,
+        1.620261,
+        1.316619,
+        1.347866
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "CubicUncoupled_EdgeDisjoint_K1_Run2",
+      "protocol": "CubicUncoupled",
+      "k": 1,
+      "run": 2,
+      "seed": 1,
+      "starts": [
+        1.584629,
+        1.841862,
+        1.738134,
+        1.202043,
+        1.575885
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "CubicUncoupled_EdgeDisjoint_K1_Run3",
+      "protocol": "CubicUncoupled",
+      "k": 1,
+      "run": 3,
+      "seed": 1,
+      "starts": [
+        1.547612,
+        1.396781,
+        1.49523,
+        1.942639,
+        1.641096
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "CubicUncoupled_EdgeDisjoint_K1_Run4",
+      "protocol": "CubicUncoupled",
+      "k": 1,
+      "run": 4,
+      "seed": 1,
+      "starts": [
+        1.236528,
+        1.485419,
+        1.261592,
+        1.932291,
+        1.354142
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "CubicUncoupled_EdgeDisjoint_K1_Run5",
+      "protocol": "CubicUncoupled",
+      "k": 1,
+      "run": 5,
+      "seed": 1,
+      "starts": [
+        1.469026,
+        1.746181,
+        1.193142,
+        1.661974,
+        1.589918
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "CubicUncoupled_EdgeDisjoint_K2_Run1",
+      "protocol": "CubicUncoupled",
+      "k": 2,
+      "run": 1,
+      "seed": 1,
+      "starts": [
+        1.577701,
+        1.049034,
+        1.620261,
+        1.316619,
+        1.347866
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "CubicUncoupled_EdgeDisjoint_K2_Run2",
+      "protocol": "CubicUncoupled",
+      "k": 2,
+      "run": 2,
+      "seed": 1,
+      "starts": [
+        1.584629,
+        1.841862,
+        1.738134,
+        1.202043,
+        1.575885
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "CubicUncoupled_EdgeDisjoint_K2_Run3",
+      "protocol": "CubicUncoupled",
+      "k": 2,
+      "run": 3,
+      "seed": 1,
+      "starts": [
+        1.547612,
+        1.396781,
+        1.49523,
+        1.942639,
+        1.641096
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "CubicUncoupled_EdgeDisjoint_K2_Run4",
+      "protocol": "CubicUncoupled",
+      "k": 2,
+      "run": 4,
+      "seed": 1,
+      "starts": [
+        1.236528,
+        1.485419,
+        1.261592,
+        1.932291,
+        1.354142
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "CubicUncoupled_EdgeDisjoint_K2_Run5",
+      "protocol": "CubicUncoupled",
+      "k": 2,
+      "run": 5,
+      "seed": 1,
+      "starts": [
+        1.469026,
+        1.746181,
+        1.193142,
+        1.661974,
+        1.589918
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "CubicUncoupled_EdgeDisjoint_K3_Run1",
+      "protocol": "CubicUncoupled",
+      "k": 3,
+      "run": 1,
+      "seed": 1,
+      "starts": [
+        1.577701,
+        1.049034,
+        1.620261,
+        1.316619,
+        1.347866
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "CubicUncoupled_EdgeDisjoint_K3_Run2",
+      "protocol": "CubicUncoupled",
+      "k": 3,
+      "run": 2,
+      "seed": 1,
+      "starts": [
+        1.584629,
+        1.841862,
+        1.738134,
+        1.202043,
+        1.575885
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "CubicUncoupled_EdgeDisjoint_K3_Run3",
+      "protocol": "CubicUncoupled",
+      "k": 3,
+      "run": 3,
+      "seed": 1,
+      "starts": [
+        1.547612,
+        1.396781,
+        1.49523,
+        1.942639,
+        1.641096
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "CubicUncoupled_EdgeDisjoint_K3_Run4",
+      "protocol": "CubicUncoupled",
+      "k": 3,
+      "run": 4,
+      "seed": 1,
+      "starts": [
+        1.236528,
+        1.485419,
+        1.261592,
+        1.932291,
+        1.354142
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "CubicUncoupled_EdgeDisjoint_K3_Run5",
+      "protocol": "CubicUncoupled",
+      "k": 3,
+      "run": 5,
+      "seed": 1,
+      "starts": [
+        1.469026,
+        1.746181,
+        1.193142,
+        1.661974,
+        1.589918
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "CubicUncoupled_EdgeDisjoint_K4_Run1",
+      "protocol": "CubicUncoupled",
+      "k": 4,
+      "run": 1,
+      "seed": 1,
+      "starts": [
+        1.577701,
+        1.049034,
+        1.620261,
+        1.316619,
+        1.347866
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "CubicUncoupled_EdgeDisjoint_K4_Run2",
+      "protocol": "CubicUncoupled",
+      "k": 4,
+      "run": 2,
+      "seed": 1,
+      "starts": [
+        1.584629,
+        1.841862,
+        1.738134,
+        1.202043,
+        1.575885
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "CubicUncoupled_EdgeDisjoint_K4_Run3",
+      "protocol": "CubicUncoupled",
+      "k": 4,
+      "run": 3,
+      "seed": 1,
+      "starts": [
+        1.547612,
+        1.396781,
+        1.49523,
+        1.942639,
+        1.641096
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "CubicUncoupled_EdgeDisjoint_K4_Run4",
+      "protocol": "CubicUncoupled",
+      "k": 4,
+      "run": 4,
+      "seed": 1,
+      "starts": [
+        1.236528,
+        1.485419,
+        1.261592,
+        1.932291,
+        1.354142
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "CubicUncoupled_EdgeDisjoint_K4_Run5",
+      "protocol": "CubicUncoupled",
+      "k": 4,
+      "run": 5,
+      "seed": 1,
+      "starts": [
+        1.469026,
+        1.746181,
+        1.193142,
+        1.661974,
+        1.589918
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "CubicUncoupled_EdgeDisjoint_K5_Run1",
+      "protocol": "CubicUncoupled",
+      "k": 5,
+      "run": 1,
+      "seed": 1,
+      "starts": [
+        1.577701,
+        1.049034,
+        1.620261,
+        1.316619,
+        1.347866
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "CubicUncoupled_EdgeDisjoint_K5_Run2",
+      "protocol": "CubicUncoupled",
+      "k": 5,
+      "run": 2,
+      "seed": 1,
+      "starts": [
+        1.584629,
+        1.841862,
+        1.738134,
+        1.202043,
+        1.575885
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "CubicUncoupled_EdgeDisjoint_K5_Run3",
+      "protocol": "CubicUncoupled",
+      "k": 5,
+      "run": 3,
+      "seed": 1,
+      "starts": [
+        1.547612,
+        1.396781,
+        1.49523,
+        1.942639,
+        1.641096
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "CubicUncoupled_EdgeDisjoint_K5_Run4",
+      "protocol": "CubicUncoupled",
+      "k": 5,
+      "run": 4,
+      "seed": 1,
+      "starts": [
+        1.236528,
+        1.485419,
+        1.261592,
+        1.932291,
+        1.354142
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "CubicUncoupled_EdgeDisjoint_K5_Run5",
+      "protocol": "CubicUncoupled",
+      "k": 5,
+      "run": 5,
+      "seed": 1,
+      "starts": [
+        1.469026,
+        1.746181,
+        1.193142,
+        1.661974,
+        1.589918
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbUncoupled_EdgeDisjoint_K1_Run1",
+      "protocol": "OrbUncoupled",
+      "k": 1,
+      "run": 1,
+      "seed": 1,
+      "starts": [
+        1.577701,
+        1.049034,
+        1.620261,
+        1.316619,
+        1.347866
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbUncoupled_EdgeDisjoint_K1_Run2",
+      "protocol": "OrbUncoupled",
+      "k": 1,
+      "run": 2,
+      "seed": 1,
+      "starts": [
+        1.584629,
+        1.841862,
+        1.738134,
+        1.202043,
+        1.575885
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbUncoupled_EdgeDisjoint_K1_Run3",
+      "protocol": "OrbUncoupled",
+      "k": 1,
+      "run": 3,
+      "seed": 1,
+      "starts": [
+        1.547612,
+        1.396781,
+        1.49523,
+        1.942639,
+        1.641096
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbUncoupled_EdgeDisjoint_K1_Run4",
+      "protocol": "OrbUncoupled",
+      "k": 1,
+      "run": 4,
+      "seed": 1,
+      "starts": [
+        1.236528,
+        1.485419,
+        1.261592,
+        1.932291,
+        1.354142
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbUncoupled_EdgeDisjoint_K1_Run5",
+      "protocol": "OrbUncoupled",
+      "k": 1,
+      "run": 5,
+      "seed": 1,
+      "starts": [
+        1.469026,
+        1.746181,
+        1.193142,
+        1.661974,
+        1.589918
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbUncoupled_EdgeDisjoint_K2_Run1",
+      "protocol": "OrbUncoupled",
+      "k": 2,
+      "run": 1,
+      "seed": 1,
+      "starts": [
+        1.577701,
+        1.049034,
+        1.620261,
+        1.316619,
+        1.347866
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbUncoupled_EdgeDisjoint_K2_Run2",
+      "protocol": "OrbUncoupled",
+      "k": 2,
+      "run": 2,
+      "seed": 1,
+      "starts": [
+        1.584629,
+        1.841862,
+        1.738134,
+        1.202043,
+        1.575885
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbUncoupled_EdgeDisjoint_K2_Run3",
+      "protocol": "OrbUncoupled",
+      "k": 2,
+      "run": 3,
+      "seed": 1,
+      "starts": [
+        1.547612,
+        1.396781,
+        1.49523,
+        1.942639,
+        1.641096
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbUncoupled_EdgeDisjoint_K2_Run4",
+      "protocol": "OrbUncoupled",
+      "k": 2,
+      "run": 4,
+      "seed": 1,
+      "starts": [
+        1.236528,
+        1.485419,
+        1.261592,
+        1.932291,
+        1.354142
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbUncoupled_EdgeDisjoint_K2_Run5",
+      "protocol": "OrbUncoupled",
+      "k": 2,
+      "run": 5,
+      "seed": 1,
+      "starts": [
+        1.469026,
+        1.746181,
+        1.193142,
+        1.661974,
+        1.589918
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbUncoupled_EdgeDisjoint_K3_Run1",
+      "protocol": "OrbUncoupled",
+      "k": 3,
+      "run": 1,
+      "seed": 1,
+      "starts": [
+        1.577701,
+        1.049034,
+        1.620261,
+        1.316619,
+        1.347866
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbUncoupled_EdgeDisjoint_K3_Run2",
+      "protocol": "OrbUncoupled",
+      "k": 3,
+      "run": 2,
+      "seed": 1,
+      "starts": [
+        1.584629,
+        1.841862,
+        1.738134,
+        1.202043,
+        1.575885
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbUncoupled_EdgeDisjoint_K3_Run3",
+      "protocol": "OrbUncoupled",
+      "k": 3,
+      "run": 3,
+      "seed": 1,
+      "starts": [
+        1.547612,
+        1.396781,
+        1.49523,
+        1.942639,
+        1.641096
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbUncoupled_EdgeDisjoint_K3_Run4",
+      "protocol": "OrbUncoupled",
+      "k": 3,
+      "run": 4,
+      "seed": 1,
+      "starts": [
+        1.236528,
+        1.485419,
+        1.261592,
+        1.932291,
+        1.354142
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbUncoupled_EdgeDisjoint_K3_Run5",
+      "protocol": "OrbUncoupled",
+      "k": 3,
+      "run": 5,
+      "seed": 1,
+      "starts": [
+        1.469026,
+        1.746181,
+        1.193142,
+        1.661974,
+        1.589918
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbUncoupled_EdgeDisjoint_K4_Run1",
+      "protocol": "OrbUncoupled",
+      "k": 4,
+      "run": 1,
+      "seed": 1,
+      "starts": [
+        1.577701,
+        1.049034,
+        1.620261,
+        1.316619,
+        1.347866
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbUncoupled_EdgeDisjoint_K4_Run2",
+      "protocol": "OrbUncoupled",
+      "k": 4,
+      "run": 2,
+      "seed": 1,
+      "starts": [
+        1.584629,
+        1.841862,
+        1.738134,
+        1.202043,
+        1.575885
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbUncoupled_EdgeDisjoint_K4_Run3",
+      "protocol": "OrbUncoupled",
+      "k": 4,
+      "run": 3,
+      "seed": 1,
+      "starts": [
+        1.547612,
+        1.396781,
+        1.49523,
+        1.942639,
+        1.641096
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbUncoupled_EdgeDisjoint_K4_Run4",
+      "protocol": "OrbUncoupled",
+      "k": 4,
+      "run": 4,
+      "seed": 1,
+      "starts": [
+        1.236528,
+        1.485419,
+        1.261592,
+        1.932291,
+        1.354142
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbUncoupled_EdgeDisjoint_K4_Run5",
+      "protocol": "OrbUncoupled",
+      "k": 4,
+      "run": 5,
+      "seed": 1,
+      "starts": [
+        1.469026,
+        1.746181,
+        1.193142,
+        1.661974,
+        1.589918
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbUncoupled_EdgeDisjoint_K5_Run1",
+      "protocol": "OrbUncoupled",
+      "k": 5,
+      "run": 1,
+      "seed": 1,
+      "starts": [
+        1.577701,
+        1.049034,
+        1.620261,
+        1.316619,
+        1.347866
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbUncoupled_EdgeDisjoint_K5_Run2",
+      "protocol": "OrbUncoupled",
+      "k": 5,
+      "run": 2,
+      "seed": 1,
+      "starts": [
+        1.584629,
+        1.841862,
+        1.738134,
+        1.202043,
+        1.575885
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbUncoupled_EdgeDisjoint_K5_Run3",
+      "protocol": "OrbUncoupled",
+      "k": 5,
+      "run": 3,
+      "seed": 1,
+      "starts": [
+        1.547612,
+        1.396781,
+        1.49523,
+        1.942639,
+        1.641096
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbUncoupled_EdgeDisjoint_K5_Run4",
+      "protocol": "OrbUncoupled",
+      "k": 5,
+      "run": 4,
+      "seed": 1,
+      "starts": [
+        1.236528,
+        1.485419,
+        1.261592,
+        1.932291,
+        1.354142
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbUncoupled_EdgeDisjoint_K5_Run5",
+      "protocol": "OrbUncoupled",
+      "k": 5,
+      "run": 5,
+      "seed": 1,
+      "starts": [
+        1.469026,
+        1.746181,
+        1.193142,
+        1.661974,
+        1.589918
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbSingle_EdgeDisjoint_K1_Run1",
+      "protocol": "OrbSingle",
+      "k": 1,
+      "run": 1,
+      "seed": 1,
+      "starts": [
+        1.577701,
+        1.049034,
+        1.620261,
+        1.316619,
+        1.347866
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbSingle_EdgeDisjoint_K1_Run2",
+      "protocol": "OrbSingle",
+      "k": 1,
+      "run": 2,
+      "seed": 1,
+      "starts": [
+        1.584629,
+        1.841862,
+        1.738134,
+        1.202043,
+        1.575885
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbSingle_EdgeDisjoint_K1_Run3",
+      "protocol": "OrbSingle",
+      "k": 1,
+      "run": 3,
+      "seed": 1,
+      "starts": [
+        1.547612,
+        1.396781,
+        1.49523,
+        1.942639,
+        1.641096
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbSingle_EdgeDisjoint_K1_Run4",
+      "protocol": "OrbSingle",
+      "k": 1,
+      "run": 4,
+      "seed": 1,
+      "starts": [
+        1.236528,
+        1.485419,
+        1.261592,
+        1.932291,
+        1.354142
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    },
+    {
+      "config": "OrbSingle_EdgeDisjoint_K1_Run5",
+      "protocol": "OrbSingle",
+      "k": 1,
+      "run": 5,
+      "seed": 1,
+      "starts": [
+        1.469026,
+        1.746181,
+        1.193142,
+        1.661974,
+        1.589918
+      ],
+      "sim_time": 300,
+      "measurement_start": 10,
+      "measurement_end": 299
+    }
+  ],
+  "pairs": [
+    {
+      "pair": "NewarkToBristol",
+      "source_city": "Newark",
+      "destination_city": "Bristol",
+      "source": 5,
+      "destination": 10,
+      "group": 5
+    },
+    {
+      "pair": "JerseyCityToCardiff",
+      "source_city": "Jersey City",
+      "destination_city": "Cardiff",
+      "source": 6,
+      "destination": 11,
+      "group": 6
+    },
+    {
+      "pair": "YonkersToManchester",
+      "source_city": "Yonkers",
+      "destination_city": "Manchester",
+      "source": 7,
+      "destination": 12,
+      "group": 7
+    },
+    {
+      "pair": "StamfordToEdinburgh",
+      "source_city": "Stamford",
+      "destination_city": "Edinburgh",
+      "source": 8,
+      "destination": 13,
+      "group": 8
+    },
+    {
+      "pair": "WhitePlainsToBelfast",
+      "source_city": "White Plains",
+      "destination_city": "Belfast",
+      "source": 9,
+      "destination": 14,
+      "group": 9
+    }
+  ],
+  "path_count": 10,
+  "delay_annotation": "raw RTT ms",
+  "delay_colours": "matched excess RTT ms",
+  "min_baseline_match": 0.95
+}
