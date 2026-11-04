@@ -35,8 +35,11 @@ PROTOCOLS = {
 KS = (1, 2, 3, 4, 5)
 RUNS = (1, 2, 3, 4, 5)
 DURATION = 300
+MSS = 1200
 WARMUP = 10
 MIN_BASELINE_MATCH = .95
+USER_METRICS = ('goodput', 'rtt', 'cwnd', 'U', 'holBlockedBytes', 'throughput',
+                'retransmissionRate', 'mbytesInFlight', 'metaReinjectedBytes', 'numRtos')
 
 
 def shared_definitions():
@@ -134,9 +137,7 @@ def replay_lines(store, root):
 
 def recording_lines(ping=False):
     entries = []
-    metrics = ('rtt', 'kPathAvailable') if ping else (
-        'goodput', 'rtt', 'cwnd', 'U', 'holBlockedBytes', 'throughput', 'retransmissionRate',
-        'mbytesInFlight', 'metaReinjectedBytes', 'numRtos')
+    metrics = ('rtt', 'kPathAvailable') if ping else USER_METRICS
     if not ping:
         entries += ['**.tcp.conn-temp.**.statistic-recording = false',
                     '**.tcp.conn-temp.**.vector-recording = false']
@@ -188,7 +189,7 @@ def generate(duration=DURATION, store=DEFAULT_STORE):
         '**.tcp.delayedAcksEnabled = false', '**.tcp.timestampSupport = true',
         '**.tcp.ecnWillingness = false', '**.tcp.nagleEnabled = true',
         '**.tcp.sackSupport = true', '**.tcp.updatedSackEnabled = true',
-        '**.tcp.stopOperationTimeout = 4000s', '**.tcp.mss = 1200',
+        '**.tcp.stopOperationTimeout = 4000s', f'**.tcp.mss = {MSS}',
         '**.tcp.initialSsthresh = 4800000', '**.tcp.sendQueueLimit = 4MiB',
         '**.tcp.subflowInterfaceBinding = false', '**.schedulerMode = "defaultCwnd"',
         '**.startAllSubflowsAtBeginning = true', '**.subflowStartTimes = ""',

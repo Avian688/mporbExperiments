@@ -5,6 +5,7 @@ import json
 import math
 from pathlib import Path
 import struct
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -65,6 +66,34 @@ def traffic_fixture(config):
             # establish ranks. Receiver order is deliberately irrelevant.
             for rank in reversed(range(1,config['k']+1)):
                 specifications.append((prefix+f'conn-{100+rank}','rtt',[(t+.2,.03+rank*.01) for t in range(10,14)]))
+    fixture(config,specifications)
+
+
+def diagnostic_fixture(config):
+    traffic_fixture(config)
+    vectors=Vectors(leo.result(config,'.vec'))
+    specifications=[(v.module,v.metric,list(vectors.samples(v))) for v in vectors.items.values()]
+    for p in leo.PAIRS:
+        sender=f'leo.userTerminal[{p["source"]}].tcp.'
+        receiver=f'leo.userTerminal[{p["destination"]}].tcp.'
+        single=config['protocol']=='OrbSingle'
+        specifications.append((sender+('conn-51' if single else 'conn-100'),'metaReinjectedBytes',[]))
+        if not single:
+            # The meta/control window must not masquerade as a data-subflow CWND.
+            specifications.append((sender+'conn-100','cwnd',[(1,9999999),(14,9999999)]))
+        for rank in range(1,config['k']+1):
+            module=sender+('conn-51' if single else f'conn-{100+rank}')
+            for metric,samples in (
+                ('cwnd',[(1,1200*rank),(10,2400*rank),(14,3600*rank)]),
+                ('U',[(1,.9),(10,1.1),(14,.95)]),
+                ('mbytesInFlight',[(1,0),(10,1200*rank),(14,0)]),
+                ('retransmissionRate',[(1,0),(10,1e6),(14,0)]),
+                ('numRtos',[])):
+                specifications.append((module,metric,samples))
+            # Deliberately unrelated receiver IDs; plot them without rank labels.
+            specifications.append((receiver+f'conn-{900-7*rank}','throughput',[(1,1e6),(10,2e6),(14,3e6)]))
+        specifications.append((receiver+'conn-500','holBlockedBytes',[(1,0),(10,1000),(14,0)]))
+    specifications.append(('leo.satellite[0].tcp.conn-9','U',[(1,999)]))
     fixture(config,specifications)
 
 
@@ -210,6 +239,147 @@ class LeoTests(unittest.TestCase):
                 runner.main(['--dry-run','--skip-generate','--sim-time','15','--runs','1','--ks','2','--protocols','Alpha','OrbSingle'])
         self.assertIn('2 traffic runs',out.getvalue())
         self.assertIn('one unloaded ping',out.getvalue())
+
+    def test_individual_sampling_and_endpoint_identity(self):
+        import plotExperimentLeo as individual
+        samples=((i/10000,1e6 if i==54321 else float(i%7)) for i in range(100000))
+        points,count=individual.sample_series(samples,10,bins=8)
+        self.assertEqual(count,100000)
+        self.assertLessEqual(len(points),32)
+        self.assertIn((5.4321,1e6),points)
+        self.assertEqual(points[0],(0,0))
+        self.assertEqual(points[-1][0],9.9999)
+        c=next(c for c in self.matrix if c['protocol']=='Alpha' and c['k']==2)
+        diagnostic_fixture(c)
+        vectors=Vectors(leo.result(c,'.vec'))
+        cwnd=individual.pair_vectors(vectors,c,leo.PAIRS[0],'cwnd')
+        self.assertEqual([rank for _,_,rank in cwnd],[1,2])
+        self.assertTrue(all('conn-100' not in v.module for v,_,_ in cwnd))
+        receiver=individual.pair_vectors(vectors,c,leo.PAIRS[0],'throughput')
+        self.assertTrue(all(rank is None and 'Path ' not in label for _,label,rank in receiver))
+        counter=individual.pair_vectors(vectors,c,leo.PAIRS[0],'numRtos')[0][0]
+        points,count,status=individual.prepare_curve(vectors,counter,'numRtos',15)
+        self.assertEqual((points,count,status),([(0.,0.),(15,0.)],0,'zero_events'))
+        rtt=individual.pair_vectors(vectors,c,leo.PAIRS[0],'rtt')[0][0]
+        points,_,_=individual.prepare_curve(vectors,rtt,'rtt',15)
+        self.assertEqual(points[-1][0],13.2)
+        rate=receiver[0][0]
+        points,_,_=individual.prepare_curve(vectors,rate,'throughput',15)
+        self.assertEqual(points[-1][0],14)
+
+    def test_individual_plot_files_missing_data_and_applicability(self):
+        import plotExperimentLeo as individual
+        c=next(c for c in self.matrix if c['protocol']=='Alpha' and c['k']==2)
+        diagnostic_fixture(c)
+        with patch.object(leo,'PAIRS',leo.PAIRS[:1]):
+            records=individual.plot_metrics([c],['cwnd','rtt','throughput','numRtos','metaReinjectedBytes'],cores=1,bins=20)
+        out=leo.PLOT_DIR/'individual'/c['config']
+        for metric in ('cwnd','rtt','throughput','numRtos','metaReinjectedBytes'):
+            terminal=individual.terminal_folder(leo.PAIRS[0],metric=='throughput')
+            for ext in ('png','pdf'):
+                self.assertGreater((out/terminal/f'{metric}.{ext}').stat().st_size,1000)
+        for receiver in (False,True):
+            self.assertGreater((out/individual.terminal_folder(leo.PAIRS[0],receiver)/'combined.pdf').stat().st_size,1000)
+        self.assertTrue(all('userTerminal[' in r['module'] for r in records))
+        self.assertTrue(any(r['metric']=='metaReinjectedBytes' and r['status']=='zero_events' for r in records))
+        self.assertTrue((out/'vectors.csv').is_file())
+        self.assertEqual(json.loads((out/'plots.json').read_text())['figures'],5)
+        self.assertEqual(json.loads((out/'plots.json').read_text())['combined_pdfs'],2)
+        self.assertEqual({r['terminal'] for r in records},{5,10})
+        # Older results must report absent diagnostics, not invent zero traces.
+        traffic_fixture(c)
+        records=individual.plot_metrics([c],['cwnd'],cores=1)
+        self.assertEqual({r['status'] for r in records},{'not_recorded'})
+        self.assertFalse((out/individual.terminal_folder(leo.PAIRS[0])/'cwnd.png').exists())
+        self.assertFalse((out/individual.terminal_folder(leo.PAIRS[0])/'cwnd.pdf').exists())
+        self.assertFalse((out/individual.terminal_folder(leo.PAIRS[0])/'combined.pdf').exists())
+        self.assertFalse(individual.applicable(dict(protocol='CubicUncoupled'),'U'))
+        self.assertFalse(individual.applicable(dict(protocol='OrbSingle'),'holBlockedBytes'))
+        self.assertFalse(individual.applicable(dict(protocol='OrbSingle'),'metaReinjectedBytes'))
+
+    def test_plot_only_runner_avoids_simulation_and_heatmap_extraction(self):
+        import runExperimentLeo as runner
+        import plotExperimentLeo as individual
+        with patch.object(runner,'simulate',side_effect=AssertionError('must not simulate')), \
+             patch.object(runner,'prepare_ping',side_effect=AssertionError('no ping dependency')), \
+             patch.object(runner,'ensure_index') as indexed, \
+             patch.object(analysis,'plot',side_effect=AssertionError('no heatmap selection')), \
+             patch.object(individual,'plot_metrics') as plotted, \
+             contextlib.redirect_stdout(io.StringIO()):
+            runner.main(['--start-step','4','--skip-generate','--cores','3',
+                '--plots','cwnd','U','--configs','Delta_EdgeDisjoint_K3_Run1'])
+        self.assertEqual(indexed.call_count,1)
+        args,kwargs=plotted.call_args
+        self.assertEqual([c['config'] for c in args[0]],['Delta_EdgeDisjoint_K3_Run1'])
+        self.assertEqual(args[1],['cwnd','U'])
+        self.assertEqual(kwargs['cores'],3)
+
+    def test_parallel_individual_rendering_uses_explicit_result_paths(self):
+        import plotExperimentLeo as individual
+        configs=[next(c for c in self.matrix if c['protocol']==protocol and c['k']==1 and c['run']==1)
+                 for protocol in ('Alpha','OrbSingle')]
+        for c in configs:diagnostic_fixture(c)
+        records=individual.plot_metrics(configs,['cwnd'],cores=2,bins=10)
+        self.assertEqual(len({r['config'] for r in records}),2)
+        for c in configs:
+            self.assertTrue((leo.PLOT_DIR/'individual'/c['config']/individual.terminal_folder(leo.PAIRS[0])/'cwnd.png').is_file())
+
+    def test_individual_figures_have_one_terminal_and_combined_pdf(self):
+        import plotExperimentLeo as individual
+        import matplotlib.pyplot  # Import before replacing Figure.savefig.
+        c=next(c for c in self.matrix if c['protocol']=='Alpha' and c['k']==2)
+        diagnostic_fixture(c)
+        vectors=Vectors(leo.result(c,'.vec'))
+        specifications=[]
+        for vector in vectors.items.values():
+            samples=list(vectors.samples(vector))
+            if '.userTerminal[9].' in vector.module and vector.metric=='cwnd':
+                samples=[(t,v*100) for t,v in samples]
+            specifications.append((vector.module,vector.metric,samples))
+        fixture(c,specifications)
+        checked=[]
+        def capture(fig,output):
+            self.assertEqual(len(fig.axes),1)
+            if output.name=='cwnd':
+                if output.parent.name.startswith('userTerminal9_'):
+                    self.assertGreaterEqual(fig.axes[0].get_ylim()[1],600)
+                else:
+                    self.assertLess(fig.axes[0].get_ylim()[1],10)
+            else:
+                self.assertGreaterEqual(fig.axes[0].get_ylim()[1],1)
+                self.assertTrue(all(t==int(t) for t in fig.axes[0].get_yticks()))
+            checked.append(output.name)
+        with patch.object(individual,'save_figure',side_effect=capture), \
+             patch('matplotlib.figure.Figure.savefig') as combined:
+            individual.plot_metrics([c],['cwnd','numRtos'],cores=1,bins=20)
+        self.assertEqual(checked,['cwnd','numRtos']*5)
+        self.assertEqual(combined.call_count,5)
+        self.assertTrue(all(call.args[0].name=='combined.pdf' for call in combined.call_args_list))
+
+    def test_standalone_plot_dry_run_needs_no_plotting_packages(self):
+        script=leo.SCRIPT_DIR/'plotExperimentLeo.py'
+        code=f'''
+import importlib.abc,sys,runpy
+sys.path.insert(0,{str(leo.SCRIPT_DIR)!r})
+class BlockPlotting(importlib.abc.MetaPathFinder):
+    def find_spec(self,fullname,path=None,target=None):
+        if fullname.split('.')[0] in ('numpy','matplotlib'):
+            raise AssertionError('Dry run imported plotting package: '+fullname)
+sys.meta_path.insert(0,BlockPlotting())
+import leo
+from pathlib import Path
+leo.EXPERIMENT_DIR=Path({str(leo.EXPERIMENT_DIR)!r})
+leo.PING_DIR=Path({str(leo.PING_DIR)!r})
+sys.argv=[{str(script)!r},'--dry-run','--configs','Delta_EdgeDisjoint_K3_Run1','--plots','cwnd','U']
+runpy.run_path({str(script)!r},run_name='__main__')
+'''
+        result=subprocess.run([sys.executable,'-c',code],capture_output=True,text=True)
+        self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+        self.assertIn('1 traffic runs',result.stdout)
+        self.assertNotIn('Step 1:',result.stdout)
+        self.assertNotIn('Step 2:',result.stdout)
+        self.assertNotIn('Step 3:',result.stdout)
+        self.assertIn('Step 4: plot cwnd, U',result.stdout)
 
 
 if __name__=='__main__':

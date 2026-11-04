@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""1: unloaded ping; 2: five-flow traffic; 3: extract; 4: heatmaps. No build."""
+"""1: unloaded ping; 2: five-flow traffic; 3: extract; 4: heatmaps/run plots. No build."""
 import argparse
 import hashlib
 import json
@@ -120,6 +120,9 @@ def main(argv=None):
     parser.add_argument('--runs',type=int,choices=range(1,6),default=5,help='Use the first N start-time patterns; simulation seed stays fixed')
     parser.add_argument('--ks',nargs='+',type=int,choices=leo.KS,default=list(leo.KS))
     parser.add_argument('--protocols',nargs='+',choices=tuple(leo.PROTOCOLS),default=list(leo.PROTOCOLS))
+    parser.add_argument('--configs',nargs='+',help='Restrict to exact configuration names')
+    parser.add_argument('--plots',nargs='+',choices=('summary','all',*leo.USER_METRICS),default=['all'],
+                        help='Default all: heatmaps and individual endpoint plots; summary: heatmaps only')
     parser.add_argument('--sim-time',type=float,help='Default 300s, or the existing manifest duration with --skip-generate')
     parser.add_argument('--route-store',type=Path,help='Default: leosatellites/simulations/leoSaves')
     parser.add_argument('--start-step',type=int,choices=range(1,5),default=1)
@@ -141,6 +144,11 @@ def main(argv=None):
     matrix = manifest['configurations'] if args.skip_generate else leo.generate(args.sim_time,args.route_store)
     selected = [c for c in matrix if c['protocol'] in args.protocols and c['run']<=args.runs and
                 (c['protocol']=='OrbSingle' or c['k'] in args.ks)]
+    if args.configs:
+        unknown = set(args.configs)-{c['config'] for c in selected}
+        if unknown:
+            parser.error(f'Unknown selected configurations: {sorted(unknown)}')
+        selected = [c for c in selected if c['config'] in args.configs]
     if not selected:
         parser.error('No traffic configurations selected')
     if any(c['sim_time']!=args.sim_time for c in selected):
@@ -150,13 +158,19 @@ def main(argv=None):
         print('Primary and EdgeDisjoint snapshot headers/time coverage match; payload validation is performed by the simulator.')
         return
     if args.dry_run:
-        print('Step 1: one unloaded ping prepass (ordinary shortest path + all 10 saved edge-disjoint ranks for each pair)')
-        print('Main runs contain TCP applications only. Fixed simulation seed; run differences are start times.')
+        if args.start_step<=1<=args.end_step:
+            print('Step 1: one unloaded ping prepass (ordinary shortest path + all 10 saved edge-disjoint ranks for each pair)')
         if not args.ping_only:
-            print(f'Step 2: {len(selected)} traffic runs, five simultaneous connections each')
+            print(f'Selected {len(selected)} traffic runs, five simultaneous connections each')
+            print('Main runs contain TCP applications only. Fixed simulation seed; run differences are start times.')
             for c in selected:
                 print(c['config'])
-            print('Step 3: extract directly from vectors; step 4: goodput/RTT heatmaps for each K')
+            if args.start_step<=2<=args.end_step:
+                print('Step 2: simulate selected traffic runs')
+            if args.start_step<=3<=args.end_step:
+                print('Step 3: extract directly from vectors')
+            if args.start_step<=4<=args.end_step:
+                print('Step 4: plot '+', '.join(args.plots))
         return
     route_hash = None
     if args.start_step<=2:
@@ -177,9 +191,17 @@ def main(argv=None):
         print('ExperimentLeo: extract endpoint results without bulk CSV copies',flush=True)
         parallel(extract,selected,args.cores)
     if args.start_step<=4<=args.end_step:
-        from analyzeExperimentLeo import plot
-        print('ExperimentLeo: plot one goodput and one RTT heatmap per K',flush=True)
-        plot(selected)
+        if 'summary' in args.plots or 'all' in args.plots:
+            from analyzeExperimentLeo import plot
+            print('ExperimentLeo: plot one goodput and one RTT heatmap per K',flush=True)
+            plot(selected)
+        metrics = list(leo.USER_METRICS) if 'all' in args.plots else [m for m in args.plots if m!='summary']
+        if metrics:
+            from plotExperimentLeo import plot_metrics
+            for config in selected:
+                ensure_index(config)
+            print('ExperimentLeo: plot individual user-terminal metrics',flush=True)
+            plot_metrics(selected,metrics,cores=args.cores)
 
 
 def run(argv=None):

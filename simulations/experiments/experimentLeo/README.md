@@ -88,8 +88,8 @@ remain explicit.
 No satellite, ground-station, queue, link, or other diagnostic
 vectors are enabled. Receiver CWND and sender throughput are disabled. Unused connection-template recording and all scalar/bin
 recording are disabled. No ping or monitoring apps run during traffic tests.
-The added diagnostics are retained in the original result vectors for run
-inspection; the aggregate heatmaps still use goodput and RTT. Results recorded
+The diagnostics are retained in the original result vectors and plotted as
+individual run figures; the aggregate heatmaps still use goodput and RTT. Results recorded
 before a metric was enabled must be rerun to obtain that metric.
 
 `experimentLeoPing` runs first, once, using the same saved geometry and fixed
@@ -146,7 +146,7 @@ python3 experimentLeo/runExperimentLeo.py --dry-run
 # Check saved snapshot headers and complete time coverage; never simulate.
 python3 experimentLeo/runExperimentLeo.py --check-routes
 
-# Ping first, then traffic, extraction, and heatmaps. Set cores for your host.
+# Ping first, then traffic, extraction, heatmaps and terminal plots.
 python3 experimentLeo/runExperimentLeo.py --cores 30
 
 # Only the unloaded ping prepass.
@@ -157,14 +157,26 @@ python3 experimentLeo/runExperimentLeo.py --protocols Alpha Delta --ks 2 4 --run
 
 # Re-extract/replot existing outputs, or only replot.
 python3 experimentLeo/runExperimentLeo.py --start-step 3 --skip-generate
-python3 experimentLeo/runExperimentLeo.py --start-step 4 --skip-generate
+python3 experimentLeo/runExperimentLeo.py --start-step 4 --skip-generate --cores 30 --plots all
+
+# Only individual traces; no heatmap extraction or baseline is needed.
+python3 experimentLeo/plotExperimentLeo.py --cores 30
+
+# One run and selected metrics; reads the recorded vectors directly.
+python3 experimentLeo/plotExperimentLeo.py --configs Delta_EdgeDisjoint_K3_Run1 --plots cwnd U holBlockedBytes
+
+# Aggregate heatmaps only.
+python3 experimentLeo/runExperimentLeo.py --start-step 4 --skip-generate --plots summary
 
 # Explicitly replace the selected simulations and dependent plots.
 python3 experimentLeo/runExperimentLeo.py --rerun --cores 30
 ```
 
 Stages are 1: simulate/extract the ping prepass, 2: simulate traffic,
-3: extract traffic, 4: plot. Each simulation attempt, including the ping prepass,
+3: extract traffic, 4: plot. The default `--plots all` creates the aggregate
+heatmaps and individual figures; named metrics create only those individual
+figures. `--protocols`, `--ks`, `--runs`, and `--configs` restrict the selected
+cases. Each simulation attempt, including the ping prepass,
 has a **12-hour wall-clock timeout** by default. Override it with
 `--sim-timeout-seconds`; the timeout applies per attempt, not to the whole suite.
 An already-running runner retains the timeout with which it was launched.
@@ -175,6 +187,45 @@ copies. Step 2 refuses a baseline from different routes or inputs. Step 3/4
 refuses missing/stale extraction. There are no large CSV-R intermediate exports:
 selected vector blocks are read directly through their `.vci` index, with small
 summary CSV/JSON files under each experiment's `csvs/` directory.
+
+## Individual user-terminal figures
+
+Each recorded metric has an independent figure for its user terminal under
+`simulations/plots/experimentLeo/individual/<configuration>/userTerminal<ID>_<city>/<metric>.png`
+and `.pdf`. Each terminal directory also has **one `combined.pdf`**, a single-page
+grid containing all selected, recorded metrics for that terminal and run.
+Sender terminals 5–9 have sender diagnostics; receiving terminals 10–14 have
+goodput, throughput and HoL plots. Metrics from different terminals are never
+combined in one figure. The ten supported metrics are goodput, RTT, CWND, U, HoL blocked bytes,
+receiver throughput, sender retransmission rate, bytes in flight, cumulative
+MPTCP reinjected bytes, and RTO count. Figures use the existing experiments'
+17-by-5-inch trace style for each independent plot. Sender
+subflow curves identify their path rank and connection ID. Receiver throughput
+curves retain their connection IDs; passive-side IDs are not assumed to be
+path-rank order. CWND and bytes in flight are displayed in MSS units (1200 B),
+RTT in ms, rates in Mbps, and the MPTCP buffer/reinjection measurements in bytes.
+
+Plots read the existing `.vec`/`.vci` files directly, including diagnostics that
+are absent from the summary CSVs. No new simulation or full CSV-R export is
+needed when those metrics were already recorded. Plotting uses up to `--cores`
+worker processes, one run per job, because Matplotlib rendering is not thread
+safe. Output names are fixed and are overwritten on replotting.
+
+Dense traces retain the first, last, minimum and maximum sample in each of
+3000 time bins, preserving spikes with bounded plotting memory. Aggregate
+statistics continue to use the original samples. State traces hold their last
+recorded state; rates stop at the last recorded interval. RTT is plotted as
+observations rather than extended through unobserved periods. Registered empty
+cumulative RTO/reinjection counters represent zero events; absent recordings
+remain missing. U is inapplicable to CUBIC, and native single-path OrbCC has no
+MPTCP HoL/reinjection metrics; these figures are skipped.
+
+The per-run `vectors.csv` index lists source modules, ranks, raw/retained point
+counts, displayed curves, and missing/not-applicable recordings. `plots.json`
+records the source result's size/mtime and output list. A combined index is
+written to `individual/vectors.csv`. Other missing diagnostics are skipped or
+labelled in their figure rather than substituted with zero. RTO and
+retransmission curves also show meta/control-connection events when nonzero.
 
 This is an explicit separate suite; `runExperiments.py` still defaults to the
 existing experiments 1–4. Build INET, OS3, LeoSatellites and the transport
