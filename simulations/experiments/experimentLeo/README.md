@@ -176,7 +176,10 @@ Stages are 1: simulate/extract the ping prepass, 2: simulate traffic,
 3: extract traffic, 4: plot. The default `--plots all` creates the aggregate
 heatmaps and individual figures; named metrics create only those individual
 figures. `--protocols`, `--ks`, `--runs`, and `--configs` restrict the selected
-cases. Each simulation attempt, including the ping prepass,
+cases. Traffic extraction uses up to `--cores` separate worker processes, one
+run per process, so Python sample parsing can use multiple CPU cores. The
+single unloaded-ping baseline is checked/extracted first, before those workers
+start. Each simulation attempt, including the ping prepass,
 has a **12-hour wall-clock timeout** by default. Override it with
 `--sim-timeout-seconds`; the timeout applies per attempt, not to the whole suite.
 An already-running runner retains the timeout with which it was launched.

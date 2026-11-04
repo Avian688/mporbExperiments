@@ -187,9 +187,12 @@ def main(argv=None):
         print(f'ExperimentLeo: simulate {len(selected)} five-flow runs',flush=True)
         parallel(simulate,[(c,args,route_hash) for c in selected],args.cores)
     if args.start_step<=3<=args.end_step:
+        print('ExperimentLeo: check/extract unloaded ping baseline',flush=True)
         prepare_ping(args.sim_time)
-        print('ExperimentLeo: extract endpoint results without bulk CSV copies',flush=True)
-        parallel(extract,selected,args.cores)
+        print(f'ExperimentLeo: extract endpoint results without bulk CSV copies '
+              f'({min(args.cores,len(selected))} worker processes)',flush=True)
+        # Sample parsing is CPU-bound Python; threads cannot use multiple cores.
+        parallel(extract,selected,args.cores,processes=True)
     if args.start_step<=4<=args.end_step:
         if 'summary' in args.plots or 'all' in args.plots:
             from analyzeExperimentLeo import plot
