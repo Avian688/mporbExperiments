@@ -119,6 +119,16 @@ counts, RTT coverage and path availability; missing cells are never replaced
 with zero. Raw RTT is still labelled when baseline matching is inadequate, but
 its cell is grey with an asterisk rather than coloured as low delay.
 
+Incomplete goodput intervals do not stop extraction. Goodput integrates only
+recorded intervals and divides by the full 10–299 s measurement duration, as in
+the other experiments; rates are not extrapolated before the first sample or
+after the last. Thus unrecorded boundary time contributes no recorded traffic,
+rather than increasing the mean by shortening the denominator. Coverage is
+reported as `goodput_observed_pct` and `goodput_complete`; partial cells have an
+asterisk. A wholly absent goodput recording remains missing, distinct from a
+recorded zero rate. Per-thread bounds and contributions are written to
+`*_goodput_coverage.csv` and the summary JSON for diagnosis.
+
 RTT samples are averaged within one-second bins per sender subflow, then across
 observed subflows in each second, then across observed seconds. Baseline matching
 uses the same pair, path rank and time bin. The single-path row uses ordinary

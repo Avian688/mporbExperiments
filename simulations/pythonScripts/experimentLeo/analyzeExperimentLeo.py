@@ -9,7 +9,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import leo
-from vectors import Vectors, interval_mean, seconds
+from vectors import Vectors, interval_integral, seconds
 
 
 def write_csv(path, rows):
@@ -98,18 +98,46 @@ def availability_fraction(ping, source, k, start, end):
     return 100 * area / (end - start)
 
 
+def coverage_seconds(intervals):
+    """Union of receiver-thread coverage; overlapping threads count once."""
+    total, previous = 0., -math.inf
+    for start,end in sorted(intervals):
+        total += max(0.,end-max(start,previous))
+        previous = max(previous,end)
+    return total
+
+
 def extract(config):
     ping_config = leo.ping_config(config['sim_time'])
     ping = checked_summary(ping_config)
     vectors = Vectors(leo.result(config, '.vec'))
     start, end = config['measurement_start'], config['measurement_end']
     single = config['protocol'] == 'OrbSingle'
-    rows, details = [], []
+    rows, details, goodput_details = [], [], []
     for pair in leo.PAIRS:
         source, destination = pair['source'], pair['destination']
         goodput = [v for v in vectors.items.values() if v.metric == 'goodput' and
                    f'.userTerminal[{destination}].app[0].thread_' in v.module]
-        goodput_mean = sum(interval_mean(vectors.samples(v), start, end, rate=True) for v in goodput)
+        goodput_bits, intervals = 0., []
+        if not goodput:
+            goodput_details.append(dict(config=config['config'],pair=pair['pair'],module='',
+                recorded_bits=math.nan,covered_seconds=0.,covered_start_s='',covered_end_s='',status='not_recorded'))
+        for vector in goodput:
+            try:
+                bits, covered, bounds = interval_integral(vectors.samples(vector),start,end,rate=True)
+            except ValueError as error:
+                raise ValueError(f'{config["config"]}: {vector.module}/goodput: {error}') from error
+            goodput_bits += bits
+            if bounds:
+                intervals.append(bounds)
+            goodput_details.append(dict(config=config['config'],pair=pair['pair'],module=vector.module,
+                recorded_bits=bits,covered_seconds=covered,
+                covered_start_s=bounds[0] if bounds else '',covered_end_s=bounds[1] if bounds else '',
+                status='recorded' if bounds else 'no_covered_intervals'))
+        goodput_coverage = coverage_seconds(intervals)
+        # Keep the fixed measurement denominator, including time when a late or
+        # closed thread emits nothing. Never extend a final nonzero rate.
+        goodput_mean = goodput_bits/(end-start) if goodput else math.nan
         ranks = sender_ranks(vectors, source, config['k'], single)
         raw_by_second, excess_by_second = {}, {}
         base_by_second = {}
@@ -134,18 +162,26 @@ def extract(config):
         base = mean(mean(v) for v in base_by_second.values())*1000 if base_by_second else math.nan
         rows.append(dict(config=config['config'], protocol=config['protocol'], k=config['k'],
             run=config['run'], pair=pair['pair'], goodput_mbps=goodput_mean/1e6,
+            goodput_observed_pct=100*goodput_coverage/(end-start),
+            goodput_complete=goodput_coverage>=end-start-1e-6,
             raw_rtt_ms=raw, excess_rtt_ms=excess, matched_baseline_rtt_ms=base,
             baseline_match_pct=100*matched/observed if observed else 0.,
             rtt_observed_pct=100*len(raw_by_second)/(end-start),
             all_k_available_pct=availability_fraction(ping, source, config['k'], start, end),
             receiver_connected=bool(goodput)))
     data = dict(config=config, source_stat=leo.stat(leo.result(config, '.vec')), input_hash=leo.input_hash(config),
-                baseline_stat=leo.stat(leo.summary_path(ping_config)), rows=rows, subflows=details)
+                baseline_stat=leo.stat(leo.summary_path(ping_config)), rows=rows, subflows=details,
+                goodput_recordings=goodput_details)
     target = leo.summary_path(config)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(data) + '\n')
     write_csv(target.with_suffix('.csv'), rows)
     write_csv(target.with_name(target.stem + '_subflows.csv'), details)
+    write_csv(target.with_name(target.stem + '_goodput_coverage.csv'),goodput_details)
+    incomplete = [r['pair'] for r in rows if not r['goodput_complete']]
+    if incomplete:
+        print(f'{config["config"]}: incomplete goodput coverage for {", ".join(incomplete)}; '
+              'using recorded traffic / full measurement duration; see *_goodput_coverage.csv',flush=True)
     return rows
 
 
@@ -169,9 +205,10 @@ def aggregate(rows, ks):
                 selected = [r for r in rows if r['protocol'] == protocol and
                             r['k'] == selected_k and r['pair'] == pair['pair']]
                 record = dict(k=k, protocol=protocol, pair=pair['pair'], n=len(selected))
-                for metric in ('goodput_mbps', 'raw_rtt_ms', 'excess_rtt_ms',
+                record['goodput_complete'] = bool(selected) and all(r.get('goodput_complete',True) for r in selected)
+                for metric in ('goodput_mbps', 'goodput_observed_pct', 'raw_rtt_ms', 'excess_rtt_ms',
                                'baseline_match_pct', 'rtt_observed_pct', 'all_k_available_pct'):
-                    values = [r[metric] for r in selected if math.isfinite(r[metric])]
+                    values = [r[metric] for r in selected if math.isfinite(r.get(metric,math.nan))]
                     record[metric] = mean(values) if values else math.nan
                     record[metric + '_sd'] = stdev(values) if len(values) > 1 else math.nan
                     record[metric + '_n'] = len(values)
@@ -216,7 +253,9 @@ def plot(configs):
                     for j in range(len(leo.PAIRS)):
                         value, colour_value = annotations[i,j], colours[i,j]
                         label = f'{value:.1f}' if math.isfinite(value) else '--'
-                        if math.isfinite(value) and not math.isfinite(colour_value):
+                        cell = subset[tuple(leo.PROTOCOLS)[i],leo.PAIRS[j]['pair']]
+                        incomplete = name=='goodput' and not cell['goodput_complete']
+                        if math.isfinite(value) and (not math.isfinite(colour_value) or incomplete):
                             label += '*'
                         rgba = image.cmap(image.norm(colour_value)) if math.isfinite(colour_value) else (.9,.9,.9,1)
                         brightness = sum(a*b for a,b in zip(rgba[:3], (.2126,.7152,.0722)))
@@ -231,6 +270,8 @@ def plot(configs):
                 footer = 'Five simultaneous connections; mean across ' + '/'.join(map(str,counts)) + ' start-time runs. Single-path row reused.'
                 if name == 'delay':
                     footer += '\nNumbers: raw RTT. Colours: excess RTT. Grey*: baseline match below 95%.'
+                else:
+                    footer += '\n*: incomplete goodput coverage; recorded traffic / full window, no extrapolation.'
                 if plt.rcParams['text.usetex']:
                     footer = footer.replace('%',r'\%')
                 fig.supxlabel(footer,fontsize=8)

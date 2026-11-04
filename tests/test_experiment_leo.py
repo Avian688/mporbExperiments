@@ -215,6 +215,45 @@ class LeoTests(unittest.TestCase):
         with self.assertRaises(ValueError):analysis.sender_ranks(vectors,5,3,False)
         with self.assertRaises(ValueError):interval_mean(iter([(10,1),(12,1)]),10,14,rate=True)
 
+    def test_missing_goodput_intervals_continue_and_report_coverage(self):
+        ping_fixture()
+        c=next(c for c in self.matrix if c['protocol']=='Alpha' and c['k']==2)
+        traffic_fixture(c)
+        vectors=Vectors(leo.result(c,'.vec'))
+        specifications=[]
+        for vector in vectors.items.values():
+            samples=list(vectors.samples(vector))
+            if vector.metric=='goodput':
+                if '.userTerminal[10].' in vector.module:
+                    # The first sample's preceding boundary is unknown. Integrate
+                    # only 11–12 at 4 Mbps and 12–13 at 8 Mbps: 12 Mb / 4 s.
+                    samples=[(11,90e6),(12,4e6),(13,8e6)]
+                elif '.userTerminal[11].' in vector.module:
+                    samples=[(t,0) for t in range(9,15)]
+                elif '.userTerminal[13].' in vector.module:
+                    samples=[]
+                elif '.userTerminal[14].' in vector.module:
+                    continue
+            specifications.append((vector.module,vector.metric,samples))
+        # An unused empty thread must not reject the other thread's full data.
+        specifications.append(('leo.userTerminal[12].app[0].thread_100','goodput',[]))
+        fixture(c,specifications)
+        with contextlib.redirect_stdout(io.StringIO()) as output:
+            rows=analysis.extract(c)
+        self.assertEqual([r['goodput_observed_pct'] for r in rows],[50,100,100,0,0])
+        self.assertEqual([r['goodput_complete'] for r in rows],[False,True,True,False,False])
+        self.assertEqual([r['goodput_mbps'] for r in rows[:4]],[3,0,12,0])
+        self.assertTrue(math.isnan(rows[4]['goodput_mbps']))
+        self.assertIn('incomplete goodput coverage',output.getvalue())
+        detail=json.loads(leo.summary_path(c).read_text())['goodput_recordings']
+        self.assertEqual(detail[0]['recorded_bits'],12e6)
+        self.assertEqual((detail[0]['covered_start_s'],detail[0]['covered_end_s']),(11,13))
+        self.assertTrue(any(r['status']=='not_recorded' for r in detail))
+        self.assertTrue(leo.summary_path(c).with_name(c['config']+'_goodput_coverage.csv').is_file())
+        cells=analysis.aggregate(rows,[2])
+        self.assertFalse(next(r for r in cells if r['protocol']=='Alpha' and r['pair']==leo.PAIRS[0]['pair'])['goodput_complete'])
+        self.assertEqual(analysis.coverage_seconds([(10,12),(11,14),(10.5,11)]),4)
+
     def test_fewer_paths_keep_requested_k_without_zero_rtt_substitution(self):
         ping_fixture()
         c=next(c for c in self.matrix if c['protocol']=='Alpha' and c['k']==5)

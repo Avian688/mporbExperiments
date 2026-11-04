@@ -78,19 +78,25 @@ def seconds(samples, start, end):
     return {second: total/count for second, (total, count) in bins.items()}
 
 
-def interval_mean(samples, start, end, rate=False):
-    """Rates describe the preceding interval; availability is sample-and-hold."""
+def interval_integral(samples, start, end, rate=False):
+    """Return recorded area, coverage and bounds without extrapolating rates."""
+    if not math.isfinite(start) or not math.isfinite(end) or end <= start:
+        raise ValueError('Invalid measurement interval')
     previous = None
     area = coverage = 0.
+    covered_start = covered_end = None
     for t, value in samples:
         if previous is not None:
-            dt = max(0., min(t, end) - max(previous[0], start))
+            left, right = max(previous[0], start), min(t, end)
+            dt = max(0., right - left)
             if dt:
                 used = value if rate else previous[1]
                 if not math.isfinite(used):
                     raise ValueError('Non-finite value in measurement interval')
                 area += dt * used
                 coverage += dt
+                covered_start = left if covered_start is None else covered_start
+                covered_end = right
         previous = t, value
         if t >= end:
             break
@@ -98,6 +104,17 @@ def interval_mean(samples, start, end, rate=False):
         dt = max(0., end - max(start, previous[0]))
         area += dt * previous[1]
         coverage += dt
+        if dt:
+            covered_start = max(start,previous[0]) if covered_start is None else covered_start
+            covered_end = end
+    bounds = (covered_start,covered_end) if coverage else None
+    return area, coverage, bounds
+
+
+def interval_mean(samples, start, end, rate=False):
+    """Strict full-window mean; rates describe the preceding interval."""
+    area, coverage, _ = interval_integral(samples,start,end,rate)
     if coverage < end - start - 1e-6:
-        raise ValueError('Vector does not cover the complete measurement interval')
+        raise ValueError(f'Vector does not cover the complete measurement interval '
+                         f'({coverage:g}/{end-start:g}s covered in {start:g}–{end:g}s)')
     return area / (end - start)
