@@ -31,7 +31,7 @@ struct Stroke {
 
 inline std::array<float, 4> pairColor(int pairIndex)
 {
-    // Orange/red are reserved for overlap, not individual connections.
+    // Yellow/orange/red are reserved for shared segments, not connections.
     static const std::array<float, 4> colors[] = {
         {0.20f, 0.65f, 1.00f, 1.0f}, {0.10f, 0.95f, 0.85f, 1.0f},
         {0.75f, 0.45f, 1.00f, 1.0f}, {0.35f, 0.90f, 0.30f, 1.0f},
@@ -68,9 +68,11 @@ inline Stroke edgeStroke(const EdgeUse& edge, int coreNodes, bool includeAccessL
             ? edge.paths : 1;
     auto color = pairColor(edge.pairIndex);
     if (count == 2)
+        color = {1.00f, 0.90f, 0.05f, 1.0f};
+    else if (count == 3)
         color = {1.00f, 0.55f, 0.03f, 1.0f};
-    else if (count >= 3) {
-        const float shade = std::max(0.55f, 1.0f - 0.04f * (count - 3));
+    else if (count >= 4) {
+        const float shade = std::max(0.55f, 1.0f - 0.04f * (count - 4));
         color = {shade, 0.10f * shade, 0.08f * shade, 1.0f};
     }
     return {color, 2.5f + 0.8f * std::min(6u, count > 0 ? count - 1 : 0)};

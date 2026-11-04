@@ -490,7 +490,7 @@ void MpOrbLeoOsgVisualizer::initializeLegend()
         y -= 34;
     }
     y -= 10;
-    text(y, osg::Vec4(1, 1, 1, 1), "1 path: pair colour | 2: orange | 3+: red/darker; thicker = more paths");
+    text(y, osg::Vec4(1, 1, 1, 1), "Per link: 1 subflow = pair colour | 2 = yellow | 3 = orange | 4+ = red");
     text(y - 30, osg::Vec4(1, 1, 1, 1), highlightAccessLinks ?
             "Overlap counts physical links, including shared terminal access" : "Overlap highlighting: core links only");
     if (selectedPairs.size() == 1) {

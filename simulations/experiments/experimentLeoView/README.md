@@ -73,11 +73,14 @@ The viewer draws each link once, preventing arbitrary path draw order from
 hiding its overlap count:
 
 - One path: the connection's colour, 2.5-pixel line.
-- Two paths: orange, thicker.
-- Three or more: red, progressively darker and thicker as the count increases.
+- Two subflows on the same link: yellow, thicker.
+- Three subflows: orange.
+- Four or more: red, progressively darker and thicker as the count increases.
 - Width increases are capped to keep heavily shared links readable.
 
-This counts shared **links**, not merely common satellites or lines crossing
+Only the shared link segment changes colour and thickness. Separate sections
+before and after it keep their connection colours. This counts shared **links**,
+not merely common satellites or lines crossing
 in the projected view. Counts combine subflows from all selected pairs and both
 directions of the same physical link. They show route overlap, not measured
 utilisation or congestion. Shared terminal access hops are included by default;
