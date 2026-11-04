@@ -35,7 +35,7 @@ only prepares reproducible start-time patterns.
 
 There are **130 traffic simulations** (125 multipath + five single-path) and
 **one unloaded ping simulation**. The single-path result is calculated once per
-start-time run and reused as the comparison row in every K heatmap.
+start-time run and reused as the comparison column in every K heatmap.
 
 Multipath uses only the saved **EdgeDisjoint** catalog. The first K ranks of its
 ten-path catalog are selected with source/server ports `4000+rank`/`1000+rank`.
@@ -105,19 +105,25 @@ that parameter alone creates no ping app or packet.
 
 ## Heatmaps
 
-Each requested K produces **two heatmaps**, with the six controllers as rows
-and the five terminal pairs as columns:
+Each requested K produces **two compact heatmaps**, with the six controllers
+as columns and the five terminal pairs as rows, matching OrbTCP's orientation.
+Figures are 6.6 × 3.1 inches, with short titles and no descriptive footer.
 
 - `goodput_K1` … `goodput_K5`: numbers and colours are mean receiver goodput in Mbps.
-- `delay_K1` … `delay_K5`: numbers are **raw RTT in ms**; green-to-red colours
-  encode **excess RTT above the matching unloaded ping baseline**, also in ms.
+- `delay_K1` … `delay_K5`: numbers and colours are **raw mean RTT in ms**.
+  Green starts at the average unloaded ping RTT, and red ends at the highest
+  mean RTT displayed across the selected K heatmaps. The colour bar shows RTT
+  in milliseconds rather than distance from the baseline.
 
 Plots are written as PNG and PDF under `simulations/plots/experimentLeo/`.
 All K figures use the same colour scale for a given metric. Each cell averages
 the selected start-time runs. `heatmap_data.csv` includes sample SD, actual run
 counts, RTT coverage and path availability; missing cells are never replaced
-with zero. Raw RTT is still labelled when baseline matching is inadequate, but
-its cell is grey with an asterisk rather than coloured as low delay.
+with zero. `heatmap_scales.csv` records the colour limits. The baseline is the
+average of the unloaded per-pair/per-path means during the measurement window,
+counting each selected pair/rank/window once, including primary routing for
+the single-path comparator. If no ping baseline is available, raw RTT values
+remain labelled with grey cells and no RTT colour bar.
 
 Incomplete goodput intervals do not stop extraction. Goodput integrates only
 recorded intervals and divides by the full 10–299 s measurement duration, as in
@@ -131,10 +137,9 @@ recorded zero rate. Per-thread bounds and contributions are written to
 
 RTT samples are averaged within one-second bins per sender subflow, then across
 observed subflows in each second, then across observed seconds. Baseline matching
-uses the same pair, path rank and time bin. The single-path row uses ordinary
-shortest-path ping. A colour requires at least 95% of observed subflow/time bins
-to have a baseline in every included run. Signed excess values are retained in
-CSV; colours put zero and negative excess at the green end. Excess includes
+uses the same pair, path rank and time bin. The single-path comparator uses ordinary
+shortest-path ping. Signed excess values and the 95% baseline-coverage check
+remain in CSV diagnostics; they do not control the raw RTT colours. Excess includes
 packet-size/serialization and time-binning effects as well as queueing; it is
 not a pure queue-delay measurement. No RTT is extrapolated through outages.
 

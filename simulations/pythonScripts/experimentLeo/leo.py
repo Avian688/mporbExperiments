@@ -258,7 +258,8 @@ def generate(duration=DURATION, store=DEFAULT_STORE):
     (PING_DIR / 'experimentLeoPing.ini').write_text('\n'.join(ping) + '\n')
     manifest = dict(duration=duration, route_store=str(Path(store).resolve()), configurations=matrix,
                     pairs=PAIRS, path_count=SHARED.PATH_COUNT, delay_annotation='raw RTT ms',
-                    delay_colours='matched excess RTT ms', min_baseline_match=MIN_BASELINE_MATCH)
+                    delay_colours='raw RTT ms; mean ping baseline to highest heatmap RTT',
+                    min_baseline_match=MIN_BASELINE_MATCH)
     (EXPERIMENT_DIR / 'matrix.json').write_text(json.dumps(manifest, indent=2) + '\n')
     return matrix
 

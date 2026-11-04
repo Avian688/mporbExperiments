@@ -2257,6 +2257,6 @@
   ],
   "path_count": 10,
   "delay_annotation": "raw RTT ms",
-  "delay_colours": "matched excess RTT ms",
+  "delay_colours": "raw RTT ms; mean ping baseline to highest heatmap RTT",
   "min_baseline_match": 0.95
 }

@@ -1,4 +1,4 @@
-"""Per-flow goodput and RTT; RTT labels use raw delay, colours use excess delay."""
+"""Per-flow summaries and compact goodput/raw-RTT heatmaps."""
 import csv
 import json
 import math
@@ -10,6 +10,8 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import leo
 from vectors import Vectors, interval_integral, seconds
+
+HEATMAP_LABELS = ('Alpha','Delta','Omega','CUBIC\nuncoupled','OrbCC\nuncoupled','OrbCC\nsingle path')
 
 
 def write_csv(path, rows):
@@ -221,10 +223,31 @@ def aggregate(rows, ks):
     return output
 
 
+def mean_base_rtt(configs):
+    """Equal-weight ping-path means, counting each pair/rank/window once."""
+    requested = set()
+    for config in configs:
+        ranks = (0,) if config['protocol']=='OrbSingle' else range(1,config['k']+1)
+        requested.update((config['sim_time'],pair['source'],rank,
+                          config['measurement_start'],config['measurement_end'])
+                         for pair in leo.PAIRS for rank in ranks)
+    ping, means = {}, []
+    for duration,source,rank,start,end in sorted(requested):
+        if duration not in ping:
+            ping[duration] = checked_summary(leo.ping_config(duration))
+        values = [value for second,value in ping[duration]['baseline'][f'{source}:{rank}'].items()
+                  if start<=float(second)<end and math.isfinite(value) and value>0]
+        if values:
+            means.append(mean(values)*1000)
+    return mean(means) if means else math.nan
+
+
 def plot(configs):
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
+    from matplotlib.colors import LinearSegmentedColormap
+    from matplotlib.ticker import FormatStrFormatter
     import numpy as np
     sys.path.insert(0, str(leo.SCRIPT_DIR.parent))
     from plotStyle import plot_style, save_figure
@@ -234,48 +257,54 @@ def plot(configs):
     leo.PLOT_DIR.mkdir(parents=True, exist_ok=True)
     write_csv(leo.PLOT_DIR / 'runs.csv', rows)
     write_csv(leo.PLOT_DIR / 'heatmap_data.csv', cells)
-    delay_max = max([1., *(r['colour_excess_ms'] for r in cells if math.isfinite(r['colour_excess_ms']))])
+    baseline = mean_base_rtt(configs)
+    observed = [r['raw_rtt_ms'] for r in cells if math.isfinite(r['raw_rtt_ms'])]
+    delay_min = baseline if math.isfinite(baseline) else 0.
+    delay_max = max(observed,default=delay_min)
+    # A flat/missing data set still needs a non-degenerate plotting interval.
+    delay_max = delay_max if delay_max>delay_min else delay_min+1.
+    write_csv(leo.PLOT_DIR/'heatmap_scales.csv',[
+        dict(metric='goodput_mbps',minimum=0.,maximum=100.,mean_base_rtt_ms=''),
+        dict(metric='raw_rtt_ms',minimum=delay_min,maximum=delay_max,mean_base_rtt_ms=baseline)])
     for k in ks:
         subset = {(r['protocol'], r['pair']): r for r in cells if r['k'] == k}
         for metric, name in [('goodput_mbps', 'goodput'), ('raw_rtt_ms', 'delay')]:
-            annotations = np.full((len(leo.PROTOCOLS), len(leo.PAIRS)), np.nan)
-            colours = annotations.copy()
+            annotations = np.full((len(leo.PAIRS),len(leo.PROTOCOLS)),np.nan)
             for i, protocol in enumerate(leo.PROTOCOLS):
                 for j, pair in enumerate(leo.PAIRS):
                     cell = subset[protocol, pair['pair']]
-                    annotations[i,j] = cell[metric]
-                    colours[i,j] = cell['colour_excess_ms'] if name == 'delay' else cell[metric]
-            with plot_style(aggregate=True):
-                fig, ax = plt.subplots(figsize=(10, 4.5), layout='constrained')
-                cmap = plt.get_cmap('RdYlGn_r' if name == 'delay' else 'RdYlGn').with_extremes(bad='#e6e6e6')
+                    annotations[j,i] = cell[metric]
+            colours = annotations.copy()
+            if name=='delay' and not math.isfinite(baseline):
+                colours[:] = np.nan
+            with plot_style(aggregate=True), plt.rc_context({'text.usetex':False,'font.family':'serif',
+                    'font.weight':'bold','axes.labelweight':'bold','axes.titleweight':'bold','font.size':8}):
+                fig, ax = plt.subplots(figsize=(6.6,3.1),layout='constrained')
+                palette = ['green','yellow','red'] if name=='delay' else ['red','yellow','green']
+                cmap = LinearSegmentedColormap.from_list(name,palette).with_extremes(bad='#e6e6e6')
                 image = ax.imshow(np.ma.masked_invalid(colours), aspect='auto', cmap=cmap,
-                                  vmin=0, vmax=delay_max if name == 'delay' else 100)
-                for i in range(len(leo.PROTOCOLS)):
-                    for j in range(len(leo.PAIRS)):
-                        value, colour_value = annotations[i,j], colours[i,j]
+                                  interpolation='nearest',vmin=delay_min if name=='delay' else 0,
+                                  vmax=delay_max if name=='delay' else 100)
+                for i,pair in enumerate(leo.PAIRS):
+                    for j,protocol in enumerate(leo.PROTOCOLS):
+                        value = annotations[i,j]
                         label = f'{value:.1f}' if math.isfinite(value) else '--'
-                        cell = subset[tuple(leo.PROTOCOLS)[i],leo.PAIRS[j]['pair']]
+                        cell = subset[protocol,pair['pair']]
                         incomplete = name=='goodput' and not cell['goodput_complete']
-                        if math.isfinite(value) and (not math.isfinite(colour_value) or incomplete):
+                        if math.isfinite(value) and incomplete:
                             label += '*'
-                        rgba = image.cmap(image.norm(colour_value)) if math.isfinite(colour_value) else (.9,.9,.9,1)
-                        brightness = sum(a*b for a,b in zip(rgba[:3], (.2126,.7152,.0722)))
-                        ax.text(j,i,label,ha='center',va='center',color='black' if brightness>.5 else 'white')
-                ax.set_xticks(range(len(leo.PAIRS)), [p['source_city']+'\n'+p['destination_city'] for p in leo.PAIRS], fontsize=9)
-                ax.set_yticks(range(len(leo.PROTOCOLS)), [p[2] for p in leo.PROTOCOLS.values()], fontsize=9)
+                        ax.text(j,i,label,ha='center',va='center',color='black',fontsize=8.5)
+                ax.set_xticks(range(len(leo.PROTOCOLS)),HEATMAP_LABELS,fontsize=8)
+                ax.set_yticks(range(len(leo.PAIRS)),
+                    [p['source_city']+' to '+p['destination_city'] for p in leo.PAIRS],fontsize=8)
                 ax.tick_params(which='both', bottom=False, top=False, left=False, right=False)
-                ax.set_title(f'LEO: {k} requested subflow{"s" if k != 1 else ""} | ' +
-                             ('Raw RTT (ms)' if name == 'delay' else 'Application goodput (Mbps)'))
-                fig.colorbar(image, ax=ax, label='Excess RTT above matching ping (ms)' if name == 'delay' else 'Goodput (Mbps)')
-                counts = sorted({subset[p, pair['pair']]['n'] for p in leo.PROTOCOLS for pair in leo.PAIRS if subset[p,pair['pair']]['n']})
-                footer = 'Five simultaneous connections; mean across ' + '/'.join(map(str,counts)) + ' start-time runs. Single-path row reused.'
-                if name == 'delay':
-                    footer += '\nNumbers: raw RTT. Colours: excess RTT. Grey*: baseline match below 95%.'
-                else:
-                    footer += '\n*: incomplete goodput coverage; recorded traffic / full window, no extrapolation.'
-                if plt.rcParams['text.usetex']:
-                    footer = footer.replace('%',r'\%')
-                fig.supxlabel(footer,fontsize=8)
+                ax.set_title(f'{"RTT" if name=="delay" else "Goodput"}, K={k}',fontsize=10)
+                if name!='delay' or math.isfinite(baseline):
+                    colorbar = fig.colorbar(image,ax=ax,label='RTT (ms)' if name=='delay' else 'Goodput (Mbps)',pad=.025)
+                    ticks = np.linspace(delay_min,delay_max,3) if name=='delay' else [0,50,100]
+                    colorbar.set_ticks(ticks)
+                    colorbar.ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f' if name=='delay' else '%.0f'))
+                    colorbar.ax.tick_params(labelsize=8)
                 save_figure(fig, leo.PLOT_DIR / f'{name}_K{k}', aggregate=True)
                 plt.close(fig)
     return cells

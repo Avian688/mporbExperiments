@@ -13,6 +13,7 @@ import unittest
 from unittest.mock import patch
 
 PROJECT = Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(PROJECT/'simulations/pythonScripts'))
 sys.path.insert(0,str(PROJECT/'simulations/pythonScripts/experimentLeo'))
 import leo
 import analyzeExperimentLeo as analysis
@@ -182,27 +183,49 @@ class LeoTests(unittest.TestCase):
         p=kpath/'0.100001.bin'; data=bytearray(p.read_bytes());struct.pack_into('<i',data,36,0);p.write_bytes(data)
         with self.assertRaisesRegex(ValueError,'Wrong edge-disjoint'):leo.check_routes(store,.3)
 
-    def test_matched_rtt_raw_labels_excess_colours_and_baseline_reuse(self):
+    def test_compact_heatmaps_raw_rtt_scale_and_baseline_reuse(self):
         ping_fixture()
         configs=[next(c for c in self.matrix if c['protocol']==name and c['k']==k and c['run']==1)
-                 for name,k in [('Alpha',2),('OrbSingle',1)]]
+                 for name,k in [('Alpha',2),('OrbSingle',1),('Alpha',1)]]
         for c in configs:
             traffic_fixture(c)
             rows=analysis.extract(c)
             self.assertEqual(len(rows),5)
             self.assertAlmostEqual(rows[0]['goodput_mbps'],12)
-            self.assertAlmostEqual(rows[0]['raw_rtt_ms'],35 if c['protocol']=='OrbSingle' else 45)
+            self.assertAlmostEqual(rows[0]['raw_rtt_ms'],35 if c['protocol']=='OrbSingle' else 35+5*c['k'])
             self.assertAlmostEqual(rows[0]['excess_rtt_ms'],10)
             self.assertEqual(rows[0]['baseline_match_pct'],100)
             self.assertEqual(rows[0]['all_k_available_pct'],100)
-        cells=analysis.plot(configs)
-        a=next(r for r in cells if r['protocol']=='Alpha')
+        import plotStyle
+        checked=[]
+        save=plotStyle.save_figure
+        def capture(fig,output,**kwargs):
+            self.assertEqual(tuple(fig.get_size_inches()),(6.6,3.1))
+            self.assertIsNone(fig._supxlabel)
+            image=fig.axes[0].images[0]
+            self.assertEqual(image.get_array().shape,(5,6))
+            self.assertEqual(len(fig.axes[0].texts),30)
+            self.assertNotIn('requested',fig.axes[0].get_title())
+            self.assertEqual(fig.axes[0].get_xticklabels()[0].get_text(),'Alpha')
+            if output.name.startswith('delay'):
+                self.assertAlmostEqual(image.norm.vmin,(25+30+40)/3)
+                self.assertAlmostEqual(image.norm.vmax,45)
+                self.assertAlmostEqual(float(image.get_array()[0,5]),35)
+                self.assertEqual(fig.axes[-1].get_ylabel(),'RTT (ms)')
+            else:
+                self.assertEqual((image.norm.vmin,image.norm.vmax),(0,100))
+            checked.append(output.name)
+            save(fig,output,**kwargs)
+        with patch.object(plotStyle,'save_figure',side_effect=capture):
+            cells=analysis.plot(configs)
+        self.assertEqual(len(checked),4)
+        a=next(r for r in cells if r['protocol']=='Alpha' and r['k']==2)
         self.assertAlmostEqual(a['raw_rtt_ms'],45)
         self.assertAlmostEqual(a['colour_excess_ms'],10)
-        for name in ('goodput_K2.png','goodput_K2.pdf','delay_K2.png','delay_K2.pdf'):
+        for name in ('goodput_K1.png','goodput_K2.png','goodput_K2.pdf','delay_K1.png','delay_K2.png','delay_K2.pdf'):
             self.assertGreater((leo.PLOT_DIR/name).stat().st_size,1000)
         data=analysis.checked_summary(leo.ping_config(15))
-        # Missing baseline bins must not silently make the delay cell green.
+        # Coverage/excess diagnostics remain available independently of colours.
         for p in leo.PAIRS:data['baseline'][f'{p["source"]}:2'].pop('11')
         leo.summary_path(leo.ping_config(15)).write_text(json.dumps(data))
         analysis.extract(configs[0])
