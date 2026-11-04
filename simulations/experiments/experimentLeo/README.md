@@ -152,6 +152,9 @@ assigns ranks using receiver arrival order or observed RTT magnitude. Per-run
 
 ## Running
 
+For an animated view of the saved routes without transport traffic or rerunning
+experiments, see [the local route viewer](../experimentLeoView/README.md).
+
 From `mporbExperiments/simulations/pythonScripts`:
 
 ```sh
@@ -161,7 +164,7 @@ python3 experimentLeo/runExperimentLeo.py --dry-run
 # Check saved snapshot headers and complete time coverage; never simulate.
 python3 experimentLeo/runExperimentLeo.py --check-routes
 
-# Ping first, then traffic, extraction, heatmaps and terminal plots.
+# Ping first, then traffic, extraction/link-sharing reports, heatmaps and terminal plots.
 python3 experimentLeo/runExperimentLeo.py --cores 30
 
 # Only the unloaded ping prepass.
@@ -188,7 +191,8 @@ python3 experimentLeo/runExperimentLeo.py --rerun --cores 30
 ```
 
 Stages are 1: simulate/extract the ping prepass, 2: simulate traffic,
-3: extract traffic, 4: plot. The default `--plots all` creates the aggregate
+3: extract traffic and export link sharing, 4: plot. Add `--skip-link-sharing`
+to omit the sharing reports during step 3. The default `--plots all` creates the aggregate
 heatmaps and individual figures; named metrics create only those individual
 figures. `--protocols`, `--ks`, `--runs`, and `--configs` restrict the selected
 cases. Traffic extraction uses up to `--cores` separate worker processes, one
@@ -233,6 +237,63 @@ Existing simulations only need step 3 rerun once to produce these files:
 ```sh
 python3 experimentLeo/runExperimentLeo.py --start-step 3 --skip-generate --cores 30
 ```
+
+## Link-sharing reports
+
+Step 3 also reports which connections and subflows use the same saved physical
+link during each routing interval. To produce just these reports from existing
+route saves, run from `mporbExperiments/simulations/pythonScripts`:
+
+```sh
+python3 experimentLeo/exportLinkSharing.py --cores 30
+```
+
+This starts no simulations and generates no routes or experiment inputs. It
+reads the saved binary catalogs through the local standalone
+`tools/exportLeoRouteFrames` helper, which is built automatically with
+`make -C tools`. Building it requires a C++17 compiler and `igraph` development
+files discoverable through `pkg-config`; it does not link OMNeT++ or start the simulator.
+Decoded frames are cached in compressed form and reused on later exports,
+including when selecting a multipath-only subset after a complete export.
+Primary shortest routes are replayed for native single-path OrbCC; multipath
+uses the first requested K ranks of the saved edge-disjoint catalog.
+
+Each configuration gets two files under
+`simulations/experiments/experimentLeo/csvs/`:
+
+- `<configuration>_link_sharing.csv` contains **shared physical links only**.
+  `start_s` and `end_s` bound each interval; adjacent intervals are merged while
+  the link's directional membership remains identical. `connection_count`
+  counts distinct connections and `subflow_count` counts their selected
+  subflows. Identities such as `C1:SF1` identify connection 1's first data
+  subflow. Shared access links can have several subflows from one connection,
+  so `connection_count` can be 1.
+- `<configuration>_link_sharing.json` supplies the connection-to-terminal pair
+  map, scheduled starts, unavailable requested ranks, and intervals with no
+  shared links. It also includes sender TCP module IDs when extracted result
+  identities are available. This keeps an empty sharing CSV distinct from a
+  missing report or unavailable paths.
+
+The reports describe **configured forward data routes**, with each connection
+included from its scheduled application start. They do not measure simultaneous
+packets, utilisation or congestion. Opposing traversal directions are identified
+separately: a shared physical link does not imply competition for the same
+direction on a full-duplex link. Availability follows the saved snapshot
+intervals and cannot describe shorter changes between snapshots.
+
+The default selection covers all 130 configurations. Route membership is the
+same across controllers with the same K and start pattern, giving 30 distinct
+profiles: 25 multipath K/run combinations and five native single-path runs.
+Shared profile CSVs live under `csvs/link_sharing/` and configuration filenames
+hardlink to the matching profile, avoiding repeated CSV storage. Fixed output
+paths are overwritten on re-export; numbered or timestamped reports do not
+accumulate.
+
+The standalone script accepts the same selection options: `--runs N`,
+`--ks ...`, `--protocols ...`, and `--configs ...`. Use `--route-store PATH`
+for another saved corpus, or `--dry-run` to inspect the selection without
+exporting. `--cores 30` uses up to 30 worker processes to write the selected
+profiles after their shared saved frames have been decoded.
 
 ## Individual user-terminal figures
 
@@ -303,7 +364,9 @@ retransmission curves also show meta/control-connection events when nonzero.
 
 This is an explicit separate suite; `runExperiments.py` still defaults to the
 existing experiments 1–4. Build INET, OS3, LeoSatellites and the transport
-dependencies before simulating. No build is performed by this runner.
+dependencies before simulating. The runner does not build these simulator
+projects; its link-sharing stage only builds the standalone reader described
+above when needed.
 
 ## Route preparation
 
@@ -338,6 +401,9 @@ Static/synthetic regression checks, from the project root:
 
 ```sh
 python3 tests/test_experiment_leo.py
+python3 tests/test_export_leo_route_frames.py
+python3 tests/test_experiment_leo_link_sharing.py
 ```
 
-These checks do not launch simulations.
+These checks do not launch simulations. The route-frame tests build only the
+standalone reader in a temporary directory and use small synthetic snapshots.

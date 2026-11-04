@@ -2,7 +2,7 @@
 # OMNeT++/OMNEST Makefile for $(LIB_PREFIX)mporbExperiments
 #
 # This file was generated with the command:
-#  opp_makemake --make-so -f --deep -KMPORB_PROJ=../../mporb -KINET4_5_PROJ=../../inet4.5 -KMPTCP_PROJ=../../mptcp -KCUBIC_PROJ=../../cubic -KTCPPACED_PROJ=../../tcpPaced -KORBTCP_PROJ=../../orbtcp -KTCPGOODPUTAPPLICATIONS_PROJ=../../tcpGoodputApplications -I$$\(INET4_5_PROJ\)/src -L$$\(MPORB_PROJ\)/src -L$$\(MPTCP_PROJ\)/src -lmporb$$\(D\) -lmptcp$$\(D\)
+#  opp_makemake -f --make-so --deep
 #
 
 # Name of target to be created (-o option)
@@ -12,13 +12,13 @@ TARGET = $(TARGET_NAME)$(SHARED_LIB_SUFFIX)
 TARGET_FILES = $(TARGET_DIR)/$(TARGET)
 
 # C++ include paths (with -I)
-INCLUDE_PATH = -I$(INET4_5_PROJ)/src
+INCLUDE_PATH =
 
 # Additional object and library files to link with
 EXTRA_OBJS =
 
 # Additional libraries (-L, -l options)
-LIBS = $(LDFLAG_LIBPATH)$(MPORB_PROJ)/src $(LDFLAG_LIBPATH)$(MPTCP_PROJ)/src  -lmporb$(D) -lmptcp$(D)
+LIBS =
 
 # Output directory
 PROJECT_OUTPUT_DIR = ../out
@@ -26,22 +26,13 @@ PROJECTRELATIVE_PATH = src
 O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Object files for local .cc, .msg and .sm files
-OBJS =
+OBJS = $O/visualizer/MpOrbLeoOsgVisualizer.o
 
 # Message files
 MSGFILES =
 
 # SM files
 SMFILES =
-
-# Other makefile variables (-K)
-MPORB_PROJ=../../mporb
-INET4_5_PROJ=../../inet4.5
-MPTCP_PROJ=../../mptcp
-CUBIC_PROJ=../../cubic
-TCPPACED_PROJ=../../tcpPaced
-ORBTCP_PROJ=../../orbtcp
-TCPGOODPUTAPPLICATIONS_PROJ=../../tcpGoodputApplications
 
 #------------------------------------------------------------------------------
 
@@ -61,9 +52,6 @@ include $(CONFIGFILE)
 
 # Simulation kernel and user interface libraries
 OMNETPP_LIBS = -loppenvir$D $(KERNEL_LIBS) $(SYS_LIBS)
-ifneq ($(PLATFORM),win32)
-LIBS += -Wl,-rpath,$(abspath $(MPORB_PROJ)/src) -Wl,-rpath,$(abspath $(MPTCP_PROJ)/src)
-endif
 
 COPTS = $(CFLAGS) $(IMPORT_DEFINES)  $(INCLUDE_PATH) -I$(OMNETPP_INCL_DIR)
 MSGCOPTS = $(INCLUDE_PATH)

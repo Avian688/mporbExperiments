@@ -135,6 +135,8 @@ def main(argv=None):
                         help='Wall-clock limit per simulation attempt, including the ping prepass (default: 12 hours)')
     parser.add_argument('--rerun',action='store_true',help='Replace selected outputs; normally matching completed simulations are reused')
     parser.add_argument('--skip-generate',action='store_true')
+    parser.add_argument('--skip-link-sharing',action='store_true',
+                        help='Skip saved-route link-sharing reports during extraction')
     parser.add_argument('--check-routes',action='store_true',help='Validate saved snapshot headers and time coverage; never simulate')
     parser.add_argument('--dry-run',action='store_true',help='List the ordered work without launching simulations')
     parser.add_argument('--ping-only',action='store_true')
@@ -172,6 +174,8 @@ def main(argv=None):
                 print('Step 2: simulate selected traffic runs')
             if args.start_step<=3<=args.end_step:
                 print('Step 3: extract terminal vector CSVs and summaries')
+                if not args.skip_link_sharing:
+                    print('Step 3: export saved-route link-sharing reports')
             if args.start_step<=4<=args.end_step:
                 print('Step 4: plot '+', '.join(args.plots))
         return
@@ -196,6 +200,9 @@ def main(argv=None):
               f'({min(args.cores,len(selected))} worker processes)',flush=True)
         # Sample parsing is CPU-bound Python; threads cannot use multiple cores.
         parallel(extract,selected,args.cores,processes=True)
+        if not args.skip_link_sharing:
+            from exportLinkSharing import export_reports
+            export_reports(selected,args.route_store,args.cores)
     if args.start_step<=4<=args.end_step:
         if 'summary' in args.plots or 'all' in args.plots:
             from analyzeExperimentLeo import plot

@@ -1,0 +1,30 @@
+.DEFAULT_GOAL := all
+
+# Local viewer only: reuse existing libraries, never rebuild their projects here.
+MPORB_VIEW_INET_DIR ?= $(abspath ../../inet4.5)
+MPORB_VIEW_LEO_DIR ?= $(abspath ../../leosatellites)
+MPORB_VIEW_OS3_DIR ?= $(abspath ../../os3)
+MPORB_VIEW_MP_DIR ?= $(abspath ../../mporb)
+MPORB_VIEW_MPTCP_DIR ?= $(abspath ../../mptcp)
+MPORB_VIEW_PKG_CONFIG ?= pkg-config
+COPTS += $(shell $(MPORB_VIEW_PKG_CONFIG) --cflags igraph)
+INCLUDE_PATH += -I"$(MPORB_VIEW_INET_DIR)/src" -I"$(MPORB_VIEW_LEO_DIR)/src" -I"$(MPORB_VIEW_OS3_DIR)/src"
+LIBS += -L"$(MPORB_VIEW_LEO_DIR)/src" -L"$(MPORB_VIEW_OS3_DIR)/src" -L"$(MPORB_VIEW_INET_DIR)/src" \
+        -L"$(MPORB_VIEW_MP_DIR)/src" -L"$(MPORB_VIEW_MPTCP_DIR)/src" \
+        -lleosatellites$(D) -los3$(D) -lINET$(D) -lmporb$(D) -lmptcp$(D)
+ifneq ($(PLATFORM),win32)
+LIBS += -Wl,-rpath,"$(MPORB_VIEW_LEO_DIR)/src" -Wl,-rpath,"$(MPORB_VIEW_OS3_DIR)/src" \
+        -Wl,-rpath,"$(MPORB_VIEW_INET_DIR)/src" -Wl,-rpath,"$(MPORB_VIEW_MP_DIR)/src" \
+        -Wl,-rpath,"$(MPORB_VIEW_MPTCP_DIR)/src"
+endif
+ifeq ($(WITH_OSG),yes)
+COPTS += $(OSG_CFLAGS)
+OMNETPP_LIBS += $(OSG_LIBS) -losgText
+endif
+
+MPORB_VIEW_FLAGS_FILE = $O/.leo-viewer-flags
+ifneq ("$(COPTS) $(LIBS)","$(shell cat $(MPORB_VIEW_FLAGS_FILE) 2>/dev/null)")
+  $(shell $(MKPATH) "$O")
+  $(file >$(MPORB_VIEW_FLAGS_FILE),$(COPTS) $(LIBS))
+endif
+$(OBJS): $(MPORB_VIEW_FLAGS_FILE)
