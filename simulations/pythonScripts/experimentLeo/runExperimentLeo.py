@@ -86,13 +86,13 @@ def ensure_index(config):
     if completion(config) is None:
         raise RuntimeError(f'{config["config"]}: no successful matching simulation')
     try:
-        Vectors(leo.result(config,'.vec'))
+        return Vectors(leo.result(config,'.vec'))
     except (FileNotFoundError,ValueError):
         log = leo.SIM_DIR / 'logs' / leo.directory(config).name / f'{config["config"]}.index.log'
         if not logged([tool('opp_scavetool'),'index',str(leo.result(config,'.vec'))],
                       leo.directory(config),log,1800):
             raise RuntimeError(f'Indexing failed: {log}')
-        Vectors(leo.result(config,'.vec'))
+        return Vectors(leo.result(config,'.vec'))
 
 
 def prepare_ping(duration,route_hash=None):
@@ -109,8 +109,11 @@ def prepare_ping(duration,route_hash=None):
 
 def extract(config):
     import analyzeExperimentLeo as analysis
-    ensure_index(config)
-    analysis.extract(config)
+    from terminalVectors import CsvVectors, export_vectors
+    vectors = ensure_index(config)
+    export_vectors(config,vectors)
+    # Summaries use the full CSV samples, never the compact plotting series.
+    analysis.extract(config,vectors=CsvVectors(leo.vector_dir(config),config))
     return config['config']
 
 
@@ -168,7 +171,7 @@ def main(argv=None):
             if args.start_step<=2<=args.end_step:
                 print('Step 2: simulate selected traffic runs')
             if args.start_step<=3<=args.end_step:
-                print('Step 3: extract directly from vectors')
+                print('Step 3: extract terminal vector CSVs and summaries')
             if args.start_step<=4<=args.end_step:
                 print('Step 4: plot '+', '.join(args.plots))
         return
@@ -189,7 +192,7 @@ def main(argv=None):
     if args.start_step<=3<=args.end_step:
         print('ExperimentLeo: check/extract unloaded ping baseline',flush=True)
         prepare_ping(args.sim_time)
-        print(f'ExperimentLeo: extract endpoint results without bulk CSV copies '
+        print(f'ExperimentLeo: extract user-terminal vectors to CSVs '
               f'({min(args.cores,len(selected))} worker processes)',flush=True)
         # Sample parsing is CPU-bound Python; threads cannot use multiple cores.
         parallel(extract,selected,args.cores,processes=True)
@@ -201,9 +204,7 @@ def main(argv=None):
         metrics = list(leo.USER_METRICS) if 'all' in args.plots else [m for m in args.plots if m!='summary']
         if metrics:
             from plotExperimentLeo import plot_metrics
-            for config in selected:
-                ensure_index(config)
-            print('ExperimentLeo: plot individual user-terminal metrics',flush=True)
+            print('ExperimentLeo: plot individual user-terminal metrics from CSVs',flush=True)
             plot_metrics(selected,metrics,cores=args.cores)
 
 

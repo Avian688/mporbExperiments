@@ -169,10 +169,10 @@ python3 experimentLeo/runExperimentLeo.py --protocols Alpha Delta --ks 2 4 --run
 python3 experimentLeo/runExperimentLeo.py --start-step 3 --skip-generate
 python3 experimentLeo/runExperimentLeo.py --start-step 4 --skip-generate --cores 30 --plots all
 
-# Only individual traces; no heatmap extraction or baseline is needed.
+# Only individual/comparison traces from the already extracted CSVs.
 python3 experimentLeo/plotExperimentLeo.py --cores 30
 
-# One run and selected metrics; reads the recorded vectors directly.
+# One run and selected metrics; reads the extracted plot CSVs.
 python3 experimentLeo/plotExperimentLeo.py --configs Delta_EdgeDisjoint_K3_Run1 --plots cwnd U holBlockedBytes
 
 # Aggregate heatmaps only.
@@ -197,14 +197,42 @@ The runner normally reuses successful simulations
 whose input, library and saved-route fingerprints match. Output names are fixed;
 reruns and retries replace their selected files rather than adding timestamped
 copies. Step 2 refuses a baseline from different routes or inputs. Step 3/4
-refuses missing/stale extraction. There are no large CSV-R intermediate exports:
-selected vector blocks are read directly through their `.vci` index, with small
-summary CSV/JSON files under each experiment's `csvs/` directory.
+refuses missing/stale extraction. Step 3 reads selected vector blocks directly
+through their `.vci` index and writes endpoint-only CSVs, without a bulk CSV-R
+intermediate export. Files use fixed names and are replaced on re-extraction.
+
+## Extracted terminal CSVs
+
+For each configuration, step 3 writes
+`experiments/experimentLeo/csvs/vectors/<configuration>/userTerminal<ID>_<city>/<connection>/<metric>.csv`.
+Each file has `time,<metric>` columns in the original recording units and
+retains all samples, including repeated rates and original connection IDs.
+Only the ten enabled metrics at the five sender and five receiver terminals
+are exported; no satellite, ground-station or other network-internal data is
+copied. Registered empty vectors have a header-only CSV, distinct from an
+absent metric. Meta/control records remain available in the full CSVs.
+
+Alongside each full CSV is `<metric>.plot.csv`, containing the bounded plotting
+series prepared during extraction. It preserves the existing first/last/min/max
+selection and state/counter rules, so plotting does not repeat native vector
+parsing or downsampling. Aggregate calculations use the **full** CSV samples.
+`vectors.json` records source fingerprints, exact modules, sample counts,
+missing/empty distinctions and the CSV file index. The manifest is published
+only after a successful export; interrupted exports must be re-extracted.
+Re-extraction overwrites the same full/plot CSVs and removes obsolete CSVs
+within that configuration's vector directory. It never creates numbered or
+timestamped copies.
+
+Existing simulations only need step 3 rerun once to produce these files:
+
+```sh
+python3 experimentLeo/runExperimentLeo.py --start-step 3 --skip-generate --cores 30
+```
 
 ## Individual user-terminal figures
 
 Each recorded metric has an independent figure for its user terminal under
-`simulations/plots/experimentLeo/individual/<configuration>/userTerminal<ID>_<city>/<metric>.png`
+`simulations/plots/experimentLeo/individual/<controller>/K<subflows>/run<run>/userTerminal<ID>_<city>/<metric>.png`
 and `.pdf`. Each terminal directory also has **one `combined.pdf`**, a single-page
 grid containing all selected, recorded metrics for that terminal and run.
 Sender terminals 5–9 have sender diagnostics; receiving terminals 10–14 have
@@ -218,9 +246,11 @@ curves retain their connection IDs; passive-side IDs are not assumed to be
 path-rank order. CWND and bytes in flight are displayed in MSS units (1200 B),
 RTT in ms, rates in Mbps, and the MPTCP buffer/reinjection measurements in bytes.
 
-Plots read the existing `.vec`/`.vci` files directly, including diagnostics that
-are absent from the summary CSVs. No new simulation or full CSV-R export is
-needed when those metrics were already recorded. Plotting uses up to `--cores`
+Individual plots read only the extracted `.plot.csv` files, including diagnostics
+absent from the summary CSVs; heatmaps read the extracted summaries. Step 4
+performs no native vector parsing or indexing. Missing or stale terminal CSVs
+produce an instruction to rerun step 3. No new simulation is needed when those
+metrics were already recorded. Plotting uses up to `--cores`
 worker processes, one run per job, because Matplotlib rendering is not thread
 safe. Output names are fixed and are overwritten on replotting.
 
@@ -233,9 +263,35 @@ cumulative RTO/reinjection counters represent zero events; absent recordings
 remain missing. U is inapplicable to CUBIC, and native single-path OrbCC has no
 MPTCP HoL/reinjection metrics; these figures are skipped.
 
+Each run also has an `aggregate/` directory containing a PNG/PDF comparison
+for **every recorded metric**, plus `combined.pdf` containing all those
+comparisons. These overlay all applicable user terminals in that run: all
+sender subflow CWND/RTT/U/etc. curves, or all receiving-terminal goodput,
+throughput and HoL curves. They keep the individual curves rather than summing
+or averaging different terminals. Colours identify the terminal pair; line
+styles distinguish sender path ranks or receiver connection IDs. Receiver
+connection IDs are never labelled as path ranks. These are per-run comparisons;
+the separate goodput/RTT heatmaps still average the selected runs.
+
+For example:
+
+```text
+plots/experimentLeo/individual/Delta/K3/run1/
+  userTerminal5_Newark/cwnd.png, cwnd.pdf, ..., combined.pdf
+  userTerminal10_Bristol/goodput.png, goodput.pdf, ..., combined.pdf
+  ... other terminals ...
+  aggregate/cwnd.png, cwnd.pdf, goodput.png, goodput.pdf, ..., combined.pdf
+  vectors.csv
+  plots.json
+```
+
+Replotting overwrites this structure. The superseded flat configuration plot
+directory is removed only after its replacement run plots finish successfully,
+so the old and new layouts do not accumulate duplicate plots.
+
 The per-run `vectors.csv` index lists source modules, ranks, raw/retained point
 counts, displayed curves, and missing/not-applicable recordings. `plots.json`
-records the source result's size/mtime and output list. A combined index is
+records the CSV source directory, source result fingerprint and output list. A combined index is
 written to `individual/vectors.csv`. Other missing diagnostics are skipped or
 labelled in their figure rather than substituted with zero. RTO and
 retransmission curves also show meta/control-connection events when nonzero.

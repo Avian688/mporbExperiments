@@ -94,6 +94,14 @@ def summary_path(config):
     return directory(config) / 'csvs' / f'{config["config"]}.json'
 
 
+def vector_dir(config):
+    return directory(config) / 'csvs/vectors' / config['config']
+
+
+def run_subdir(config):
+    return Path(config['protocol']) / f'K{config["k"]}' / f'run{config["run"]}'
+
+
 def stat(path):
     info = Path(path).stat()
     return [info.st_size, info.st_mtime_ns]

@@ -1,5 +1,6 @@
 """Generator, saved-route preflight, and synthetic extraction/plot regression checks."""
 import contextlib
+import csv
 import io
 import json
 import math
@@ -95,6 +96,11 @@ def diagnostic_fixture(config):
         specifications.append((receiver+'conn-500','holBlockedBytes',[(1,0),(10,1000),(14,0)]))
     specifications.append(('leo.satellite[0].tcp.conn-9','U',[(1,999)]))
     fixture(config,specifications)
+
+
+def export_fixture(config,bins=3000):
+    from terminalVectors import export_vectors
+    return export_vectors(config,Vectors(leo.result(config,'.vec')),bins=bins)
 
 
 class LeoTests(unittest.TestCase):
@@ -311,8 +317,9 @@ class LeoTests(unittest.TestCase):
         c=next(c for c in self.matrix if c['protocol']=='Alpha' and c['k']==2)
         diagnostic_fixture(c)
         with patch.object(leo,'PAIRS',leo.PAIRS[:1]):
-            records=individual.plot_metrics([c],['cwnd','rtt','throughput','numRtos','metaReinjectedBytes'],cores=1,bins=20)
-        out=leo.PLOT_DIR/'individual'/c['config']
+            export_fixture(c,bins=20)
+            records=individual.plot_metrics([c],['cwnd','rtt','throughput','numRtos','metaReinjectedBytes'],cores=1)
+        out=leo.PLOT_DIR/'individual'/leo.run_subdir(c)
         for metric in ('cwnd','rtt','throughput','numRtos','metaReinjectedBytes'):
             terminal=individual.terminal_folder(leo.PAIRS[0],metric=='throughput')
             for ext in ('png','pdf'):
@@ -323,10 +330,14 @@ class LeoTests(unittest.TestCase):
         self.assertTrue(any(r['metric']=='metaReinjectedBytes' and r['status']=='zero_events' for r in records))
         self.assertTrue((out/'vectors.csv').is_file())
         self.assertEqual(json.loads((out/'plots.json').read_text())['figures'],5)
-        self.assertEqual(json.loads((out/'plots.json').read_text())['combined_pdfs'],2)
+        self.assertEqual(json.loads((out/'plots.json').read_text())['combined_pdfs'],3)
+        self.assertEqual(json.loads((out/'plots.json').read_text())['comparison_figures'],5)
+        self.assertTrue((out/'aggregate'/'cwnd.pdf').is_file())
+        self.assertTrue((out/'aggregate'/'combined.pdf').is_file())
         self.assertEqual({r['terminal'] for r in records},{5,10})
         # Older results must report absent diagnostics, not invent zero traces.
         traffic_fixture(c)
+        export_fixture(c)
         records=individual.plot_metrics([c],['cwnd'],cores=1)
         self.assertEqual({r['status'] for r in records},{'not_recorded'})
         self.assertFalse((out/individual.terminal_folder(leo.PAIRS[0])/'cwnd.png').exists())
@@ -341,13 +352,13 @@ class LeoTests(unittest.TestCase):
         import plotExperimentLeo as individual
         with patch.object(runner,'simulate',side_effect=AssertionError('must not simulate')), \
              patch.object(runner,'prepare_ping',side_effect=AssertionError('no ping dependency')), \
-             patch.object(runner,'ensure_index') as indexed, \
+             patch.object(runner,'ensure_index',side_effect=AssertionError('plotting must use CSVs')) as indexed, \
              patch.object(analysis,'plot',side_effect=AssertionError('no heatmap selection')), \
              patch.object(individual,'plot_metrics') as plotted, \
              contextlib.redirect_stdout(io.StringIO()):
             runner.main(['--start-step','4','--skip-generate','--cores','3',
                 '--plots','cwnd','U','--configs','Delta_EdgeDisjoint_K3_Run1'])
-        self.assertEqual(indexed.call_count,1)
+        indexed.assert_not_called()
         args,kwargs=plotted.call_args
         self.assertEqual([c['config'] for c in args[0]],['Delta_EdgeDisjoint_K3_Run1'])
         self.assertEqual(args[1],['cwnd','U'])
@@ -357,11 +368,13 @@ class LeoTests(unittest.TestCase):
         import plotExperimentLeo as individual
         configs=[next(c for c in self.matrix if c['protocol']==protocol and c['k']==1 and c['run']==1)
                  for protocol in ('Alpha','OrbSingle')]
-        for c in configs:diagnostic_fixture(c)
-        records=individual.plot_metrics(configs,['cwnd'],cores=2,bins=10)
+        for c in configs:
+            diagnostic_fixture(c)
+            export_fixture(c,bins=10)
+        records=individual.plot_metrics(configs,['cwnd'],cores=2)
         self.assertEqual(len({r['config'] for r in records}),2)
         for c in configs:
-            self.assertTrue((leo.PLOT_DIR/'individual'/c['config']/individual.terminal_folder(leo.PAIRS[0])/'cwnd.png').is_file())
+            self.assertTrue((leo.PLOT_DIR/'individual'/leo.run_subdir(c)/individual.terminal_folder(leo.PAIRS[0])/'cwnd.png').is_file())
 
     def test_individual_figures_have_one_terminal_and_combined_pdf(self):
         import plotExperimentLeo as individual
@@ -377,10 +390,20 @@ class LeoTests(unittest.TestCase):
             specifications.append((vector.module,vector.metric,samples))
         fixture(c,specifications)
         checked=[]
+        export_fixture(c,bins=20)
         def capture(fig,output):
             self.assertEqual(len(fig.axes),1)
             if output.name=='cwnd':
-                if output.parent.name.startswith('userTerminal9_'):
+                if output.parent.name=='aggregate':
+                    self.assertGreaterEqual(fig.axes[0].get_ylim()[1],600)
+                    labels=fig.axes[0].get_legend_handles_labels()[1]
+                    self.assertEqual(len(labels),10)
+                    self.assertTrue(all(any(f'UT{terminal}' in label for label in labels) for terminal in range(5,10)))
+                    colors={terminal:{line.get_color() for line in fig.axes[0].lines
+                                      if f'UT{terminal}' in line.get_label()} for terminal in range(5,10)}
+                    self.assertTrue(all(len(value)==1 for value in colors.values()))
+                    self.assertEqual(len(set().union(*colors.values())),5)
+                elif output.parent.name.startswith('userTerminal9_'):
                     self.assertGreaterEqual(fig.axes[0].get_ylim()[1],600)
                 else:
                     self.assertLess(fig.axes[0].get_ylim()[1],10)
@@ -390,10 +413,75 @@ class LeoTests(unittest.TestCase):
             checked.append(output.name)
         with patch.object(individual,'save_figure',side_effect=capture), \
              patch('matplotlib.figure.Figure.savefig') as combined:
-            individual.plot_metrics([c],['cwnd','numRtos'],cores=1,bins=20)
-        self.assertEqual(checked,['cwnd','numRtos']*5)
-        self.assertEqual(combined.call_count,5)
+            individual.plot_metrics([c],['cwnd','numRtos'],cores=1)
+        self.assertEqual(checked,['cwnd','numRtos']*6)
+        self.assertEqual(combined.call_count,6)
         self.assertTrue(all(call.args[0].name=='combined.pdf' for call in combined.call_args_list))
+
+    def test_csv_export_is_lossless_endpoint_only_and_overwrites(self):
+        from terminalVectors import CsvVectors
+        c=next(c for c in self.matrix if c['protocol']=='Alpha' and c['k']==2)
+        diagnostic_fixture(c)
+        native=Vectors(leo.result(c,'.vec'))
+        specifications=[]
+        dense=[(i/5000,1e6 if i==23456 else float(i%7)) for i in range(50000)]+[(16,999)]
+        target='leo.userTerminal[5].tcp.conn-101'
+        for vector in native.items.values():
+            samples=dense if vector.module==target and vector.metric=='cwnd' else list(native.samples(vector))
+            specifications.append((vector.module,vector.metric,samples))
+        fixture(c,specifications)
+        manifest=export_fixture(c,bins=8)
+        self.assertTrue(all('.userTerminal[' in r['module'] for r in manifest['vectors']))
+        exported=CsvVectors(leo.vector_dir(c),c)
+        vector=next(v for v in exported.items.values() if v.module==target and v.metric=='cwnd')
+        self.assertEqual(list(exported.samples(vector)),dense)
+        points,count,status=exported.curve(vector)
+        self.assertLessEqual(len(points),4*8+1)
+        self.assertIn(dense[23456],points)
+        self.assertEqual((count,status),(50001,'recorded'))
+        self.assertNotIn((16,999),points)
+        meta_rtt=next(v for v in exported.items.values() if v.module.endswith('conn-100') and v.metric=='rtt')
+        self.assertEqual(list(exported.samples(meta_rtt)),[])
+        counter=next(v for v in exported.items.values() if v.metric=='numRtos')
+        self.assertEqual(exported.curve(counter),([(0.,0.),(15.,0.)],0,'zero_events'))
+        row=exported.metadata[vector.id]
+        with (exported.root/row['csv']).open(newline='') as handle:
+            self.assertEqual(next(csv.reader(handle)),['time','cwnd'])
+        old_csv=exported.root/row['csv']
+        stray=exported.root/'obsolete.csv'
+        stray.write_text('old data\n')
+        traffic_fixture(c)
+        replacement=export_fixture(c)
+        self.assertFalse(old_csv.exists())
+        self.assertFalse(stray.exists())
+        self.assertEqual(len(list(exported.root.rglob('*.csv'))),2*len(replacement['vectors']))
+        self.assertFalse(list(exported.root.rglob('*.tmp')))
+
+    def test_plotting_uses_csvs_without_native_vectors_or_downsampling(self):
+        import plotExperimentLeo as individual
+        import terminalVectors
+        c=next(c for c in self.matrix if c['protocol']=='Alpha' and c['k']==2)
+        ping_fixture()
+        diagnostic_fixture(c)
+        with patch.object(leo,'PAIRS',leo.PAIRS[:1]):
+            export_fixture(c)
+            analysis.extract(c,vectors=terminalVectors.CsvVectors(leo.vector_dir(c),c))
+            for config in (c,leo.ping_config(15)):
+                for suffix in ('.vec','.vci','.sca'):
+                    leo.result(config,suffix).unlink()
+            legacy=leo.PLOT_DIR/'individual'/c['config']
+            legacy.mkdir(parents=True)
+            (legacy/'cwnd.pdf').write_text('superseded flat output')
+            with patch.object(Vectors,'samples',side_effect=AssertionError('must not read native vectors')), \
+                 patch.object(terminalVectors,'sample_series',side_effect=AssertionError('must not downsample again')):
+                self.assertEqual(analysis.load_rows([c])[0]['goodput_mbps'],12)
+                records=individual.plot_metrics([c],['cwnd'],cores=1)
+            root=leo.PLOT_DIR/'individual'/'Alpha'/'K2'/'run1'
+            self.assertTrue((root/'userTerminal5_Newark'/'cwnd.pdf').is_file())
+            self.assertTrue((root/'aggregate'/'cwnd.pdf').is_file())
+            self.assertTrue((root/'aggregate'/'combined.pdf').is_file())
+            self.assertFalse(legacy.exists())
+            self.assertEqual({r['rank'] for r in records},{1,2})
 
     def test_standalone_plot_dry_run_needs_no_plotting_packages(self):
         script=leo.SCRIPT_DIR/'plotExperimentLeo.py'

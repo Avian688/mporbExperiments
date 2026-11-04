@@ -25,7 +25,8 @@ def write_csv(path, rows):
 def checked_summary(config):
     path = leo.summary_path(config)
     data = json.loads(path.read_text())
-    if (data['config'] != config or data['source_stat'] != leo.stat(leo.result(config, '.vec')) or
+    source = leo.result(config,'.vec')
+    if (data['config'] != config or (source.is_file() and data['source_stat'] != leo.stat(source)) or
             data.get('input_hash') != leo.input_hash(config)):
         raise ValueError(f'Stale extraction: {path}')
     return data
@@ -107,10 +108,10 @@ def coverage_seconds(intervals):
     return total
 
 
-def extract(config):
+def extract(config, vectors=None):
     ping_config = leo.ping_config(config['sim_time'])
     ping = checked_summary(ping_config)
-    vectors = Vectors(leo.result(config, '.vec'))
+    vectors = vectors if vectors is not None else Vectors(leo.result(config, '.vec'))
     start, end = config['measurement_start'], config['measurement_end']
     single = config['protocol'] == 'OrbSingle'
     rows, details, goodput_details = [], [], []
