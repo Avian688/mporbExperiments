@@ -207,7 +207,9 @@ def plot_metrics(configs, metrics=None, cores=1):
     unknown = set(metrics)-set(leo.USER_METRICS)
     if unknown or not metrics or cores<1:
         raise ValueError(f'Invalid individual-plot selection: {sorted(unknown)}')
-    output_root = leo.PLOT_DIR/'individual'
+    if not configs:
+        raise ValueError('No runs selected for individual plots')
+    output_root = leo.plot_directory(configs[0])/'individual'
     jobs = []
     for config in configs:
         source = leo.vector_dir(config)
@@ -217,8 +219,6 @@ def plot_metrics(configs, metrics=None, cores=1):
                 leo.input_hash(config)!=exported.manifest['input_hash']):
             raise ValueError(f'{config["config"]}: terminal CSVs are stale; re-extract step 3')
         jobs.append((config,metrics,str(output_root),str(source)))
-    if not jobs:
-        raise ValueError('No runs selected for individual plots')
     if cores == 1 or len(jobs) == 1:
         results = []
         for index,job in enumerate(jobs,1):

@@ -111,7 +111,7 @@ def coverage_seconds(intervals):
 
 
 def extract(config, vectors=None):
-    ping_config = leo.ping_config(config['sim_time'])
+    ping_config = leo.baseline_config(config)
     ping = checked_summary(ping_config)
     vectors = vectors if vectors is not None else Vectors(leo.result(config, '.vec'))
     start, end = config['measurement_start'], config['measurement_end']
@@ -191,9 +191,10 @@ def extract(config, vectors=None):
 def load_rows(configs):
     rows = []
     for config in configs:
-        checked_summary(leo.ping_config(config['sim_time']))
+        ping_config = leo.baseline_config(config)
+        checked_summary(ping_config)
         data = checked_summary(config)
-        if data['baseline_stat'] != leo.stat(leo.summary_path(leo.ping_config(config['sim_time']))):
+        if data['baseline_stat'] != leo.stat(leo.summary_path(ping_config)):
             raise ValueError(f'Changed ping baseline: re-extract {config["config"]}')
         rows += data['rows']
     return rows
@@ -228,14 +229,15 @@ def mean_base_rtt(configs):
     requested = set()
     for config in configs:
         ranks = (0,) if config['protocol']=='OrbSingle' else range(1,config['k']+1)
-        requested.update((config['sim_time'],pair['source'],rank,
+        requested.update((config['sim_time'],config.get('replay_start',0),pair['source'],rank,
                           config['measurement_start'],config['measurement_end'])
                          for pair in leo.PAIRS for rank in ranks)
     ping, means = {}, []
-    for duration,source,rank,start,end in sorted(requested):
-        if duration not in ping:
-            ping[duration] = checked_summary(leo.ping_config(duration))
-        values = [value for second,value in ping[duration]['baseline'][f'{source}:{rank}'].items()
+    for duration,replay_start,source,rank,start,end in sorted(requested):
+        key = duration,replay_start
+        if key not in ping:
+            ping[key] = checked_summary(leo.ping_config(duration,replay_start))
+        values = [value for second,value in ping[key]['baseline'][f'{source}:{rank}'].items()
                   if start<=float(second)<end and math.isfinite(value) and value>0]
         if values:
             means.append(mean(values)*1000)
@@ -254,16 +256,17 @@ def plot(configs):
     rows = load_rows(configs)
     ks = sorted({c['k'] for c in configs if c['protocol'] != 'OrbSingle'}) or [1]
     cells = aggregate(rows, ks)
-    leo.PLOT_DIR.mkdir(parents=True, exist_ok=True)
-    write_csv(leo.PLOT_DIR / 'runs.csv', rows)
-    write_csv(leo.PLOT_DIR / 'heatmap_data.csv', cells)
+    output = leo.plot_directory(configs[0])
+    output.mkdir(parents=True, exist_ok=True)
+    write_csv(output / 'runs.csv', rows)
+    write_csv(output / 'heatmap_data.csv', cells)
     baseline = mean_base_rtt(configs)
     observed = [r['raw_rtt_ms'] for r in cells if math.isfinite(r['raw_rtt_ms'])]
     delay_min = baseline if math.isfinite(baseline) else 0.
     delay_max = max(observed,default=delay_min)
     # A flat/missing data set still needs a non-degenerate plotting interval.
     delay_max = delay_max if delay_max>delay_min else delay_min+1.
-    write_csv(leo.PLOT_DIR/'heatmap_scales.csv',[
+    write_csv(output/'heatmap_scales.csv',[
         dict(metric='goodput_mbps',minimum=0.,maximum=100.,mean_base_rtt_ms=''),
         dict(metric='raw_rtt_ms',minimum=delay_min,maximum=delay_max,mean_base_rtt_ms=baseline)])
     for k in ks:
@@ -305,7 +308,7 @@ def plot(configs):
                     colorbar.set_ticks(ticks)
                     colorbar.ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f' if name=='delay' else '%.0f'))
                     colorbar.ax.tick_params(labelsize=8)
-                save_figure(fig, leo.PLOT_DIR / f'{name}_K{k}', aggregate=True)
+                save_figure(fig, output / f'{name}_K{k}', aggregate=True)
                 plt.close(fig)
     return cells
 

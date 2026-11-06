@@ -41,7 +41,7 @@ def fixture(config, specifications):
     path.with_suffix('.sca').write_text('version 2\nrun synthetic\n')
 
 
-def ping_fixture(duration=15):
+def ping_fixture(duration=15,replay_start=0):
     specifications=[]
     for p in leo.PAIRS:
         for rank in range(11):
@@ -50,7 +50,7 @@ def ping_fixture(duration=15):
             specifications.append((module,'rtt',[(t+.1,base) for t in range(int(duration))]))
             if rank:
                 specifications.append((module,'kPathAvailable',[(.000002,1 if rank<=3 else 0)]))
-    c=leo.ping_config(duration)
+    c=leo.ping_config(duration,replay_start)
     fixture(c,specifications)
     analysis.extract_ping(c)
 
@@ -115,6 +115,80 @@ class LeoTests(unittest.TestCase):
     def tearDown(self):
         self.override.stop()
         self.temp.cleanup()
+
+    def test_load_balance_uses_same_matrix_and_isolated_replay_inputs(self):
+        root = Path(self.temp.name)
+        old_ini = leo.EXPERIMENT_DIR/'experimentLeo.ini'
+        original = old_ini.read_bytes()
+        matrix = leo.generate(100, root/'routes', replay_start=170)
+        self.assertEqual(len(matrix), 130)
+        self.assertEqual([(c['config'], c['starts']) for c in matrix],
+                         [(c['config'], c['starts']) for c in self.matrix])
+        self.assertEqual(old_ini.read_bytes(), original)
+        self.assertTrue(all((c['sim_time'],c['measurement_start'],c['measurement_end']) ==
+                            (100,10,99) for c in matrix))
+        traffic = leo.ini_file(matrix[0]).read_text()
+        capture, replay = traffic.split('[Config LeoTransport]', 1)
+        self.assertIn('captureReplayAt = 170s', capture)
+        self.assertIn('sim-time-limit = 170.000002s', capture)
+        self.assertIn('kPathSnapshotMode = "disabled"', capture)
+        self.assertIn('replayStart = 170s', replay)
+        self.assertIn('sim-time-limit = 100s', replay)
+        ping = leo.ini_file(leo.baseline_config(matrix[0])).read_text()
+        self.assertIn('include ../experimentLeoLoadBalance/topology.ini', ping)
+        self.assertIn('replayStart = 170s', ping)
+        self.assertIn('../experimentLeoLoadBalance/results/replay/170.leoreplay', ping)
+
+    def test_capture_reuses_checkpoint_and_failed_refresh_preserves_it(self):
+        from types import SimpleNamespace
+        import runExperimentLeo as runner
+        args = SimpleNamespace(route_store=Path(self.temp.name)/'routes', sim_timeout_seconds=5)
+        leo.generate(100,args.route_store,replay_start=170)
+        checkpoint = leo.checkpoint_file({'replay_start':170})
+
+        def write_checkpoint(command, cwd, log, timeout):
+            candidate = Path(json.loads(command[-1].split('=',1)[1]))
+            self.assertNotEqual(candidate,checkpoint)
+            candidate.write_text('synthetic checkpoint')
+            return True
+
+        with patch.object(leo,'check_routes',return_value='prefix') as preflight, \
+             patch.object(runner,'fingerprint',return_value='capture-1') as fingerprint, \
+             patch.object(runner,'command',return_value=['opp_run']), \
+             patch.object(runner,'logged',side_effect=write_checkpoint) as launched, \
+             contextlib.redirect_stdout(io.StringIO()):
+            runner.prepare_replay(args,170)
+            runner.prepare_replay(args,170)
+            launched.assert_called_once()
+            preflight.assert_called_with(args.route_store,170.000002,primary_only=True)
+            fingerprint.return_value = 'capture-2'
+            launched.side_effect = None
+            launched.return_value = False
+            with self.assertRaisesRegex(RuntimeError,'Replay capture failed'):
+                runner.prepare_replay(args,170)
+        self.assertEqual(checkpoint.read_text(),'synthetic checkpoint')
+        self.assertEqual(json.loads(checkpoint.with_suffix('.json').read_text())['fingerprint'],'capture-1')
+
+    def test_load_balance_reuses_full_plot_pipeline(self):
+        import runExperimentLeo as runner
+        store = Path(self.temp.name)/'routes'
+        matrix = leo.generate(15,store,replay_start=170)
+        config = next(c for c in matrix if c['protocol']=='Omega' and c['k']==2 and c['run']==1)
+        plots = Path(self.temp.name)/'plots'/'experimentLeo'
+        with patch.object(leo,'PLOT_DIR',plots), patch.object(leo,'PAIRS',leo.PAIRS[:1]):
+            ping_fixture(15,replay_start=170)
+            diagnostic_fixture(config)
+            export_fixture(config,bins=20)
+            analysis.extract(config)
+            runner.main(['--start-step','4','--skip-generate','--configs',config['config']],
+                        replay_start=170,default_duration=100)
+            output = leo.plot_directory(config)
+            for name in ('goodput_K2','delay_K2'):
+                self.assertTrue((output/f'{name}.pdf').is_file())
+            run = output/'individual'/leo.run_subdir(config)
+            self.assertTrue((run/'aggregate/combined.pdf').is_file())
+            self.assertTrue(any(run.glob('userTerminal*/combined.pdf')))
+            self.assertFalse(plots.exists())
 
     def test_matrix_and_endpoint_only_recording(self):
         self.assertEqual(len(self.matrix),130)

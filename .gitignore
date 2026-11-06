@@ -8,6 +8,9 @@ __pycache__/
 simulations/experiments/*/results/
 simulations/experiments/*/csvs/
 simulations/experiments/experimentLeo/matrix.json
+simulations/experiments/experimentLeoLoadBalance/*.ini
+simulations/experiments/experimentLeoLoadBalance/matrix.json
+simulations/experiments/experimentLeoLoadBalancePing/*.ini
 simulations/experiments/experimentLeoView/visualize.ini
 simulations/logs/
 simulations/plots/

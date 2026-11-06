@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import signal
 import sys
+import tempfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -16,7 +17,7 @@ from runExperiments import logged, parallel, tool, STOP, ACTIVE, LOCK, terminate
 
 
 def libraries(config=None):
-    projects = leo.PROJECTS[:3] if config and config['protocol']=='Ping' else leo.PROJECTS
+    projects = leo.PROJECTS[:3] if config and config['protocol'] in ('Ping','Capture') else leo.PROJECTS
     return [leo.SAMPLES_DIR / project / 'src' / ('INET' if project == 'inet4.5' else project)
             for project in projects]
 
@@ -48,8 +49,10 @@ def completion(config):
 def fingerprint(config, route_hash):
     digest = hashlib.sha256(json.dumps(config,sort_keys=True).encode())
     digest.update(route_hash.encode())
-    for path in [leo.ini_file(config), leo.EXPERIMENT_DIR / 'topology.ini']:
+    for path in [leo.ini_file(config), leo.topology_file(config)]:
         digest.update(path.read_bytes())
+    if config.get('replay_start') and config['protocol'] != 'Capture':
+        digest.update(leo.checkpoint_file(config).read_bytes())
     for lib in libraries(config):
         path = next((p for ext in ('.dylib','.so')
                      if (p := lib.parent / ('lib'+lib.name+ext)).is_file()),None)
@@ -57,6 +60,38 @@ def fingerprint(config, route_hash):
             raise FileNotFoundError(f'Missing built library: {lib}. Build dependencies before simulation.')
         digest.update(json.dumps([str(path),leo.stat(path)]).encode())
     return digest.hexdigest()
+
+
+def prepare_replay(args, replay_start):
+    config = dict(config=leo.CAPTURE_CONFIG, protocol='Capture', replay_start=replay_start)
+    path = leo.checkpoint_file(config)
+    receipt = path.with_suffix('.json')
+    route_hash = leo.check_routes(args.route_store, leo.capture_end(replay_start), primary_only=True)
+    expected = fingerprint(config, route_hash)
+    try:
+        saved = json.loads(receipt.read_text())
+        if (saved['fingerprint'] == expected and
+                saved['checkpoint_sha256'] == hashlib.sha256(path.read_bytes()).hexdigest()):
+            print(f'Reuse replay checkpoint: {path}', flush=True)
+            return
+    except (OSError, ValueError, KeyError):
+        pass
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    root = leo.directory(config)
+    print(f'Capture topology at original {replay_start:g}s (one unloaded run)', flush=True)
+    log = leo.SIM_DIR / 'logs' / root.name / 'capture-replay.log'
+    with tempfile.TemporaryDirectory(prefix='capture-', dir=path.parent) as tmp:
+        candidate = Path(tmp) / path.name
+        options = [*command(config), f'--*.channelConstructor.replayStateFile={json.dumps(str(candidate.resolve()))}']
+        if not logged(options, root, log, args.sim_timeout_seconds) or not candidate.is_file() or not candidate.stat().st_size:
+            raise RuntimeError(f'Replay capture failed; inspect {log}')
+        staged_receipt = Path(tmp) / receipt.name
+        staged_receipt.write_text(json.dumps(dict(fingerprint=expected,
+            checkpoint_sha256=hashlib.sha256(candidate.read_bytes()).hexdigest()), indent=2)+'\n')
+        os.replace(candidate, path)
+        os.replace(staged_receipt, receipt)
+    print(f'Saved replay checkpoint: {path}', flush=True)
 
 
 def simulate(job):
@@ -95,9 +130,9 @@ def ensure_index(config):
         return Vectors(leo.result(config,'.vec'))
 
 
-def prepare_ping(duration,route_hash=None):
+def prepare_ping(duration,route_hash=None,*,replay_start=0):
     import analyzeExperimentLeo as analysis
-    config = leo.ping_config(duration)
+    config = leo.ping_config(duration, replay_start)
     ensure_index(config)
     if route_hash is not None and completion(config)['fingerprint'] != fingerprint(config,route_hash):
         raise ValueError('Ping baseline uses different routes or inputs; run step 1 again')
@@ -117,7 +152,7 @@ def extract(config):
     return config['config']
 
 
-def main(argv=None):
+def main(argv=None, *, replay_start=0, default_duration=leo.DURATION):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--cores',type=int,default=int(os.environ.get('EXPERIMENT_CORES','2')))
     parser.add_argument('--runs',type=int,choices=range(1,6),default=5,help='Use the first N start-time patterns; simulation seed stays fixed')
@@ -126,7 +161,8 @@ def main(argv=None):
     parser.add_argument('--configs',nargs='+',help='Restrict to exact configuration names')
     parser.add_argument('--plots',nargs='+',choices=('summary','all',*leo.USER_METRICS),default=['all'],
                         help='Default all: heatmaps and individual endpoint plots; summary: heatmaps only')
-    parser.add_argument('--sim-time',type=float,help='Default 300s, or the existing manifest duration with --skip-generate')
+    parser.add_argument('--sim-time',type=float,
+                        help=f'Default {default_duration:g}s, or the existing manifest duration with --skip-generate')
     parser.add_argument('--route-store',type=Path,help='Default: leosatellites/simulations/leoSaves')
     parser.add_argument('--start-step',type=int,choices=range(1,5),default=1)
     parser.add_argument('--end-step',type=int,choices=range(1,5),default=4)
@@ -140,13 +176,25 @@ def main(argv=None):
     parser.add_argument('--check-routes',action='store_true',help='Validate saved snapshot headers and time coverage; never simulate')
     parser.add_argument('--dry-run',action='store_true',help='List the ordered work without launching simulations')
     parser.add_argument('--ping-only',action='store_true')
+    if replay_start:
+        parser.add_argument('--capture-only',action='store_true',
+                            help='Prepare the topology checkpoint and exit before ping and traffic')
     args = parser.parse_args(argv)
     if args.cores<1 or args.retries<0 or args.start_step>args.end_step or not math.isfinite(args.sim_timeout_seconds) or args.sim_timeout_seconds<=0:
         parser.error('Invalid worker count, retry count, steps or timeout')
-    manifest = json.loads((leo.EXPERIMENT_DIR/'matrix.json').read_text()) if args.skip_generate else {}
-    args.sim_time = args.sim_time if args.sim_time is not None else manifest.get('duration',leo.DURATION)
+    manifest_path = leo.experiment_directory(replay_start)/'matrix.json'
+    manifest = json.loads(manifest_path.read_text()) if args.skip_generate else {}
+    if args.skip_generate and manifest.get('replay_start',0) != replay_start:
+        parser.error('Existing manifest uses a different replay start')
+    args.sim_time = args.sim_time if args.sim_time is not None else manifest.get('duration',default_duration)
+    if replay_start and args.skip_generate and args.route_store is not None and (
+            args.route_store.resolve() != Path(manifest['route_store']).resolve()):
+        parser.error('--route-store differs from the generated INIs; regenerate inputs')
     args.route_store = args.route_store or Path(manifest.get('route_store',leo.DEFAULT_STORE))
-    matrix = manifest['configurations'] if args.skip_generate else leo.generate(args.sim_time,args.route_store)
+    capture_only = getattr(args,'capture_only',False)
+    matrix = (manifest['configurations'] if args.skip_generate else
+              leo.configurations(args.sim_time,replay_start) if replay_start and args.dry_run else
+              leo.generate(args.sim_time,args.route_store,replay_start))
     selected = [c for c in matrix if c['protocol'] in args.protocols and c['run']<=args.runs and
                 (c['protocol']=='OrbSingle' or c['k'] in args.ks)]
     if args.configs:
@@ -156,13 +204,23 @@ def main(argv=None):
         selected = [c for c in selected if c['config'] in args.configs]
     if not selected:
         parser.error('No traffic configurations selected')
-    if any(c['sim_time']!=args.sim_time for c in selected):
+    if any(c['sim_time']!=args.sim_time or c.get('replay_start',0)!=replay_start for c in selected):
         parser.error('--sim-time differs from the existing manifest; regenerate inputs')
     if args.check_routes:
-        leo.check_routes(args.route_store,args.sim_time)
-        print('Primary and EdgeDisjoint snapshot headers/time coverage match; payload validation is performed by the simulator.')
+        if capture_only:
+            leo.check_routes(args.route_store,leo.capture_end(replay_start),primary_only=True)
+            print('Primary snapshot headers and time coverage match for checkpoint capture.')
+        else:
+            leo.check_routes(args.route_store,replay_start+args.sim_time)
+            print('Primary and EdgeDisjoint snapshot headers/time coverage match; payload validation is performed by the simulator.')
         return
     if args.dry_run:
+        if replay_start:
+            print(f'Local 0–{args.sim_time:g}s replays original {replay_start:g}–{replay_start+args.sim_time:g}s')
+            if capture_only or args.start_step<=2:
+                print('Prepare or reuse one topology checkpoint')
+        if capture_only:
+            return
         if args.start_step<=1<=args.end_step:
             print('Step 1: one unloaded ping prepass (ordinary shortest path + all 10 saved edge-disjoint ranks for each pair)')
         if not args.ping_only:
@@ -179,24 +237,32 @@ def main(argv=None):
             if args.start_step<=4<=args.end_step:
                 print('Step 4: plot '+', '.join(args.plots))
         return
+    if capture_only:
+        prepare_replay(args,replay_start)
+        return
     route_hash = None
     if args.start_step<=2:
-        route_hash = leo.check_routes(args.route_store,args.sim_time)
+        route_hash = leo.check_routes(args.route_store,replay_start+args.sim_time)
+        if replay_start:
+            prepare_replay(args,replay_start)
+    experiment = leo.experiment_directory(replay_start).name
+    ping_config = leo.ping_config(args.sim_time,replay_start)
+    ping_name = leo.directory(ping_config).name
     if args.start_step<=1<=args.end_step:
-        print('ExperimentLeoPing: simulate unloaded baseline',flush=True)
-        simulate((leo.ping_config(args.sim_time),args,route_hash))
-        prepare_ping(args.sim_time,route_hash)
+        print(f'{ping_name}: simulate unloaded baseline',flush=True)
+        simulate((ping_config,args,route_hash))
+        prepare_ping(args.sim_time,route_hash,replay_start=replay_start)
     if args.ping_only:
         return
     if args.start_step<=2<=args.end_step:
         # Fail before the expensive traffic runs if the prepass is absent/stale.
-        prepare_ping(args.sim_time,route_hash)
-        print(f'ExperimentLeo: simulate {len(selected)} five-flow runs',flush=True)
+        prepare_ping(args.sim_time,route_hash,replay_start=replay_start)
+        print(f'{experiment}: simulate {len(selected)} five-flow runs',flush=True)
         parallel(simulate,[(c,args,route_hash) for c in selected],args.cores)
     if args.start_step<=3<=args.end_step:
-        print('ExperimentLeo: check/extract unloaded ping baseline',flush=True)
-        prepare_ping(args.sim_time)
-        print(f'ExperimentLeo: extract user-terminal vectors to CSVs '
+        print(f'{experiment}: check/extract unloaded ping baseline',flush=True)
+        prepare_ping(args.sim_time,replay_start=replay_start)
+        print(f'{experiment}: extract user-terminal vectors to CSVs '
               f'({min(args.cores,len(selected))} worker processes)',flush=True)
         # Sample parsing is CPU-bound Python; threads cannot use multiple cores.
         parallel(extract,selected,args.cores,processes=True)
@@ -206,21 +272,21 @@ def main(argv=None):
     if args.start_step<=4<=args.end_step:
         if 'summary' in args.plots or 'all' in args.plots:
             from analyzeExperimentLeo import plot
-            print('ExperimentLeo: plot one goodput and one RTT heatmap per K',flush=True)
+            print(f'{experiment}: plot one goodput and one RTT heatmap per K',flush=True)
             plot(selected)
         metrics = list(leo.USER_METRICS) if 'all' in args.plots else [m for m in args.plots if m!='summary']
         if metrics:
             from plotExperimentLeo import plot_metrics
-            print('ExperimentLeo: plot individual user-terminal metrics from CSVs',flush=True)
+            print(f'{experiment}: plot individual user-terminal metrics from CSVs',flush=True)
             plot_metrics(selected,metrics,cores=args.cores)
 
 
-def run(argv=None):
+def run(argv=None, **settings):
     def interrupted(*_):
         raise KeyboardInterrupt
     signal.signal(signal.SIGTERM,interrupted)
     try:
-        main(argv)
+        main(argv, **settings)
     except KeyboardInterrupt:
         STOP.set()
         with LOCK:

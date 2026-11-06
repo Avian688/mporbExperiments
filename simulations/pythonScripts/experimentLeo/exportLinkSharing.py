@@ -185,8 +185,11 @@ def profile_name(config):
 
 
 def profile_identity(config, fingerprint, pairs):
-    return dict(version=VERSION, routes=fingerprint, k=config['k'], starts=config['starts'],
-                duration=config['sim_time'], single=config['protocol']=='OrbSingle', pairs=pairs)
+    identity = dict(version=VERSION, routes=fingerprint, k=config['k'], starts=config['starts'],
+                    duration=config['sim_time'], single=config['protocol']=='OrbSingle', pairs=pairs)
+    if config.get('replay_start'):
+        identity['replay_start'] = config['replay_start']
+    return identity
 
 
 def export_profile(job):
@@ -204,9 +207,10 @@ def export_profile(job):
     temp = temporary(csv_path)
     no_sharing, unavailable, activity = [], [], []
     pending, intervals, frames_seen, rows = {}, 0, 0, 0
-    expected_start = 0
-    duration_us = round(config['sim_time']*1e6)
-    starts = [round(s*1e6) for s in config['starts']]
+    origin_us = round(config.get('replay_start',0)*1e6)
+    expected_start = origin_us
+    horizon_us = origin_us + round(config['sim_time']*1e6)
+    starts = [origin_us+round(s*1e6) for s in config['starts']]
     root.mkdir(parents=True, exist_ok=True)
     try:
         with gzip.open(frames, 'rt') as source, temp.open('w', newline='') as output:
@@ -231,13 +235,16 @@ def export_profile(job):
             for line in source:
                 frame = json.loads(line)
                 start, end = frame['start_us'], frame['end_us']
-                if start != expected_start or not start < end <= duration_us:
+                if end <= origin_us:
+                    continue
+                start = max(start, origin_us)
+                if start != expected_start or not start < end <= horizon_us:
                     raise ValueError('Saved-route cache does not cover the complete simulation interval')
                 expected_start = end
                 frames_seen += 1
                 boundaries = sorted({start, end, *[s for s in starts if start < s < end]})
                 for left, right in zip(boundaries, boundaries[1:]):
-                    shared, missing, active = sharing(frame, config, left, pairs)
+                    shared, missing, active = sharing(frame, config, left-origin_us, pairs)
                     intervals += 1
                     if not shared:
                         extend_range(no_sharing, left, right)
@@ -252,12 +259,12 @@ def export_profile(job):
                             pending[edge][1] = right
                         else:
                             pending[edge] = [left, right, members, frame['core_nodes']]
-            if expected_start != duration_us:
+            if expected_start != horizon_us:
                 raise ValueError('Saved-route cache ends before the simulation interval')
             for edge in sorted(pending):
                 finish(edge)
         os.replace(temp, csv_path)
-        write_json(metadata_path, dict(version=VERSION, signature=signature,
+        metadata = dict(version=VERSION, signature=signature,
             csv_stat=leo.stat(csv_path), route_fingerprint=fingerprint,
             profile=name, duration_s=config['sim_time'], requested_subflows=config['k'],
             saved_route_intervals=frames_seen, evaluated_intervals=intervals, shared_link_ranges=rows,
@@ -265,7 +272,10 @@ def export_profile(job):
                       'Physical links include shared access hops; opposite directions are reported separately. '
                       'Ranges are half-open [start_s,end_s); unchanged membership is coalesced per link. '
                       'Rows are written when a range closes; sort by start_s if chronological order is needed.',
-            no_shared_links=no_sharing, unavailable_subflows=unavailable, active_connections=activity))
+            no_shared_links=no_sharing, unavailable_subflows=unavailable, active_connections=activity)
+        if origin_us:
+            metadata.update(replay_start_s=origin_us/1e6, time_axis='original route timeline')
+        write_json(metadata_path, metadata)
     finally:
         temp.unlink(missing_ok=True)
     return name
@@ -304,9 +314,10 @@ def publish(config, pairs, root):
         temp.unlink(missing_ok=True)
     metadata = json.loads((root/(profile+'.json')).read_text())
     senders, status = sender_mapping(config, pairs)
+    origin = config.get('replay_start',0)
     metadata.update(config=config, csv=destination.name, sender_modules=senders,
         sender_mapping_status=status,
-        connections={f'C{index}': dict(pair, scheduled_start_s=start)
+        connections={f'C{index}': dict(pair, scheduled_start_s=round(origin+start,6))
                      for index, (pair, start) in enumerate(zip(pairs, config['starts']), 1)})
     write_json(destination.with_suffix('.json'), metadata)
 
@@ -315,15 +326,16 @@ def export_reports(configs, store, cores=2):
     pairs = list(leo.PAIRS)
     if not configs or cores < 1:
         raise ValueError('Select at least one configuration and one worker')
-    durations = {c['sim_time'] for c in configs}
-    if len(durations) != 1:
-        raise ValueError('Selected configurations have different simulation durations')
+    windows = {(c.get('replay_start',0),c['sim_time']) for c in configs}
+    if len(windows) != 1:
+        raise ValueError('Selected configurations have different replay windows')
     for config in configs:
         if len(config['starts']) != len(pairs) or not 1 <= config['k'] <= 10 or any(
                 not math.isfinite(s) or s < 0 or s >= config['sim_time'] for s in config['starts']):
             raise ValueError(f'Invalid starts or requested subflow count: {config["config"]}')
-    root = leo.EXPERIMENT_DIR/'csvs/link_sharing'
-    frames, fingerprint = prepare_frames(store, next(iter(durations)),
+    start, duration = next(iter(windows))
+    root = leo.directory(configs[0])/'csvs/link_sharing'
+    frames, fingerprint = prepare_frames(store, start+duration,
                                         any(c['protocol']=='OrbSingle' for c in configs), root)
     unique = {}
     for config in configs:

@@ -35,6 +35,9 @@ PROTOCOLS = {
 KS = (1, 2, 3, 4, 5)
 RUNS = (1, 2, 3, 4, 5)
 DURATION = 300
+LOAD_BALANCE_START = 170
+LOAD_BALANCE_DURATION = 100
+CAPTURE_CONFIG = 'CaptureReplay170'
 MSS = 1200
 WARMUP = 10
 MIN_BASELINE_MATCH = .95
@@ -58,7 +61,7 @@ if len(PAIRS) != 5:
     raise ValueError('The shared route definitions must contain all five NY/UK pairs')
 
 
-def configurations(duration=DURATION):
+def configurations(duration=DURATION, replay_start=0):
     if not math.isfinite(duration) or duration <= WARMUP + 2:
         raise ValueError('Duration must leave a measurement interval after the 10s warmup')
     matrix = []
@@ -70,16 +73,44 @@ def configurations(duration=DURATION):
                     protocol=protocol, k=k, run=run, seed=1,
                     starts=[round(rng.uniform(1, 2), 6) for _ in PAIRS],
                     sim_time=duration, measurement_start=WARMUP, measurement_end=duration - 1))
+                if replay_start:
+                    matrix[-1]['replay_start'] = replay_start
     return matrix
 
 
-def ping_config(duration=DURATION):
-    return dict(config='LeoPing', protocol='Ping', k=SHARED.PATH_COUNT,
-                run=1, seed=1, sim_time=duration)
+def ping_config(duration=DURATION, replay_start=0):
+    config = dict(config='LeoPing', protocol='Ping', k=SHARED.PATH_COUNT,
+                  run=1, seed=1, sim_time=duration)
+    if replay_start:
+        config['replay_start'] = replay_start
+    return config
+
+
+def baseline_config(config):
+    return ping_config(config['sim_time'], config.get('replay_start', 0))
+
+
+def experiment_directory(replay_start=0):
+    return EXPERIMENT_DIR.with_name('experimentLeoLoadBalance') if replay_start else EXPERIMENT_DIR
+
+
+def plot_directory(config):
+    return PLOT_DIR.with_name('experimentLeoLoadBalance') if config.get('replay_start') else PLOT_DIR
 
 
 def directory(config):
-    return PING_DIR if config['protocol'] == 'Ping' else EXPERIMENT_DIR
+    start = config.get('replay_start', 0)
+    if config['protocol'] == 'Ping':
+        return PING_DIR.with_name('experimentLeoLoadBalancePing') if start else PING_DIR
+    return experiment_directory(start)
+
+
+def topology_file(config):
+    return experiment_directory(config.get('replay_start', 0)) / 'topology.ini'
+
+
+def checkpoint_file(config):
+    return experiment_directory(config['replay_start']) / 'results/replay' / f'{config["replay_start"]:g}.leoreplay'
 
 
 def ini_file(config):
@@ -109,12 +140,12 @@ def stat(path):
 
 def input_hash(config):
     digest = hashlib.sha256()
-    for path in (ini_file(config), EXPERIMENT_DIR / 'topology.ini'):
+    for path in (ini_file(config), topology_file(config)):
         digest.update(path.read_bytes())
     return digest.hexdigest()
 
 
-def write_topology(duration):
+def write_topology(duration, target=None):
     # Run the existing generator in isolation. Do not rewrite its consumer INIs,
     # generate routes, or alter any files in leosatellites.
     generator = shared_definitions()
@@ -130,17 +161,22 @@ def write_topology(duration):
         topology = '\n'.join(line for line in topology.splitlines() if not any(
             key in line for key in ('vector-recording', 'scalar-recording',
                                     'statistic-recording', 'bin-recording')))
-        (EXPERIMENT_DIR / 'topology.ini').write_text(topology + '\n')
+        (target or EXPERIMENT_DIR / 'topology.ini').write_text(topology + '\n')
 
 
-def replay_lines(store, root):
+def replay_lines(store, root, config=None):
     relative = os.path.relpath(Path(store).resolve(), root)
-    return [f'*.configurator.configLocation = {json.dumps(relative)}',
+    lines = [f'*.configurator.configLocation = {json.dumps(relative)}',
         '**.loadFiles = true', '*.configurator.kPathSnapshotMode = "load"',
         '*.configurator.kPathCoreSnapshotProfile = ""',
         '*.configurator.kPathsEdgeDisjoint = true', '*.configurator.kPathMaxSharedLinks = -1',
         '# This legacy-named flag enables saved-path TCP routing too; it creates no ping apps.',
         '*.configurator.kPathPingRouting = true', '*.configurator.allowRouteSnapshotOverwrite = false']
+    if config and config.get('replay_start'):
+        state_file = os.path.relpath(checkpoint_file(config), root)
+        lines += [f'*.channelConstructor.replayStart = {config["replay_start"]:g}s',
+                  f'*.channelConstructor.replayStateFile = {json.dumps(state_file)}']
+    return lines
 
 
 def recording_lines(ping=False):
@@ -185,12 +221,32 @@ def probe_lines(source, destination, group, rank, app_index, duration, monitor=F
     return app_lines(prefix, values)
 
 
-def generate(duration=DURATION, store=DEFAULT_STORE):
-    matrix = configurations(duration)
-    EXPERIMENT_DIR.mkdir(parents=True, exist_ok=True)
-    PING_DIR.mkdir(parents=True, exist_ok=True)
-    write_topology(duration)
-    transport = ['include topology.ini', '', '[Config LeoTransport]', *replay_lines(store, EXPERIMENT_DIR),
+def generate(duration=DURATION, store=DEFAULT_STORE, replay_start=0):
+    matrix = configurations(duration, replay_start)
+    traffic_config = matrix[0]
+    ping_run = ping_config(duration, replay_start)
+    traffic_dir, ping_dir = directory(traffic_config), directory(ping_run)
+    traffic_dir.mkdir(parents=True, exist_ok=True)
+    ping_dir.mkdir(parents=True, exist_ok=True)
+    write_topology(duration, topology_file(traffic_config))
+    transport = ['include topology.ini']
+    if replay_start:
+        route_store = os.path.relpath(Path(store).resolve(), traffic_dir)
+        checkpoint = os.path.relpath(checkpoint_file(traffic_config), traffic_dir)
+        transport += ['', f'[Config {CAPTURE_CONFIG}]',
+                      'seed-set = 1',
+                      f'sim-time-limit = {capture_end(replay_start):.6f}s',
+                      '**.loadFiles = true',
+                      f'*.configurator.configLocation = {json.dumps(route_store)}',
+                      '*.configurator.kPathSnapshotMode = "disabled"',
+                      '*.configurator.kPathPingRouting = false',
+                      '*.configurator.allowRouteSnapshotOverwrite = false',
+                      f'*.channelConstructor.captureReplayAt = {replay_start:g}s',
+                      f'*.channelConstructor.replayStateFile = {json.dumps(checkpoint)}',
+                      '*.userTerminal[*].numApps = 0',
+                      '**.vector-recording = false', '**.scalar-recording = false',
+                      '**.bin-recording = false', '**.statistic-recording = false']
+    transport += ['', '[Config LeoTransport]', *replay_lines(store, traffic_dir, traffic_config),
         '**.interfaceType = "leosatellites.linklayer.ppp.PppInterfaceMutable"',
         '**.tcp.advertisedWindow = 200000000', '**.tcp.windowScalingSupport = true',
         '**.tcp.windowScalingFactor = -1', '**.tcp.increasedIWEnabled = true',
@@ -242,25 +298,27 @@ def generate(duration=DURATION, store=DEFAULT_STORE):
                 typename='"TcpSinkApp"' if single else '"MpTcpSinkApp"', localPort=1000,
                 serverThreadModuleType='"tcpgoodputapplications.applications.tcpapp.TcpGoodputSinkAppThread"'))
         transport += ['*.userTerminal[*].numApps = 0']
-    (EXPERIMENT_DIR / 'experimentLeo.ini').write_text('\n'.join(transport) + '\n')
-    ping = ['include ../experimentLeo/topology.ini', '', '[Config LeoPing]',
-        *replay_lines(store, PING_DIR), *recording_lines(ping=True)]
+    ini_file(traffic_config).write_text('\n'.join(transport) + '\n')
+    include_path = os.path.relpath(topology_file(traffic_config), ping_dir)
+    ping = [f'include {include_path}', '', '[Config LeoPingBase]',
+        *replay_lines(store, ping_dir, ping_run), *recording_lines(ping=True)]
     for pair in PAIRS:
         ping += [f'*.userTerminal[{pair["source"]}].numApps = {SHARED.PATH_COUNT + 1}']
         for rank in range(SHARED.PATH_COUNT + 1):
             ping += probe_lines(pair['source'], pair['destination'], pair['group'], rank, rank, duration)
     ping += ['*.userTerminal[*].numApps = 0']
-    c = ping_config(duration)
-    ping[ping.index('[Config LeoPing]')] = '[Config LeoPingBase]'
+    c = ping_run
     ping += ['', f'[Config {c["config"]}]', 'extends = LeoPingBase', f'seed-set = {c["seed"]}',
             f'sim-time-limit = {duration:g}s', f'output-vector-file = "results/{c["config"]}-#0.vec"',
             f'output-scalar-file = "results/{c["config"]}-#0.sca"']
-    (PING_DIR / 'experimentLeoPing.ini').write_text('\n'.join(ping) + '\n')
+    ini_file(ping_run).write_text('\n'.join(ping) + '\n')
     manifest = dict(duration=duration, route_store=str(Path(store).resolve()), configurations=matrix,
                     pairs=PAIRS, path_count=SHARED.PATH_COUNT, delay_annotation='raw RTT ms',
                     delay_colours='raw RTT ms; mean ping baseline to highest heatmap RTT',
                     min_baseline_match=MIN_BASELINE_MATCH)
-    (EXPERIMENT_DIR / 'matrix.json').write_text(json.dumps(manifest, indent=2) + '\n')
+    if replay_start:
+        manifest['replay_start'] = replay_start
+    (traffic_dir / 'matrix.json').write_text(json.dumps(manifest, indent=2) + '\n')
     return matrix
 
 
@@ -279,11 +337,17 @@ def route_directories(store):
     return primary, primary / 'kpaths' / SHARED.K_PATH_SNAPSHOT_SET / profile
 
 
-def check_routes(store, duration):
+def capture_end(replay_start):
+    return replay_start + .000002
+
+
+def check_routes(store, duration, *, primary_only=False):
     expected = {0, *range(100001, math.ceil(duration * 1e6), 100000)}
     digest = hashlib.sha256()
     core = 1584 + len(SHARED.CITY_COORDINATES) + len(SHARED.load_ground_stations())
     for index, directory_path in enumerate(route_directories(store)):
+        if primary_only and index:
+            break
         present = {}
         for path in directory_path.glob('*.bin'):
             try:

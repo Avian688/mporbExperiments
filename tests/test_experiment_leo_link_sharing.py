@@ -93,6 +93,16 @@ class LinkSharingTests(unittest.TestCase):
             if float(row['start_s']) >= 1:
                 self.assertNotIn('C1:SF2', row['subflows_a_to_b']+row['subflows_b_to_a'])
 
+    def test_replay_profiles_use_original_time_and_local_app_starts(self):
+        conf = dict(config(),replay_start=170)
+        boundaries = [0,169900001,170000001,171000001,173000000]
+        write_frames(self.frames,[frame(start,end,self.pairs) for start,end in zip(boundaries,boundaries[1:])])
+        rows, metadata = self.export(conf)
+        row = next(row for row in rows if row['link_type']=='core')
+        self.assertEqual((row['start_s'],row['end_s']),('171.500000','173.000000'))
+        self.assertEqual(metadata['replay_start_s'],170)
+        self.assertEqual(metadata['no_shared_links'],[dict(start_s=170,end_s=170.5)])
+
     def test_single_uses_primary_routes_and_unreachable_status(self):
         conf = config('OrbSingle', 1)
         rows, _ = self.export(conf)
