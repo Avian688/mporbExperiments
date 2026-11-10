@@ -1,13 +1,13 @@
 # ExperimentLeoLoadBalance
 
 This is ExperimentLeo's five-connection controller/K/start-time matrix on a
-100 s replay of the original 170–270 s topology window. Local traffic starts
-at the usual 1–2 s. The analysis uses local 10–99 s, preserving ExperimentLeo's
+70 s replay of the original 115–185 s topology window. Local traffic starts
+at the usual 1–2 s. The analysis uses local 10–69 s, preserving ExperimentLeo's
 10 s warm-up and one-second end guard.
 
 Use an OMNeT++ environment with the replay-enabled LeoSatellites library built.
 The saved primary corpus must cover the prefix and window. The link-sharing
-export also reads the existing EdgeDisjoint K-path corpus through 270 s.
+export also reads the existing EdgeDisjoint K-path corpus through 185 s.
 
 From `simulations/pythonScripts`:
 

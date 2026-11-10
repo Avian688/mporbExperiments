@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run ExperimentLeo's matrix on the saved 170–270 s topology window."""
+"""Run ExperimentLeo's matrix on the saved 115–185 s topology window."""
 from pathlib import Path
 import sys
 

@@ -120,24 +120,24 @@ class LeoTests(unittest.TestCase):
         root = Path(self.temp.name)
         old_ini = leo.EXPERIMENT_DIR/'experimentLeo.ini'
         original = old_ini.read_bytes()
-        matrix = leo.generate(100, root/'routes', replay_start=170)
+        matrix = leo.generate(leo.LOAD_BALANCE_DURATION, root/'routes', replay_start=leo.LOAD_BALANCE_START)
         self.assertEqual(len(matrix), 130)
         self.assertEqual([(c['config'], c['starts']) for c in matrix],
                          [(c['config'], c['starts']) for c in self.matrix])
         self.assertEqual(old_ini.read_bytes(), original)
         self.assertTrue(all((c['sim_time'],c['measurement_start'],c['measurement_end']) ==
-                            (100,10,99) for c in matrix))
+                            (70,10,69) for c in matrix))
         traffic = leo.ini_file(matrix[0]).read_text()
         capture, replay = traffic.split('[Config LeoTransport]', 1)
-        self.assertIn('captureReplayAt = 170s', capture)
-        self.assertIn('sim-time-limit = 170.000002s', capture)
+        self.assertIn('captureReplayAt = 115s', capture)
+        self.assertIn('sim-time-limit = 115.000002s', capture)
         self.assertIn('kPathSnapshotMode = "disabled"', capture)
-        self.assertIn('replayStart = 170s', replay)
-        self.assertIn('sim-time-limit = 100s', replay)
+        self.assertIn('replayStart = 115s', replay)
+        self.assertIn('sim-time-limit = 70s', replay)
         ping = leo.ini_file(leo.baseline_config(matrix[0])).read_text()
         self.assertIn('include ../experimentLeoLoadBalance/topology.ini', ping)
-        self.assertIn('replayStart = 170s', ping)
-        self.assertIn('../experimentLeoLoadBalance/results/replay/170.leoreplay', ping)
+        self.assertIn('replayStart = 115s', ping)
+        self.assertIn('../experimentLeoLoadBalance/results/replay/115.leoreplay', ping)
 
     def test_capture_reuses_checkpoint_and_failed_refresh_preserves_it(self):
         from types import SimpleNamespace
