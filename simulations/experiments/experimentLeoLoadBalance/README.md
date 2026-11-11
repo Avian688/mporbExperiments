@@ -36,3 +36,20 @@ has its own `experimentLeoLoadBalancePing` directory. The usual goodput and RTT
 heatmaps, per-terminal plots, all-terminal comparisons and combined PDFs go
 under `simulations/plots/experimentLeoLoadBalance`. Simulation vectors and plots
 use local time. Link-sharing CSVs use the original route timeline.
+
+## Omega with 10% shuffling
+
+Select `Omega10` to run the existing Omega controller with a 10% shuffle
+fraction for K=1–5 and the same five start-time patterns. Use
+`--include-omega10` to add it to the standard matrix. From
+`simulations/pythonScripts`:
+
+```sh
+python3 experimentLeoLoadBalance/runExperimentLeoLoadBalance.py --protocols Omega10 --end-step 3 --cores 30
+python3 experimentLeoLoadBalance/runExperimentLeoLoadBalance.py --protocols Omega10 --start-step 4 --skip-generate --plots individual --cores 30
+python3 experimentLeoLoadBalance/runExperimentLeoLoadBalance.py --protocols Omega10 --start-step 4 --skip-generate --plots summary
+```
+
+Both plot commands write to `simulations/plots/experimentLeoLoadBalanceOmega10`.
+The goodput and RTT heatmaps compare all seven controllers for each K using
+the matching extracted runs from the standard matrix.

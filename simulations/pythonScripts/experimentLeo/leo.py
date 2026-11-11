@@ -24,14 +24,18 @@ SHARED_GENERATOR = SAMPLES_DIR / 'leosatellites/simulations/pythonScripts/routin
 DEFAULT_STORE = SAMPLES_DIR / 'leosatellites/simulations/leoSaves'
 PROJECTS = ('inet4.5', 'os3', 'leosatellites', 'tcpGoodputApplications', 'tcpPaced',
             'cubic', 'orbtcp', 'mptcp', 'mporb')
+OMEGA_10 = 'Omega10'
 PROTOCOLS = {
     'Alpha': ('MpOrb', 'MpOrbSemiCoupledAlpha', 'MPORB Alpha'),
     'Delta': ('MpOrb', 'MpOrbDelta', 'MPORB Delta'),
     'Omega': ('MpOrb', 'MpOrbOmega', 'MPORB Omega'),
+    OMEGA_10: ('MpOrb', 'MpOrbOmega', 'MPORB Omega (10% shuffle)'),
     'CubicUncoupled': ('MpTcp', 'MpTcpMetaCubic', 'CUBIC uncoupled'),
     'OrbUncoupled': ('MpOrb', 'MpOrbUncoupled', 'OrbCC uncoupled'),
     'OrbSingle': ('Orbtcp', 'OrbtcpPintFlavour', 'OrbCC single path'),
 }
+DEFAULT_PROTOCOLS = tuple(protocol for protocol in PROTOCOLS if protocol != OMEGA_10)
+SHUFFLE_FRACTIONS = {'Delta': 0.05, 'Omega': 0.05, OMEGA_10: 0.10}
 KS = (1, 2, 3, 4, 5)
 RUNS = (1, 2, 3, 4, 5)
 DURATION = 300
@@ -65,7 +69,7 @@ def configurations(duration=DURATION, replay_start=0):
     if not math.isfinite(duration) or duration <= WARMUP + 2:
         raise ValueError('Duration must leave a measurement interval after the 10s warmup')
     matrix = []
-    for protocol in PROTOCOLS:
+    for protocol in (PROTOCOLS if replay_start else DEFAULT_PROTOCOLS):
         for k in ((1,) if protocol == 'OrbSingle' else KS):
             for run in RUNS:
                 rng = random.Random(7999 + run)
@@ -95,6 +99,8 @@ def experiment_directory(replay_start=0):
 
 
 def plot_directory(config):
+    if config['protocol'] == OMEGA_10:
+        return PLOT_DIR.with_name('experimentLeoLoadBalanceOmega10')
     return PLOT_DIR.with_name('experimentLeoLoadBalance') if config.get('replay_start') else PLOT_DIR
 
 
@@ -114,7 +120,11 @@ def checkpoint_file(config):
 
 
 def ini_file(config):
-    return directory(config) / ('experimentLeoPing.ini' if config['protocol'] == 'Ping' else 'experimentLeo.ini')
+    if config['protocol'] == 'Ping':
+        return directory(config) / 'experimentLeoPing.ini'
+    if config['protocol'] == OMEGA_10:
+        return directory(config) / 'experimentLeoOmega10.ini'
+    return directory(config) / 'experimentLeo.ini'
 
 
 def result(config, suffix):
@@ -246,7 +256,7 @@ def generate(duration=DURATION, store=DEFAULT_STORE, replay_start=0):
                       '*.userTerminal[*].numApps = 0',
                       '**.vector-recording = false', '**.scalar-recording = false',
                       '**.bin-recording = false', '**.statistic-recording = false']
-    transport += ['', '[Config LeoTransport]', *replay_lines(store, traffic_dir, traffic_config),
+    common_transport = ['', '[Config LeoTransport]', *replay_lines(store, traffic_dir, traffic_config),
         '**.interfaceType = "leosatellites.linklayer.ppp.PppInterfaceMutable"',
         '**.tcp.advertisedWindow = 200000000', '**.tcp.windowScalingSupport = true',
         '**.tcp.windowScalingFactor = -1', '**.tcp.increasedIWEnabled = true',
@@ -268,7 +278,14 @@ def generate(duration=DURATION, store=DEFAULT_STORE, replay_start=0):
         '**.goodputInterval = 1s', '**.throughputInterval = 1s',
         '**.ipv4.ip.kPathTcpClientPort = 4000', '**.ipv4.ip.kPathTcpServerPort = 1000',
         *recording_lines()]
+    transport += common_transport
+    traffic_inis = {ini_file(traffic_config): transport}
     for c in matrix:
+        path = ini_file(c)
+        if path not in traffic_inis:
+            # Keep this file independent so existing run fingerprints stay valid.
+            traffic_inis[path] = ['include topology.ini', *common_transport]
+        transport = traffic_inis[path]
         single = c['protocol'] == 'OrbSingle'
         tcp, algorithm, _ = PROTOCOLS[c['protocol']]
         transport += ['', f'[Config {c["config"]}]', 'extends = LeoTransport',
@@ -279,11 +296,11 @@ def generate(duration=DURATION, store=DEFAULT_STORE, replay_start=0):
             f'**.numberOfSubflows = {c["k"]}',
             f'**.ipv4.ip.kPathTcpPathGroups = "{"" if single else " ".join(str(p["group"]) for p in PAIRS)}"',
             '**.ipv4.ip.kPathTcpPathGroup = -1', f'**.ipv4.ip.kPathTcpSubflows = {c["k"]}']
-        shuffle = c['protocol'] in ('Delta', 'Omega')
+        shuffle = SHUFFLE_FRACTIONS.get(c['protocol'])
         for host in ('satellite', 'groundStation', 'userTerminal'):
             transport += [f'*.{host}[*].ppp[*].queue.typename = "{"MpOrbDeltaQueue" if shuffle else "PintQueue"}"']
             if shuffle:
-                transport += [f'*.{host}[*].ppp[*].queue.deltaShuffleFraction = 0.05',
+                transport += [f'*.{host}[*].ppp[*].queue.deltaShuffleFraction = {shuffle:g}',
                               f'*.{host}[*].ppp[*].queue.deltaShuffleInterval = 0s']
         for pair, start in zip(PAIRS, c['starts']):
             src, dst = pair['source'], pair['destination']
@@ -298,7 +315,8 @@ def generate(duration=DURATION, store=DEFAULT_STORE, replay_start=0):
                 typename='"TcpSinkApp"' if single else '"MpTcpSinkApp"', localPort=1000,
                 serverThreadModuleType='"tcpgoodputapplications.applications.tcpapp.TcpGoodputSinkAppThread"'))
         transport += ['*.userTerminal[*].numApps = 0']
-    ini_file(traffic_config).write_text('\n'.join(transport) + '\n')
+    for path, lines in traffic_inis.items():
+        path.write_text('\n'.join(lines) + '\n')
     include_path = os.path.relpath(topology_file(traffic_config), ping_dir)
     ping = [f'include {include_path}', '', '[Config LeoPingBase]',
         *replay_lines(store, ping_dir, ping_run), *recording_lines(ping=True)]

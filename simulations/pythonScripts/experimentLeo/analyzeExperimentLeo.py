@@ -11,7 +11,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import leo
 from vectors import Vectors, interval_integral, seconds
 
-HEATMAP_LABELS = ('Alpha','Delta','Omega','CUBIC\nuncoupled','OrbCC\nuncoupled','OrbCC\nsingle path')
+HEATMAP_LABELS = {
+    'Alpha': 'Alpha', 'Delta': 'Delta', 'Omega': 'Omega',
+    'CubicUncoupled': 'CUBIC\nuncoupled', 'OrbUncoupled': 'OrbCC\nuncoupled',
+    'OrbSingle': 'OrbCC\nsingle path', leo.OMEGA_10: 'Omega 10%',
+}
 
 
 def write_csv(path, rows):
@@ -200,10 +204,10 @@ def load_rows(configs):
     return rows
 
 
-def aggregate(rows, ks):
+def aggregate(rows, ks, protocols=leo.DEFAULT_PROTOCOLS):
     output = []
     for k in ks:
-        for protocol in leo.PROTOCOLS:
+        for protocol in protocols:
             selected_k = 1 if protocol == 'OrbSingle' else k
             for pair in leo.PAIRS:
                 selected = [r for r in rows if r['protocol'] == protocol and
@@ -253,10 +257,17 @@ def plot(configs):
     import numpy as np
     sys.path.insert(0, str(leo.SCRIPT_DIR.parent))
     from plotStyle import plot_style, save_figure
-    rows = load_rows(configs)
+    variant = next((config for config in configs if config['protocol'] == leo.OMEGA_10), None)
+    try:
+        rows = load_rows(configs)
+    except (FileNotFoundError, ValueError) as error:
+        if variant:
+            raise ValueError(f'Omega10 heatmaps require matching extracted results for all controllers. {error}') from error
+        raise
     ks = sorted({c['k'] for c in configs if c['protocol'] != 'OrbSingle'}) or [1]
-    cells = aggregate(rows, ks)
-    output = leo.plot_directory(configs[0])
+    protocols = tuple(leo.PROTOCOLS) if variant else leo.DEFAULT_PROTOCOLS
+    cells = aggregate(rows, ks, protocols)
+    output = leo.plot_directory(variant or configs[0])
     output.mkdir(parents=True, exist_ok=True)
     write_csv(output / 'runs.csv', rows)
     write_csv(output / 'heatmap_data.csv', cells)
@@ -272,8 +283,8 @@ def plot(configs):
     for k in ks:
         subset = {(r['protocol'], r['pair']): r for r in cells if r['k'] == k}
         for metric, name in [('goodput_mbps', 'goodput'), ('raw_rtt_ms', 'delay')]:
-            annotations = np.full((len(leo.PAIRS),len(leo.PROTOCOLS)),np.nan)
-            for i, protocol in enumerate(leo.PROTOCOLS):
+            annotations = np.full((len(leo.PAIRS),len(protocols)),np.nan)
+            for i, protocol in enumerate(protocols):
                 for j, pair in enumerate(leo.PAIRS):
                     cell = subset[protocol, pair['pair']]
                     annotations[j,i] = cell[metric]
@@ -282,14 +293,14 @@ def plot(configs):
                 colours[:] = np.nan
             with plot_style(aggregate=True), plt.rc_context({'text.usetex':False,'font.family':'serif',
                     'font.weight':'bold','axes.labelweight':'bold','axes.titleweight':'bold','font.size':8}):
-                fig, ax = plt.subplots(figsize=(6.6,3.1),layout='constrained')
+                fig, ax = plt.subplots(figsize=(7.3 if variant else 6.6,3.1),layout='constrained')
                 palette = ['green','yellow','red'] if name=='delay' else ['red','yellow','green']
                 cmap = LinearSegmentedColormap.from_list(name,palette).with_extremes(bad='#e6e6e6')
                 image = ax.imshow(np.ma.masked_invalid(colours), aspect='auto', cmap=cmap,
                                   interpolation='nearest',vmin=delay_min if name=='delay' else 0,
                                   vmax=delay_max if name=='delay' else 100)
                 for i,pair in enumerate(leo.PAIRS):
-                    for j,protocol in enumerate(leo.PROTOCOLS):
+                    for j,protocol in enumerate(protocols):
                         value = annotations[i,j]
                         label = f'{value:.1f}' if math.isfinite(value) else '--'
                         cell = subset[protocol,pair['pair']]
@@ -297,7 +308,8 @@ def plot(configs):
                         if math.isfinite(value) and incomplete:
                             label += '*'
                         ax.text(j,i,label,ha='center',va='center',color='black',fontsize=8.5)
-                ax.set_xticks(range(len(leo.PROTOCOLS)),HEATMAP_LABELS,fontsize=8)
+                labels = ['Omega 5%' if variant and p == 'Omega' else HEATMAP_LABELS[p] for p in protocols]
+                ax.set_xticks(range(len(protocols)), labels, fontsize=8)
                 ax.set_yticks(range(len(leo.PAIRS)),
                     [p['source_city']+' to '+p['destination_city'] for p in leo.PAIRS],fontsize=8)
                 ax.tick_params(which='both', bottom=False, top=False, left=False, right=False)

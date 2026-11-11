@@ -157,10 +157,11 @@ def main(argv=None, *, replay_start=0, default_duration=leo.DURATION):
     parser.add_argument('--cores',type=int,default=int(os.environ.get('EXPERIMENT_CORES','2')))
     parser.add_argument('--runs',type=int,choices=range(1,6),default=5,help='Use the first N start-time patterns; simulation seed stays fixed')
     parser.add_argument('--ks',nargs='+',type=int,choices=leo.KS,default=list(leo.KS))
-    parser.add_argument('--protocols',nargs='+',choices=tuple(leo.PROTOCOLS),default=list(leo.PROTOCOLS))
+    protocols = tuple(leo.PROTOCOLS) if replay_start else leo.DEFAULT_PROTOCOLS
+    parser.add_argument('--protocols',nargs='+',choices=protocols,default=leo.DEFAULT_PROTOCOLS)
     parser.add_argument('--configs',nargs='+',help='Restrict to exact configuration names')
-    parser.add_argument('--plots',nargs='+',choices=('summary','all',*leo.USER_METRICS),default=['all'],
-                        help='Default all: heatmaps and individual endpoint plots; summary: heatmaps only')
+    parser.add_argument('--plots',nargs='+',choices=('summary','individual','all',*leo.USER_METRICS),default=['all'],
+                        help='Choose all plots (default), summary heatmaps, individual plots, or individual metrics')
     parser.add_argument('--sim-time',type=float,
                         help=f'Default {default_duration:g}s, or the existing manifest duration with --skip-generate')
     parser.add_argument('--route-store',type=Path,help='Default: leosatellites/simulations/leoSaves')
@@ -179,7 +180,11 @@ def main(argv=None, *, replay_start=0, default_duration=leo.DURATION):
     if replay_start:
         parser.add_argument('--capture-only',action='store_true',
                             help='Prepare the topology checkpoint and exit before ping and traffic')
+        parser.add_argument('--include-omega10',action='store_true',
+                            help='Add Omega with 10% shuffling to the selected protocols')
     args = parser.parse_args(argv)
+    if getattr(args, 'include_omega10', False):
+        args.protocols = (*args.protocols, leo.OMEGA_10)
     if args.cores<1 or args.retries<0 or args.start_step>args.end_step or not math.isfinite(args.sim_timeout_seconds) or args.sim_timeout_seconds<=0:
         parser.error('Invalid worker count, retry count, steps or timeout')
     manifest_path = leo.experiment_directory(replay_start)/'matrix.json'
@@ -195,6 +200,8 @@ def main(argv=None, *, replay_start=0, default_duration=leo.DURATION):
     matrix = (manifest['configurations'] if args.skip_generate else
               leo.configurations(args.sim_time,replay_start) if replay_start and args.dry_run else
               leo.generate(args.sim_time,args.route_store,replay_start))
+    if leo.OMEGA_10 in args.protocols and not any(c['protocol'] == leo.OMEGA_10 for c in matrix):
+        parser.error('Omega10 is missing from the generated inputs. Run without --skip-generate first.')
     selected = [c for c in matrix if c['protocol'] in args.protocols and c['run']<=args.runs and
                 (c['protocol']=='OrbSingle' or c['k'] in args.ks)]
     if args.configs:
@@ -272,13 +279,27 @@ def main(argv=None, *, replay_start=0, default_duration=leo.DURATION):
     if args.start_step<=4<=args.end_step:
         if 'summary' in args.plots or 'all' in args.plots:
             from analyzeExperimentLeo import plot
-            print(f'{experiment}: plot one goodput and one RTT heatmap per K',flush=True)
-            plot(selected)
-        metrics = list(leo.USER_METRICS) if 'all' in args.plots else [m for m in args.plots if m!='summary']
+            variants = [c for c in selected if c['protocol'] == leo.OMEGA_10]
+            heatmap_configs = selected
+            if variants:
+                cases = {(c['k'], c['run']) for c in variants}
+                runs = {c['run'] for c in variants}
+                standard = [c for c in matrix if c['protocol'] in leo.DEFAULT_PROTOCOLS and
+                            (c['run'] in runs if c['protocol'] == 'OrbSingle' else (c['k'], c['run']) in cases)]
+                heatmap_configs = [*standard, *variants]
+            output = leo.plot_directory(variants[0] if variants else selected[0])
+            print(f'{output.name}: plot one goodput and one RTT heatmap per K',flush=True)
+            plot(heatmap_configs)
+        metrics = (list(leo.USER_METRICS) if 'all' in args.plots or 'individual' in args.plots
+                   else [m for m in args.plots if m != 'summary'])
         if metrics:
             from plotExperimentLeo import plot_metrics
-            print(f'{experiment}: plot individual user-terminal metrics from CSVs',flush=True)
-            plot_metrics(selected,metrics,cores=args.cores)
+            plot_groups = {}
+            for config in selected:
+                plot_groups.setdefault(leo.plot_directory(config), []).append(config)
+            for output, configs in plot_groups.items():
+                print(f'{output.name}: plot individual user-terminal metrics from CSVs',flush=True)
+                plot_metrics(configs,metrics,cores=args.cores)
 
 
 def run(argv=None, **settings):

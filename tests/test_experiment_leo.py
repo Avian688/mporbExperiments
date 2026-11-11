@@ -121,8 +121,9 @@ class LeoTests(unittest.TestCase):
         old_ini = leo.EXPERIMENT_DIR/'experimentLeo.ini'
         original = old_ini.read_bytes()
         matrix = leo.generate(leo.LOAD_BALANCE_DURATION, root/'routes', replay_start=leo.LOAD_BALANCE_START)
-        self.assertEqual(len(matrix), 130)
-        self.assertEqual([(c['config'], c['starts']) for c in matrix],
+        standard = [c for c in matrix if c['protocol'] != leo.OMEGA_10]
+        self.assertEqual(len(standard), 130)
+        self.assertEqual([(c['config'], c['starts']) for c in standard],
                          [(c['config'], c['starts']) for c in self.matrix])
         self.assertEqual(old_ini.read_bytes(), original)
         self.assertTrue(all((c['sim_time'],c['measurement_start'],c['measurement_end']) ==
@@ -138,6 +139,28 @@ class LeoTests(unittest.TestCase):
         self.assertIn('include ../experimentLeoLoadBalance/topology.ini', ping)
         self.assertIn('replayStart = 115s', ping)
         self.assertIn('../experimentLeoLoadBalance/results/replay/115.leoreplay', ping)
+
+    def test_omega10_is_opt_in_and_uses_the_same_start_patterns(self):
+        import runExperimentLeo as runner
+        matrix = leo.generate(70, Path(self.temp.name)/'routes', replay_start=115)
+        variants = [c for c in matrix if c['protocol'] == leo.OMEGA_10]
+        omega = [c for c in matrix if c['protocol'] == 'Omega']
+        self.assertEqual(len(variants), 25)
+        self.assertEqual([(c['k'], c['run'], c['starts']) for c in variants],
+                         [(c['k'], c['run'], c['starts']) for c in omega])
+        standard_ini = leo.ini_file(omega[0]).read_text()
+        self.assertNotIn('Omega10', standard_ini)
+        self.assertNotIn('deltaShuffleFraction = 0.1', standard_ini)
+        variant_ini = leo.ini_file(variants[0]).read_text()
+        self.assertIn(f'[Config {variants[0]["config"]}]', variant_ini)
+        self.assertIn('tcpAlgorithmClass = "MpOrbOmega"', variant_ini)
+        self.assertEqual(variant_ini.count('deltaShuffleFraction = 0.1\n'), 3 * len(variants))
+        for options, count in (([], 130), (['--protocols', 'Omega10'], 25),
+                               (['--include-omega10'], 155)):
+            with self.subTest(options=options), contextlib.redirect_stdout(io.StringIO()) as output:
+                runner.main(['--dry-run', '--skip-generate', *options], replay_start=115)
+                self.assertIn(f'Selected {count} traffic runs', output.getvalue())
+                self.assertEqual('Omega10_EdgeDisjoint_K3_Run1' in output.getvalue(), bool(options))
 
     def test_capture_reuses_checkpoint_and_failed_refresh_preserves_it(self):
         from types import SimpleNamespace
@@ -174,20 +197,37 @@ class LeoTests(unittest.TestCase):
         store = Path(self.temp.name)/'routes'
         matrix = leo.generate(15,store,replay_start=170)
         config = next(c for c in matrix if c['protocol']=='Omega' and c['k']==2 and c['run']==1)
+        variant = next(c for c in matrix if c['protocol']==leo.OMEGA_10 and c['k']==2 and c['run']==1)
+        comparison = [c for c in matrix if c['run'] == 1 and c['k'] == (1 if c['protocol'] == 'OrbSingle' else 2)]
         plots = Path(self.temp.name)/'plots'/'experimentLeo'
         with patch.object(leo,'PLOT_DIR',plots), patch.object(leo,'PAIRS',leo.PAIRS[:1]):
             ping_fixture(15,replay_start=170)
-            diagnostic_fixture(config)
-            export_fixture(config,bins=20)
-            analysis.extract(config)
+            for run in comparison:
+                diagnostic_fixture(run)
+                analysis.extract(run)
+            for run in (config, variant):
+                export_fixture(run,bins=20)
             runner.main(['--start-step','4','--skip-generate','--configs',config['config']],
                         replay_start=170,default_duration=100)
-            output = leo.plot_directory(config)
-            for name in ('goodput_K2','delay_K2'):
-                self.assertTrue((output/f'{name}.pdf').is_file())
-            run = output/'individual'/leo.run_subdir(config)
-            self.assertTrue((run/'aggregate/combined.pdf').is_file())
-            self.assertTrue(any(run.glob('userTerminal*/combined.pdf')))
+            standard_heatmap = leo.plot_directory(config)/'heatmap_data.csv'
+            standard_data = standard_heatmap.read_bytes()
+            for kind in ('individual', 'summary'):
+                runner.main(['--start-step','4','--skip-generate','--protocols','Omega10',
+                             '--configs',variant['config'],'--plots',kind],
+                            replay_start=170,default_duration=100)
+            self.assertEqual(standard_heatmap.read_bytes(), standard_data)
+            for case in (config, variant):
+                output = leo.plot_directory(case)
+                for name in ('goodput_K2','delay_K2'):
+                    self.assertTrue((output/f'{name}.pdf').is_file())
+                run = output/'individual'/leo.run_subdir(case)
+                self.assertTrue((run/'aggregate/combined.pdf').is_file())
+                self.assertTrue(any(run.glob('userTerminal*/combined.pdf')))
+            with (leo.plot_directory(variant)/'heatmap_data.csv').open() as csv_file:
+                rows = list(csv.DictReader(csv_file))
+            self.assertEqual({row['protocol'] for row in rows}, set(leo.PROTOCOLS))
+            self.assertEqual({row['n'] for row in rows}, {'1'})
+            self.assertNotEqual(leo.plot_directory(config), leo.plot_directory(variant))
             self.assertFalse(plots.exists())
 
     def test_matrix_and_endpoint_only_recording(self):

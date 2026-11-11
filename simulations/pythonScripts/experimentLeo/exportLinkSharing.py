@@ -364,7 +364,7 @@ def main(argv=None):
     parser.add_argument('--cores', type=int, default=int(os.environ.get('EXPERIMENT_CORES', '2')))
     parser.add_argument('--runs', type=int, choices=range(1, 6), default=5, help='Use the first N start patterns')
     parser.add_argument('--ks', nargs='+', type=int, choices=leo.KS, default=list(leo.KS))
-    parser.add_argument('--protocols', nargs='+', choices=tuple(leo.PROTOCOLS), default=list(leo.PROTOCOLS))
+    parser.add_argument('--protocols', nargs='+', choices=leo.DEFAULT_PROTOCOLS, default=leo.DEFAULT_PROTOCOLS)
     parser.add_argument('--configs', nargs='+', help='Restrict to exact configuration names')
     parser.add_argument('--route-store', type=Path)
     parser.add_argument('--dry-run', action='store_true', help='List reports without reading routes or writing files')
