@@ -1,0 +1,9 @@
+<scenario>
+    <!-- Keep both routes and the competitor's traffic live while SF3 loses data. -->
+    <at t="5s">
+        <set-channel-param src-module="client[0]" src-gate="pppg$o[2]" par="per" value="1"/>
+    </at>
+    <at t="5.25s">
+        <set-channel-param src-module="client[0]" src-gate="pppg$o[2]" par="per" value="0"/>
+    </at>
+</scenario>
