@@ -1,4 +1,5 @@
-"""Per-flow summaries and compact goodput/raw-RTT heatmaps."""
+"""Per-flow summaries, goodput/raw-RTT heatmaps, and LEO fairness–efficiency plots."""
+from collections import defaultdict
 import csv
 import json
 import math
@@ -248,27 +249,120 @@ def mean_base_rtt(configs):
     return mean(means) if means else math.nan
 
 
-def plot(configs):
+def fairness_efficiency(rows, ks, protocols):
+    """Average the two metrics across runs, keeping the five connections together."""
+    pairs = {p['pair'] for p in leo.PAIRS}
+    # Each connection shares its 100 Mbps access link across all of its subflows.
+    capacity_mbps = 100.0 * len(pairs)
+    by_run = defaultdict(list)
+    for row in rows:
+        by_run[row['protocol'], row['k'], row['run']].append(row)
+
+    by_case = defaultdict(list)
+    for (protocol, k, _), connections in by_run.items():
+        rates = [r['goodput_mbps'] for r in connections]
+        # An undefined pair or zero aggregate rate leaves no joint observation.
+        if (len(rates) != len(pairs) or {r['pair'] for r in connections} != pairs or
+                any(not math.isfinite(rate) or rate < 0 for rate in rates) or not any(rates)):
+            by_case[protocol, k].append(None)
+            continue
+        total = sum(rates)
+        jain = total**2 / (len(rates) * sum(rate**2 for rate in rates))
+        complete = all(r.get('goodput_complete', True) for r in connections)
+        by_case[protocol, k].append((jain, total, complete))
+
+    points = []
+    for k in ks:
+        for protocol in protocols:
+            runs = by_case[protocol, 1 if protocol == 'OrbSingle' else k]
+            if not runs:
+                continue
+            valid = [run for run in runs if run is not None]
+            goodput = mean(total for _, total, _ in valid) if valid else math.nan
+            points.append(dict(k=k, protocol=protocol, runs_selected=len(runs), runs_plotted=len(valid),
+                runs_with_partial_goodput=sum(not complete for _, _, complete in valid),
+                jain_fairness=mean(jain for jain, _, _ in valid) if valid else math.nan,
+                aggregate_goodput_mbps=goodput, access_ceiling_mbps=capacity_mbps,
+                normalized_goodput=goodput / capacity_mbps))
+    return points
+
+
+def plot_fairness_efficiency(rows, ks, protocols, output):
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    from matplotlib.ticker import MaxNLocator
+    from experiments import PROTOCOLS as terrestrial_protocols
+    from plotStyle import plot_style, save_figure
+
+    points = fairness_efficiency(rows, ks, protocols)
+    for point in points:
+        omitted = point['runs_selected'] - point['runs_plotted']
+        if omitted:
+            print(f'{point["protocol"]} K={point["k"]}: omitted {omitted} runs with missing or undefined fairness',
+                  flush=True)
+    visible = [point for point in points if point['runs_plotted']]
+    write_csv(output / 'fairness_efficiency_data.csv', points)
+    # Keep the same scales across K. Include the observed range and the ideal corner.
+    xmin = min(.95, min((point['jain_fairness'] for point in visible), default=1.) - .01)
+    ymin = min(.85, min((point['normalized_goodput'] for point in visible), default=1.) - .03)
+    ymax = max(1., max((point['normalized_goodput'] for point in visible), default=1.)) + .025
+    colours = {protocol: values[3] for protocol, values in terrestrial_protocols.items()}
+    colours.update({leo.OMEGA_10: '#7851A9', 'OrbSingle': '#333333'})
+    for k in ks:
+        with plot_style(aggregate=True), plt.rc_context({'text.usetex': False}):
+            fig, ax = plt.subplots(figsize=(5, 3), layout='constrained')
+            for point in visible:
+                if point['k'] != k:
+                    continue
+                protocol = point['protocol']
+                label = HEATMAP_LABELS[protocol].replace('\n', ' ')
+                if protocol == 'Omega' and leo.OMEGA_10 in protocols:
+                    label = 'Omega 5%'
+                ax.scatter(point['jain_fairness'], point['normalized_goodput'], s=48,
+                           marker='o', facecolors='none', edgecolors=colours[protocol],
+                           linewidths=1.4, label=label)
+            if ax.collections:
+                ax.legend(loc='lower center', bbox_to_anchor=(.5, 1.02), ncol=3, fontsize=8)
+            else:
+                ax.text(.5, .5, 'No usable runs', transform=ax.transAxes, ha='center', va='center')
+            ax.set(xlabel="Jain's Fairness Index", ylabel='Normalized Aggregate Goodput',
+                   xlim=(max(0., xmin), 1.01), ylim=(max(0., ymin), ymax))
+            ax.xaxis.set_major_locator(MaxNLocator(nbins=6))
+            ax.yaxis.set_major_locator(MaxNLocator(nbins=6))
+            ax.grid(alpha=.35)
+            fig.suptitle(f'LEO load balance, K={k}', fontsize=10)
+            save_figure(fig, output / f'fairness_efficiency_K{k}', aggregate=True)
+            plt.close(fig)
+
+
+def plot(configs, *, fairness_efficiency_only=False):
+    sys.path.insert(0, str(leo.SCRIPT_DIR.parent))
+    variant = next((config for config in configs if config['protocol'] == leo.OMEGA_10), None)
+    try:
+        rows = load_rows(configs)
+    except (FileNotFoundError, ValueError) as error:
+        if variant:
+            raise ValueError(f'Omega10 summary plots require matching extracted results for all controllers. {error}') from error
+        raise
+    ks = sorted({c['k'] for c in configs if c['protocol'] != 'OrbSingle'}) or [1]
+    protocols = tuple(leo.PROTOCOLS) if variant else leo.DEFAULT_PROTOCOLS
+    output = leo.plot_directory(variant or configs[0])
+    output.mkdir(parents=True, exist_ok=True)
+    if configs[0].get('replay_start'):
+        plot_fairness_efficiency(rows, ks, protocols, output)
+    if fairness_efficiency_only:
+        return
+
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
     from matplotlib.colors import LinearSegmentedColormap
     from matplotlib.ticker import FormatStrFormatter
     import numpy as np
-    sys.path.insert(0, str(leo.SCRIPT_DIR.parent))
     from plotStyle import plot_style, save_figure
-    variant = next((config for config in configs if config['protocol'] == leo.OMEGA_10), None)
-    try:
-        rows = load_rows(configs)
-    except (FileNotFoundError, ValueError) as error:
-        if variant:
-            raise ValueError(f'Omega10 heatmaps require matching extracted results for all controllers. {error}') from error
-        raise
-    ks = sorted({c['k'] for c in configs if c['protocol'] != 'OrbSingle'}) or [1]
-    protocols = tuple(leo.PROTOCOLS) if variant else leo.DEFAULT_PROTOCOLS
+
     cells = aggregate(rows, ks, protocols)
-    output = leo.plot_directory(variant or configs[0])
-    output.mkdir(parents=True, exist_ok=True)
     write_csv(output / 'runs.csv', rows)
     write_csv(output / 'heatmap_data.csv', cells)
     baseline = mean_base_rtt(configs)

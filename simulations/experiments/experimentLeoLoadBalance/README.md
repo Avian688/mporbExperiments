@@ -37,6 +37,29 @@ heatmaps, per-terminal plots, all-terminal comparisons and combined PDFs go
 under `simulations/plots/experimentLeoLoadBalance`. Simulation vectors and plots
 use local time. Link-sharing CSVs use the original route timeline.
 
+## Fairness and efficiency
+
+The summary includes a fairness–efficiency scatter for each K. Each controller
+has one circle. For each run, compute Jain's index across the five connection
+goodputs and divide their sum by the 500 Mbps combined terminal access ceiling.
+Average both metrics across runs over the existing measurement window. The
+access ceiling is a fixed reference across K. Shared core links and handovers
+can reduce the attainable goodput. OrbCC single path supplies the same
+reference point in each K plot.
+
+To generate just these figures from existing extracted summaries, run from
+the folder containing `runExperimentLeoLoadBalance.py`:
+
+```sh
+python3 runExperimentLeoLoadBalance.py --start-step 4 --skip-generate --plots fairness-efficiency
+```
+
+The output includes `fairness_efficiency_K*.pdf`, matching PNGs, and
+`fairness_efficiency_data.csv` with run counts and partial-goodput coverage.
+Runs without a usable rate for every connection or with zero total goodput
+are omitted from the plotted averages. Add `--include-omega10` to plot the
+separate Omega10 comparison when all matching summaries are available.
+
 ## Omega with 10% shuffling
 
 Select `Omega10` to run the existing Omega controller with a 10% shuffle

@@ -160,8 +160,9 @@ def main(argv=None, *, replay_start=0, default_duration=leo.DURATION):
     protocols = tuple(leo.PROTOCOLS) if replay_start else leo.DEFAULT_PROTOCOLS
     parser.add_argument('--protocols',nargs='+',choices=protocols,default=leo.DEFAULT_PROTOCOLS)
     parser.add_argument('--configs',nargs='+',help='Restrict to exact configuration names')
-    parser.add_argument('--plots',nargs='+',choices=('summary','individual','all',*leo.USER_METRICS),default=['all'],
-                        help='Choose all plots (default), summary heatmaps, individual plots, or individual metrics')
+    summary_plots = ('summary', 'fairness-efficiency') if replay_start else ('summary',)
+    parser.add_argument('--plots',nargs='+',choices=(*summary_plots,'individual','all',*leo.USER_METRICS),default=['all'],
+                        help='Choose all plots (default), summary plots, individual plots, or individual metrics')
     parser.add_argument('--sim-time',type=float,
                         help=f'Default {default_duration:g}s, or the existing manifest duration with --skip-generate')
     parser.add_argument('--route-store',type=Path,help='Default: leosatellites/simulations/leoSaves')
@@ -277,7 +278,7 @@ def main(argv=None, *, replay_start=0, default_duration=leo.DURATION):
             from exportLinkSharing import export_reports
             export_reports(selected,args.route_store,args.cores)
     if args.start_step<=4<=args.end_step:
-        if 'summary' in args.plots or 'all' in args.plots:
+        if any(name in args.plots for name in (*summary_plots, 'all')):
             from analyzeExperimentLeo import plot
             variants = [c for c in selected if c['protocol'] == leo.OMEGA_10]
             heatmap_configs = selected
@@ -288,10 +289,12 @@ def main(argv=None, *, replay_start=0, default_duration=leo.DURATION):
                             (c['run'] in runs if c['protocol'] == 'OrbSingle' else (c['k'], c['run']) in cases)]
                 heatmap_configs = [*standard, *variants]
             output = leo.plot_directory(variants[0] if variants else selected[0])
-            print(f'{output.name}: plot one goodput and one RTT heatmap per K',flush=True)
-            plot(heatmap_configs)
+            fairness_only = 'summary' not in args.plots and 'all' not in args.plots
+            description = 'fairness–efficiency' if fairness_only else 'summary'
+            print(f'{output.name}: plot {description} figures per K',flush=True)
+            plot(heatmap_configs, fairness_efficiency_only=fairness_only)
         metrics = (list(leo.USER_METRICS) if 'all' in args.plots or 'individual' in args.plots
-                   else [m for m in args.plots if m != 'summary'])
+                   else [m for m in args.plots if m in leo.USER_METRICS])
         if metrics:
             from plotExperimentLeo import plot_metrics
             plot_groups = {}
