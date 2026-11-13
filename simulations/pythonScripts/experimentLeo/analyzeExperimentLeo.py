@@ -309,7 +309,7 @@ def fairness_efficiency(configs, ks, protocols):
     for config in configs:
         by_case[config['protocol'], config['k']].append(run_fairness_efficiency(config))
 
-    points = []
+    points, paired_runs = [], {}
     for k in ks:
         for protocol in protocols:
             runs = by_case[protocol, 1 if protocol == 'OrbSingle' else k]
@@ -319,6 +319,10 @@ def fairness_efficiency(configs, ks, protocols):
             whole_run = [run['jain_fairness'] for run in runs if math.isfinite(run['jain_fairness'])]
             totals = [run['aggregate_goodput_mbps'] for run in runs if math.isfinite(run['aggregate_goodput_mbps'])]
             goodput = mean(totals) if totals else math.nan
+            paired_runs[k, protocol] = [
+                (run['mean_per_second_jain'], run['aggregate_goodput_mbps'] / capacity_mbps)
+                for run in runs if run['seconds_with_jain'] and math.isfinite(run['aggregate_goodput_mbps'])
+            ]
             points.append(dict(k=k, protocol=protocol, runs_selected=len(runs), runs_plotted=len(per_second),
                 runs_with_goodput=len(totals),
                 runs_with_partial_goodput=sum(not run['goodput_complete'] for run in runs),
@@ -329,29 +333,41 @@ def fairness_efficiency(configs, ks, protocols):
                 seconds_missing_goodput=sum(run['seconds_missing_goodput'] for run in runs),
                 aggregate_goodput_mbps=goodput, access_ceiling_mbps=capacity_mbps,
                 normalized_goodput=goodput / capacity_mbps))
-    return points
+    return points, paired_runs
 
 
 def plot_fairness_efficiency(configs, ks, protocols, output):
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
+    from matplotlib.patches import Ellipse
     from matplotlib.ticker import MaxNLocator
+    import numpy as np
     from experiments import PROTOCOLS as terrestrial_protocols
     from plotStyle import plot_style, save_figure
 
-    points = fairness_efficiency(configs, ks, protocols)
+    points, paired_runs = fairness_efficiency(configs, ks, protocols)
     for point in points:
         omitted = point['runs_selected'] - point['runs_plotted']
         if omitted:
             print(f'{point["protocol"]} K={point["k"]}: {omitted} runs lack a usable per-second Jain score',
                   flush=True)
-    visible = [point for point in points if point['runs_plotted']]
+    visible = [point for point in points if point['runs_plotted'] and math.isfinite(point['normalized_goodput'])]
     write_csv(output / 'fairness_efficiency_data.csv', points)
-    # Keep the same scales across K. Include the observed range and the ideal corner.
-    xmin = min(.95, min((point['mean_per_second_jain'] for point in visible), default=1.) - .01)
-    ymin = min(.85, min((point['normalized_goodput'] for point in visible), default=1.) - .03)
-    ymax = max(1., max((point['normalized_goodput'] for point in visible), default=1.)) + .025
+    # Keep the same scales across K, including the spread around each mean.
+    xmin, xmax, ymin, ymax = .95, 1.01, .85, 1.025
+    covariance_by_case = {}
+    for point in visible:
+        case = point['k'], point['protocol']
+        samples = paired_runs[case]
+        x, y = point['mean_per_second_jain'], point['normalized_goodput']
+        sx = sy = 0.
+        if len(samples) > 1 and np.any(np.ptp(samples, axis=0) > 0):
+            covariance = np.cov(samples, rowvar=False)
+            covariance_by_case[case] = covariance
+            sx, sy = np.sqrt(np.diag(covariance))
+        xmin, xmax = min(xmin, x - sx - .01), max(xmax, x + sx + .01)
+        ymin, ymax = min(ymin, y - sy - .03), max(ymax, y + sy + .025)
     colours = {protocol: values[3] for protocol, values in terrestrial_protocols.items()}
     colours.update({leo.OMEGA_10: '#7851A9', 'OrbSingle': '#333333'})
     for k in ks:
@@ -364,15 +380,23 @@ def plot_fairness_efficiency(configs, ks, protocols, output):
                 label = HEATMAP_LABELS[protocol].replace('\n', ' ')
                 if protocol == 'Omega' and leo.OMEGA_10 in protocols:
                     label = 'Omega 5%'
-                ax.scatter(point['mean_per_second_jain'], point['normalized_goodput'], s=48,
-                           marker='o', facecolors='none', edgecolors=colours[protocol],
-                           linewidths=1.4, label=label)
+                x, y = point['mean_per_second_jain'], point['normalized_goodput']
+                colour = colours[protocol]
+                covariance = covariance_by_case.get((k, protocol))
+                if covariance is not None:
+                    variances, axes = np.linalg.eigh(covariance)
+                    height, width = 2 * np.sqrt(np.maximum(variances, 0))
+                    angle = math.degrees(math.atan2(axes[1, 1], axes[0, 1]))
+                    ax.add_patch(Ellipse((x, y), width, height, angle=angle,
+                                         facecolor=colour, edgecolor=colour, alpha=.22, linewidth=.8))
+                ax.scatter(x, y, s=48, marker='o', facecolors='none', edgecolors=colour,
+                           linewidths=1.4, label=label, zorder=3)
             if ax.collections:
                 ax.legend(loc='lower center', bbox_to_anchor=(.5, 1.02), ncol=3, fontsize=8)
             else:
                 ax.text(.5, .5, 'No usable runs', transform=ax.transAxes, ha='center', va='center')
             ax.set(xlabel='Mean 1 s Jain Fairness', ylabel='Normalized Aggregate Goodput',
-                   xlim=(max(0., xmin), 1.01), ylim=(max(0., ymin), ymax))
+                   xlim=(max(0., xmin), xmax), ylim=(max(0., ymin), ymax))
             ax.xaxis.set_major_locator(MaxNLocator(nbins=6))
             ax.yaxis.set_major_locator(MaxNLocator(nbins=6))
             ax.grid(alpha=.35)

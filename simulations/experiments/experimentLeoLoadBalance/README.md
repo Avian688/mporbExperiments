@@ -40,12 +40,14 @@ use local time. Link-sharing CSVs use the original route timeline.
 ## Fairness and efficiency
 
 The summary includes a fairness–efficiency scatter for each K. Each controller
-has one circle. The x-axis averages Jain's index across one-second bins of the
-five receivers' application goodput, then averages the resulting scores across
-runs. The y-axis divides the whole-window aggregate goodput by the 500 Mbps
-combined terminal access ceiling. Shared core links and handovers can reduce
-the attainable goodput. OrbCC single path supplies the same reference point
-in each K plot.
+has one mean circle and a shaded one-standard-deviation ellipse showing the
+spread of paired fairness and goodput across runs. With a single usable pair
+or identical pairs, only the mean circle appears. The x-axis averages Jain's
+index across one-second bins of the five receivers' application goodput, then
+averages the resulting scores across runs. The y-axis divides the whole-window
+aggregate goodput by the 500 Mbps combined terminal access ceiling. Shared
+core links and handovers can reduce the attainable goodput. OrbCC single path
+supplies the same reference point in each K plot.
 
 To generate just these figures from existing receiver goodput CSVs, run from
 the folder containing `runExperimentLeoLoadBalance.py`:
