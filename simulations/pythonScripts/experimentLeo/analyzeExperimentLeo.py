@@ -249,27 +249,65 @@ def mean_base_rtt(configs):
     return mean(means) if means else math.nan
 
 
-def fairness_efficiency(rows, ks, protocols):
-    """Average the two metrics across runs, keeping the five connections together."""
-    pairs = {p['pair'] for p in leo.PAIRS}
-    # Each connection shares its 100 Mbps access link across all of its subflows.
-    capacity_mbps = 100.0 * len(pairs)
-    by_run = defaultdict(list)
-    for row in rows:
-        by_run[row['protocol'], row['k'], row['run']].append(row)
+def jain_fairness(rates):
+    if not rates or any(not math.isfinite(rate) or rate < 0 for rate in rates) or not any(rates):
+        return math.nan
+    return sum(rates)**2 / (len(rates) * sum(rate**2 for rate in rates))
 
+
+def connection_goodput(series, start, end):
+    if not series:
+        return math.nan, False
+    bits, intervals = 0., []
+    for samples in series:
+        area, _, bounds = interval_integral(samples, start, end, rate=True)
+        bits += area
+        if bounds:
+            intervals.append(bounds)
+    complete = coverage_seconds(intervals) >= end - start - 1e-6
+    return bits / (end - start) / 1e6, complete
+
+
+def run_fairness_efficiency(config):
+    from terminalVectors import CsvVectors, pair_vectors
+
+    vectors = CsvVectors(leo.vector_dir(config), config)
+    native = leo.result(config, '.vec')
+    if ((native.is_file() and leo.stat(native) != vectors.manifest['source_stat']) or
+            leo.input_hash(config) != vectors.manifest['input_hash']):
+        raise ValueError(f'{config["config"]}: stale terminal CSVs; re-extract step 3')
+    series = [[list(vectors.samples(vector)) for vector, _, _ in pair_vectors(vectors, config, pair, 'goodput')]
+              for pair in leo.PAIRS]
+    start, end = config['measurement_start'], config['measurement_end']
+    rates, coverage = zip(*(connection_goodput(samples, start, end) for samples in series))
+    scores = []
+    missing = all_zero = 0
+    # Integrate each receiver over the same complete seconds. A rate sample
+    # describes the interval ending at its timestamp.
+    for second in range(math.ceil(start), math.floor(end)):
+        rates_in_bin, covered = zip(*(connection_goodput(samples, second, second + 1) for samples in series))
+        if not all(covered):
+            missing += 1
+        elif not any(rates_in_bin):
+            all_zero += 1
+        else:
+            score = jain_fairness(rates_in_bin)
+            if math.isfinite(score):
+                scores.append(score)
+            else:
+                missing += 1
+    return dict(jain_fairness=jain_fairness(rates), aggregate_goodput_mbps=sum(rates),
+                goodput_complete=all(coverage), mean_per_second_jain=mean(scores) if scores else math.nan,
+                seconds_with_jain=len(scores), seconds_all_zero=all_zero, seconds_missing_goodput=missing)
+
+
+def fairness_efficiency(configs, ks, protocols):
+    """Average per-run metrics over the requested start-time patterns."""
+    # Each connection shares its 100 Mbps access link across all of its subflows.
+    capacity_mbps = 100.0 * len(leo.PAIRS)
     by_case = defaultdict(list)
-    for (protocol, k, _), connections in by_run.items():
-        rates = [r['goodput_mbps'] for r in connections]
-        # An undefined pair or zero aggregate rate leaves no joint observation.
-        if (len(rates) != len(pairs) or {r['pair'] for r in connections} != pairs or
-                any(not math.isfinite(rate) or rate < 0 for rate in rates) or not any(rates)):
-            by_case[protocol, k].append(None)
-            continue
-        total = sum(rates)
-        jain = total**2 / (len(rates) * sum(rate**2 for rate in rates))
-        complete = all(r.get('goodput_complete', True) for r in connections)
-        by_case[protocol, k].append((jain, total, complete))
+    for config in configs:
+        by_case[config['protocol'], config['k']].append(run_fairness_efficiency(config))
 
     points = []
     for k in ks:
@@ -277,17 +315,24 @@ def fairness_efficiency(rows, ks, protocols):
             runs = by_case[protocol, 1 if protocol == 'OrbSingle' else k]
             if not runs:
                 continue
-            valid = [run for run in runs if run is not None]
-            goodput = mean(total for _, total, _ in valid) if valid else math.nan
-            points.append(dict(k=k, protocol=protocol, runs_selected=len(runs), runs_plotted=len(valid),
-                runs_with_partial_goodput=sum(not complete for _, _, complete in valid),
-                jain_fairness=mean(jain for jain, _, _ in valid) if valid else math.nan,
+            per_second = [run['mean_per_second_jain'] for run in runs if run['seconds_with_jain']]
+            whole_run = [run['jain_fairness'] for run in runs if math.isfinite(run['jain_fairness'])]
+            totals = [run['aggregate_goodput_mbps'] for run in runs if math.isfinite(run['aggregate_goodput_mbps'])]
+            goodput = mean(totals) if totals else math.nan
+            points.append(dict(k=k, protocol=protocol, runs_selected=len(runs), runs_plotted=len(per_second),
+                runs_with_goodput=len(totals),
+                runs_with_partial_goodput=sum(not run['goodput_complete'] for run in runs),
+                mean_per_second_jain=mean(per_second) if per_second else math.nan,
+                jain_fairness=mean(whole_run) if whole_run else math.nan,
+                seconds_with_jain=sum(run['seconds_with_jain'] for run in runs),
+                seconds_all_zero=sum(run['seconds_all_zero'] for run in runs),
+                seconds_missing_goodput=sum(run['seconds_missing_goodput'] for run in runs),
                 aggregate_goodput_mbps=goodput, access_ceiling_mbps=capacity_mbps,
                 normalized_goodput=goodput / capacity_mbps))
     return points
 
 
-def plot_fairness_efficiency(rows, ks, protocols, output):
+def plot_fairness_efficiency(configs, ks, protocols, output):
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
@@ -295,16 +340,16 @@ def plot_fairness_efficiency(rows, ks, protocols, output):
     from experiments import PROTOCOLS as terrestrial_protocols
     from plotStyle import plot_style, save_figure
 
-    points = fairness_efficiency(rows, ks, protocols)
+    points = fairness_efficiency(configs, ks, protocols)
     for point in points:
         omitted = point['runs_selected'] - point['runs_plotted']
         if omitted:
-            print(f'{point["protocol"]} K={point["k"]}: omitted {omitted} runs with missing or undefined fairness',
+            print(f'{point["protocol"]} K={point["k"]}: {omitted} runs lack a usable per-second Jain score',
                   flush=True)
     visible = [point for point in points if point['runs_plotted']]
     write_csv(output / 'fairness_efficiency_data.csv', points)
     # Keep the same scales across K. Include the observed range and the ideal corner.
-    xmin = min(.95, min((point['jain_fairness'] for point in visible), default=1.) - .01)
+    xmin = min(.95, min((point['mean_per_second_jain'] for point in visible), default=1.) - .01)
     ymin = min(.85, min((point['normalized_goodput'] for point in visible), default=1.) - .03)
     ymax = max(1., max((point['normalized_goodput'] for point in visible), default=1.)) + .025
     colours = {protocol: values[3] for protocol, values in terrestrial_protocols.items()}
@@ -319,14 +364,14 @@ def plot_fairness_efficiency(rows, ks, protocols, output):
                 label = HEATMAP_LABELS[protocol].replace('\n', ' ')
                 if protocol == 'Omega' and leo.OMEGA_10 in protocols:
                     label = 'Omega 5%'
-                ax.scatter(point['jain_fairness'], point['normalized_goodput'], s=48,
+                ax.scatter(point['mean_per_second_jain'], point['normalized_goodput'], s=48,
                            marker='o', facecolors='none', edgecolors=colours[protocol],
                            linewidths=1.4, label=label)
             if ax.collections:
                 ax.legend(loc='lower center', bbox_to_anchor=(.5, 1.02), ncol=3, fontsize=8)
             else:
                 ax.text(.5, .5, 'No usable runs', transform=ax.transAxes, ha='center', va='center')
-            ax.set(xlabel="Jain's Fairness Index", ylabel='Normalized Aggregate Goodput',
+            ax.set(xlabel='Mean 1 s Jain Fairness', ylabel='Normalized Aggregate Goodput',
                    xlim=(max(0., xmin), 1.01), ylim=(max(0., ymin), ymax))
             ax.xaxis.set_major_locator(MaxNLocator(nbins=6))
             ax.yaxis.set_major_locator(MaxNLocator(nbins=6))
@@ -339,20 +384,21 @@ def plot_fairness_efficiency(rows, ks, protocols, output):
 def plot(configs, *, fairness_efficiency_only=False):
     sys.path.insert(0, str(leo.SCRIPT_DIR.parent))
     variant = next((config for config in configs if config['protocol'] == leo.OMEGA_10), None)
+    ks = sorted({c['k'] for c in configs if c['protocol'] != 'OrbSingle'}) or [1]
+    protocols = tuple(leo.PROTOCOLS) if variant else leo.DEFAULT_PROTOCOLS
+    output = leo.plot_directory(variant or configs[0])
+    output.mkdir(parents=True, exist_ok=True)
+    if configs[0].get('replay_start'):
+        plot_fairness_efficiency(configs, ks, protocols, output)
+    if fairness_efficiency_only:
+        return
+
     try:
         rows = load_rows(configs)
     except (FileNotFoundError, ValueError) as error:
         if variant:
             raise ValueError(f'Omega10 summary plots require matching extracted results for all controllers. {error}') from error
         raise
-    ks = sorted({c['k'] for c in configs if c['protocol'] != 'OrbSingle'}) or [1]
-    protocols = tuple(leo.PROTOCOLS) if variant else leo.DEFAULT_PROTOCOLS
-    output = leo.plot_directory(variant or configs[0])
-    output.mkdir(parents=True, exist_ok=True)
-    if configs[0].get('replay_start'):
-        plot_fairness_efficiency(rows, ks, protocols, output)
-    if fairness_efficiency_only:
-        return
 
     import matplotlib
     matplotlib.use('Agg')

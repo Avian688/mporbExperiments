@@ -205,7 +205,6 @@ class LeoTests(unittest.TestCase):
             for run in comparison:
                 diagnostic_fixture(run)
                 analysis.extract(run)
-            for run in (config, variant):
                 export_fixture(run,bins=20)
             runner.main(['--start-step','4','--skip-generate','--configs',config['config']],
                         replay_start=170,default_duration=100)
@@ -229,6 +228,39 @@ class LeoTests(unittest.TestCase):
             self.assertEqual({row['n'] for row in rows}, {'1'})
             self.assertNotEqual(leo.plot_directory(config), leo.plot_directory(variant))
             self.assertFalse(plots.exists())
+
+    def test_load_balance_fairness_only_uses_aligned_goodput_csvs(self):
+        import runExperimentLeo as runner
+
+        matrix = leo.generate(18, Path(self.temp.name)/'routes', replay_start=115)
+        config = next(c for c in matrix if c['protocol'] == 'Omega' and c['k'] == 2 and c['run'] == 1)
+        # Each connection gets zero for a different second. The last complete
+        # second is an outage, and the final second has one missing receiver.
+        specs = []
+        for index, pair in enumerate(leo.PAIRS):
+            samples = [(10, 0.)] + [(11 + second, 0. if index == second else 100e6)
+                                    for second in range(5)] + [(16, 0.)]
+            if index:
+                samples.append((17, 0.))
+            specs.append((f'leo.userTerminal[{pair["destination"]}].app[0].thread_99', 'goodput', samples))
+        fixture(config, specs)
+        export_fixture(config, bins=2)
+        leo.result(config, '.vec').unlink()
+        with patch.object(Vectors, '__init__', side_effect=AssertionError('must not open native vectors')), \
+             patch.object(runner, 'simulate', side_effect=AssertionError('must not simulate')):
+            runner.main(['--start-step','4','--skip-generate','--plots','fairness-efficiency',
+                         '--protocols','Omega','--ks','2','--runs','1'], replay_start=115)
+        output = leo.plot_directory(config)
+        with (output/'fairness_efficiency_data.csv').open() as f:
+            point, = csv.DictReader(f)
+        self.assertAlmostEqual(float(point['mean_per_second_jain']), .8)
+        self.assertAlmostEqual(float(point['jain_fairness']), 1.)
+        self.assertAlmostEqual(float(point['normalized_goodput']), 4/7)
+        self.assertEqual(point['seconds_with_jain'], '5')
+        self.assertEqual(point['seconds_all_zero'], '1')
+        self.assertEqual(point['seconds_missing_goodput'], '1')
+        self.assertTrue((output/'fairness_efficiency_K2.pdf').is_file())
+        self.assertFalse((output/'goodput_K2.pdf').exists())
 
     def test_matrix_and_endpoint_only_recording(self):
         self.assertEqual(len(self.matrix),130)
