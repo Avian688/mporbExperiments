@@ -25,6 +25,7 @@ ROOT = leo.SIM_DIR / 'experiments' / EXPERIMENT
 PLOT_ROOT = leo.SIM_DIR / 'plots' / EXPERIMENT
 DURATION = 100
 BURST_WINDOWS = backgroundRoutes.BURSTS
+BACKGROUND_FLOWS = 5
 BACKGROUND_MBPS = 60
 RANKS = {
     1: ((1,), (1,)),
@@ -72,24 +73,27 @@ def background_lines():
     pair = backgroundRoutes.PAIRS[2]
     source, destination = pair
     senders, receivers = f'*.userTerminal[{source}]', f'*.userTerminal[{destination}]'
-    lines = [*path_lines(pair, 2, (1,))]
+    sessions = len(BURST_WINDOWS) * BACKGROUND_FLOWS
+    lines = path_lines(pair, 2, (1,) * sessions)
     for terminal in (senders, receivers):
         lines += [f'{terminal}.tcp.typename = "Orbtcp"',
                   f'{terminal}.tcp.tcpAlgorithmClass = "OrbtcpPintFlavour"',
-                  f'{terminal}.numApps = {len(BURST_WINDOWS)}']
-    # Two distinct port tuples; plain TCP offsets 0 and 1 both select rank 1.
+                  f'{terminal}.numApps = {sessions}']
+    # Each session has its own port tuple and uses the same saved route.
     period_ms = 20
     bytes_per_write = BACKGROUND_MBPS * 1000 * period_ms // 8
-    for index, (start, end) in enumerate(BURST_WINDOWS):
-        script = ';'.join(f'{tick / 1000:.3f} {bytes_per_write}'
-                          for tick in range(start * 1000, end * 1000, period_ms))
-        lines += leo.app_lines(f'{senders}.app[{index}]', dict(
-            typename='"TcpGoodputSessionApp"', localPort=4000 + index,
-            connectAddress=f'"userTerminal[{destination}]"', connectPort=1000 + index,
-            tOpen=f'{start - .5:g}s', tClose=f'{end}s', sendBytes='0B',
-            sendScript=json.dumps(script), abortAtClose='true'))
-        lines += leo.app_lines(f'{receivers}.app[{index}]', dict(
-            typename='"TcpSinkApp"', localPort=1000 + index, serverThreadModuleType=SINK_THREAD))
+    for burst, (start, end) in enumerate(BURST_WINDOWS):
+        script = json.dumps(';'.join(f'{tick / 1000:.3f} {bytes_per_write}'
+                                    for tick in range(start * 1000, end * 1000, period_ms)))
+        for flow in range(BACKGROUND_FLOWS):
+            index = burst * BACKGROUND_FLOWS + flow
+            lines += leo.app_lines(f'{senders}.app[{index}]', dict(
+                typename='"TcpGoodputSessionApp"', localPort=4000 + index,
+                connectAddress=f'"userTerminal[{destination}]"', connectPort=1000 + index,
+                tOpen=f'{start - .5:g}s', tClose=f'{end}s', sendBytes='0B',
+                sendScript=script, abortAtClose='true'))
+            lines += leo.app_lines(f'{receivers}.app[{index}]', dict(
+                typename='"TcpSinkApp"', localPort=1000 + index, serverThreadModuleType=SINK_THREAD))
     return lines
 
 
@@ -143,7 +147,8 @@ def generate(matrix, store, replay_start):
     leo.ini_file(matrix[0]).write_text('\n'.join(lines) + '\n')
     (ROOT / 'matrix.json').write_text(json.dumps(dict(configurations=matrix,
         replay_start=replay_start, duration=DURATION, burst_windows=BURST_WINDOWS,
-        background_mbps=BACKGROUND_MBPS, route_store=str(store)), indent=2) + '\n')
+        background_flows_per_burst=BACKGROUND_FLOWS, background_mbps=BACKGROUND_MBPS,
+        route_store=str(store)), indent=2) + '\n')
 
 
 def csv_path(config):
@@ -223,9 +228,10 @@ def main(argv=None):
     if not selected:
         parser.error('No traffic configurations selected')
     if args.dry_run:
+        flows = manifest.get('background_flows_per_burst', 1) if args.skip_generate else BACKGROUND_FLOWS
         print(f'Original timeline {replay_start:g}–{replay_start + DURATION:g}s '
               f'({"with replay checkpoint" if replay_start else "no checkpoint"}), '
-              f'background bursts at local {BURST_WINDOWS}')
+              f'{flows} background flows per burst at local {BURST_WINDOWS}')
         print(f'{len(selected)} traffic runs, two measured connections per run')
         for config in selected:
             print(f'{config["config"]}: A {config["ranks"][0]}, B {config["ranks"][1]}')

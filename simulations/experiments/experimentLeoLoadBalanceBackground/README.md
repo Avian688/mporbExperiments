@@ -2,10 +2,12 @@
 
 Two backlogged foreground connections run between co-located New York and
 London user terminals, with an independent access link for each terminal. Both
-foreground connections run the controller under test. The third pair offers
-60 Mbps of single-path OrbCC background traffic on saved rank 1 during local
-20–40 s and 60–80 s. The sender opens each session 0.5 s early and stops it
-at the burst end. The receiver's recorded goodput shows the delivered burst rate.
+foreground connections run the controller under test. The third pair runs five
+concurrent single-path OrbCC background flows on saved rank 1 during local
+20–40 s and 60–80 s. Each flow offers 60 Mbps and has its own TCP port pair.
+The five flows share the background pair's access links. The sender opens
+each session 0.5 s early and stops it at the burst end. The receiver's
+recorded goodput shows the delivered burst rate.
 The default run starts at original time zero and lasts 100 s, with the usual
 scheduled hard handovers every 15 s. The co-located pairs share the same
 ranked core routes as their satellite attachments change.
@@ -63,7 +65,7 @@ and needs no ping prepass.
 
 ## Results
 
-Receiver goodput CSVs include A, B and the background flow. Figures are stored
+Receiver goodput CSVs include A, B and the background flows. Figures are stored
 under `simulations/plots/experimentLeoLoadBalanceBackground`. The K-specific
 fairness–efficiency plot averages per-second Jain fairness across the two
 foreground receivers during the two burst intervals. Efficiency is their
