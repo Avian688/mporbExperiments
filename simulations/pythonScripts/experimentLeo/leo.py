@@ -65,11 +65,11 @@ if len(PAIRS) != 5:
     raise ValueError('The shared route definitions must contain all five NY/UK pairs')
 
 
-def configurations(duration=DURATION, replay_start=0):
+def configurations(duration=DURATION, replay_start=0, *, include_omega10=False):
     if not math.isfinite(duration) or duration <= WARMUP + 2:
         raise ValueError('Duration must leave a measurement interval after the 10s warmup')
     matrix = []
-    for protocol in (PROTOCOLS if replay_start else DEFAULT_PROTOCOLS):
+    for protocol in (PROTOCOLS if replay_start or include_omega10 else DEFAULT_PROTOCOLS):
         for k in ((1,) if protocol == 'OrbSingle' else KS):
             for run in RUNS:
                 rng = random.Random(7999 + run)
@@ -105,6 +105,8 @@ def plot_directory(config):
 
 
 def directory(config):
+    if 'experiment' in config:
+        return SIM_DIR / 'experiments' / config['experiment']
     start = config.get('replay_start', 0)
     if config['protocol'] == 'Ping':
         return PING_DIR.with_name('experimentLeoLoadBalancePing') if start else PING_DIR
@@ -112,14 +114,18 @@ def directory(config):
 
 
 def topology_file(config):
-    return experiment_directory(config.get('replay_start', 0)) / 'topology.ini'
+    root = directory(config) if 'experiment' in config else experiment_directory(config.get('replay_start', 0))
+    return root / 'topology.ini'
 
 
 def checkpoint_file(config):
-    return experiment_directory(config['replay_start']) / 'results/replay' / f'{config["replay_start"]:g}.leoreplay'
+    root = directory(config) if 'experiment' in config else experiment_directory(config['replay_start'])
+    return root / 'results/replay' / f'{config["replay_start"]:g}.leoreplay'
 
 
 def ini_file(config):
+    if 'experiment' in config:
+        return directory(config) / f'{config["experiment"]}.ini'
     if config['protocol'] == 'Ping':
         return directory(config) / 'experimentLeoPing.ini'
     if config['protocol'] == OMEGA_10:
@@ -231,6 +237,31 @@ def probe_lines(source, destination, group, rank, app_index, duration, monitor=F
     return app_lines(prefix, values)
 
 
+def transport_parameters():
+    return [
+        '**.interfaceType = "leosatellites.linklayer.ppp.PppInterfaceMutable"',
+        '**.tcp.advertisedWindow = 200000000', '**.tcp.windowScalingSupport = true',
+        '**.tcp.windowScalingFactor = -1', '**.tcp.increasedIWEnabled = true',
+        '**.tcp.delayedAcksEnabled = false', '**.tcp.timestampSupport = true',
+        '**.tcp.ecnWillingness = false', '**.tcp.nagleEnabled = true',
+        '**.tcp.sackSupport = true', '**.tcp.updatedSackEnabled = true',
+        '**.tcp.stopOperationTimeout = 4000s', f'**.tcp.mss = {MSS}',
+        '**.tcp.initialSsthresh = 4800000', '**.tcp.sendQueueLimit = 4MiB',
+        '**.tcp.subflowInterfaceBinding = false', '**.schedulerMode = "defaultCwnd"',
+        '**.startAllSubflowsAtBeginning = true', '**.subflowStartTimes = ""',
+        '**.additiveIncreasePercent = 0.05', '**.eta = 0.95', '**.alpha = 0.03',
+        '**.tcp.pintFeedbackProbability = 1', '**.pintFlowCountBits = 8',
+        '**.pintMaxFlowCount = 65535', '**.pintUseAverageRtt = true',
+        '**.tcp.pintUseInitialPhase = true', '**.tcp.pintUseInitialPhaseFlowCount = true',
+        '**.ppp[*].queue.packetCapacity = 300', '**.ppp[*].queue.pintInitialRtt = 10ms',
+        '**.ppp[*].queue.flowCountSketchEnabled = true', '**.ppp[*].queue.flowCardinalityBits = 4096',
+        '**.ppp[*].queue.flowSketchSeed = 1337', '**.ppp[*].queue.pintBits = 8',
+        '**.ppp[*].queue.pintAutoScaleEncoding = false', '**.ppp[*].queue.pintLogBase = 1.05',
+        '**.goodputInterval = 1s', '**.throughputInterval = 1s',
+        '**.ipv4.ip.kPathTcpClientPort = 4000', '**.ipv4.ip.kPathTcpServerPort = 1000',
+    ]
+
+
 def generate(duration=DURATION, store=DEFAULT_STORE, replay_start=0):
     matrix = configurations(duration, replay_start)
     traffic_config = matrix[0]
@@ -257,27 +288,7 @@ def generate(duration=DURATION, store=DEFAULT_STORE, replay_start=0):
                       '**.vector-recording = false', '**.scalar-recording = false',
                       '**.bin-recording = false', '**.statistic-recording = false']
     common_transport = ['', '[Config LeoTransport]', *replay_lines(store, traffic_dir, traffic_config),
-        '**.interfaceType = "leosatellites.linklayer.ppp.PppInterfaceMutable"',
-        '**.tcp.advertisedWindow = 200000000', '**.tcp.windowScalingSupport = true',
-        '**.tcp.windowScalingFactor = -1', '**.tcp.increasedIWEnabled = true',
-        '**.tcp.delayedAcksEnabled = false', '**.tcp.timestampSupport = true',
-        '**.tcp.ecnWillingness = false', '**.tcp.nagleEnabled = true',
-        '**.tcp.sackSupport = true', '**.tcp.updatedSackEnabled = true',
-        '**.tcp.stopOperationTimeout = 4000s', f'**.tcp.mss = {MSS}',
-        '**.tcp.initialSsthresh = 4800000', '**.tcp.sendQueueLimit = 4MiB',
-        '**.tcp.subflowInterfaceBinding = false', '**.schedulerMode = "defaultCwnd"',
-        '**.startAllSubflowsAtBeginning = true', '**.subflowStartTimes = ""',
-        '**.additiveIncreasePercent = 0.05', '**.eta = 0.95', '**.alpha = 0.03',
-        '**.tcp.pintFeedbackProbability = 1', '**.pintFlowCountBits = 8',
-        '**.pintMaxFlowCount = 65535', '**.pintUseAverageRtt = true',
-        '**.tcp.pintUseInitialPhase = true', '**.tcp.pintUseInitialPhaseFlowCount = true',
-        '**.ppp[*].queue.packetCapacity = 300', '**.ppp[*].queue.pintInitialRtt = 10ms',
-        '**.ppp[*].queue.flowCountSketchEnabled = true', '**.ppp[*].queue.flowCardinalityBits = 4096',
-        '**.ppp[*].queue.flowSketchSeed = 1337', '**.ppp[*].queue.pintBits = 8',
-        '**.ppp[*].queue.pintAutoScaleEncoding = false', '**.ppp[*].queue.pintLogBase = 1.05',
-        '**.goodputInterval = 1s', '**.throughputInterval = 1s',
-        '**.ipv4.ip.kPathTcpClientPort = 4000', '**.ipv4.ip.kPathTcpServerPort = 1000',
-        *recording_lines()]
+        *transport_parameters(), *recording_lines()]
     transport += common_transport
     traffic_inis = {ini_file(traffic_config): transport}
     for c in matrix:

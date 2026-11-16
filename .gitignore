@@ -11,6 +11,9 @@ simulations/experiments/experimentLeo/matrix.json
 simulations/experiments/experimentLeoLoadBalance/*.ini
 simulations/experiments/experimentLeoLoadBalance/matrix.json
 simulations/experiments/experimentLeoLoadBalancePing/*.ini
+simulations/experiments/experimentLeoLoadBalanceBackground/*.ini
+simulations/experiments/experimentLeoLoadBalanceBackground/matrix.json
+simulations/experiments/experimentLeoLoadBalanceBackground/route_availability.json
 simulations/experiments/experimentLeoView/visualize.ini
 simulations/logs/
 simulations/plots/
