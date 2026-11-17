@@ -176,3 +176,52 @@ def plot(configs, output, receiver_series, *, burst_windows=((20, 40), (60, 80))
             print(f'{point["protocol"]} K={point["k"]}: {point["runs_plotted"]}/{point["runs_selected"]} '
                   'runs have complete goodput and defined burst-window fairness', flush=True)
     plot_bursts(points, samples, sorted({config['k'] for config in configs}), output)
+
+
+def plot_run(config, output, series, *, burst_windows=((20, 40), (60, 80))):
+    """Plot one-second receiver goodput for a run, leaving gaps where coverage is missing."""
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+
+    protocol, k, run = config['protocol'], config['k'], config['run']
+    seconds = window_seconds(((0, config['sim_time']),))
+    edges = [*seconds, seconds[-1] + 1]
+    output = Path(output) / 'individual' / protocol / f'K{k}' / f'run{run}'
+    output.mkdir(parents=True, exist_ok=True)
+
+    with plot_style():
+        fig, (foreground, background) = plt.subplots(2, 1, figsize=(8, 5), sharex=True,
+                                                     layout='constrained')
+        for axis in (foreground, background):
+            for index, (start, end) in enumerate(burst_windows):
+                axis.axvspan(start, end, color='#909090', alpha=.17, linewidth=0,
+                             label='Scheduled burst' if axis is background and index == 0 else None)
+            axis.set(ylabel='Goodput (Mbps)', ylim=(0, None))
+            axis.grid(axis='y', alpha=.3)
+
+        for axis, roles in ((foreground, (('A', '#0072B2'), ('B', '#009E73'))),
+                            (background, (('Background', '#7851A9'),))):
+            missing = []
+            for role, colour in roles:
+                threads = list(series.get(role, {}).values())
+                rates = []
+                for second in seconds:
+                    rate, complete = connection_goodput(threads, second, second + 1)
+                    rates.append(rate if complete and math.isfinite(rate) and rate >= 0 else math.nan)
+                if any(math.isfinite(rate) for rate in rates):
+                    axis.stairs(rates, edges, baseline=None, color=colour, label=role)
+                else:
+                    missing.append(role)
+            if missing:
+                axis.text(.01, .9, f"{', '.join(missing)}: no complete goodput intervals",
+                          transform=axis.transAxes, va='top', fontsize='small')
+            if axis.get_legend_handles_labels()[0]:
+                axis.legend(loc='upper right', fontsize='small', frameon=False)
+
+        foreground.set_title('Foreground connections')
+        background.set(title='Aggregate background traffic', xlabel='Time (s)', xlim=(0, edges[-1]))
+        label = HEATMAP_LABELS[protocol].replace('\n', ' ')
+        fig.suptitle(f'{label}, K={k}, run {run}')
+        save_figure(fig, output / 'goodput')
+        plt.close(fig)

@@ -195,7 +195,8 @@ def replay_lines(store, root, config=None):
     return lines
 
 
-def recording_lines(ping=False):
+def recording_lines(ping=False, *, pairs=None, extra_goodput_receivers=()):
+    pairs = PAIRS if pairs is None else pairs
     entries = []
     metrics = ('rtt', 'kPathAvailable') if ping else USER_METRICS
     if not ping:
@@ -203,13 +204,15 @@ def recording_lines(ping=False):
                     '**.tcp.conn-temp.**.vector-recording = false']
     for metric in metrics:
         if ping or metric == 'kPathAvailable':
-            scopes = [f'*.userTerminal[{p["source"]}].app[*]' for p in PAIRS]
+            scopes = [f'*.userTerminal[{p["source"]}].app[*]' for p in pairs]
         elif metric == 'goodput':
-            scopes = [f'*.userTerminal[{p["destination"]}].app[0].thread_*' for p in PAIRS]
+            scopes = [f'*.userTerminal[{p["destination"]}].app[0].thread_*' for p in pairs]
+            scopes += [f'*.userTerminal[{terminal}].app[*].thread_*'
+                       for terminal in extra_goodput_receivers]
         elif metric in ('holBlockedBytes', 'throughput'):
-            scopes = [f'*.userTerminal[{p["destination"]}].tcp.conn-*' for p in PAIRS]
+            scopes = [f'*.userTerminal[{p["destination"]}].tcp.conn-*' for p in pairs]
         else:
-            scopes = [f'*.userTerminal[{p["source"]}].tcp.conn-*' for p in PAIRS]
+            scopes = [f'*.userTerminal[{p["source"]}].tcp.conn-*' for p in pairs]
         mode = 'vector' if metric in ('goodput', 'rtt', 'throughput', 'retransmissionRate') else 'vector(removeRepeats)'
         for scope in scopes:
             entries += [f'{scope}.{metric}.statistic-recording = true',

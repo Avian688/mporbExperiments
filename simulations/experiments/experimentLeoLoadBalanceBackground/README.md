@@ -46,8 +46,14 @@ python3 runExperimentLeoLoadBalanceBackground.py --cores 30
 # Pilot one run per controller at K=2.
 python3 runExperimentLeoLoadBalanceBackground.py --cores 2 --ks 2 --runs 1 --protocols Omega OrbUncoupled
 
-# Regenerate only the plots from existing CSVs.
+# Rerun with the full set of endpoint vectors, then extract and plot.
+python3 runExperimentLeoLoadBalanceBackground.py --start-step 2 --cores 30
+
+# Regenerate all plots from existing CSVs.
 python3 runExperimentLeoLoadBalanceBackground.py --start-step 4 --skip-generate
+
+# Regenerate just the individual run plots from existing CSVs.
+python3 runExperimentLeoLoadBalanceBackground.py --start-step 4 --skip-generate --plots individual --cores 30
 ```
 
 The first step loads the existing primary core saves and generates a separate
@@ -65,11 +71,17 @@ and needs no ping prepass.
 
 ## Results
 
-Receiver goodput CSVs include A, B and the background flows. Figures are stored
-under `simulations/plots/experimentLeoLoadBalanceBackground`. The K-specific
-fairness–efficiency plot averages per-second Jain fairness across the two
-foreground receivers during the two burst intervals. Efficiency is their
-aggregate application goodput divided by the 200 Mbps combined access ceiling.
+Figures are stored under `simulations/plots/experimentLeoLoadBalanceBackground`.
+Each run's directory, `individual/<controller>/K<k>/run<n>/`, contains individual
+metric plots and a `combined.pdf` for each foreground terminal. The `aggregate/`
+folder contains side-by-side terminal comparisons and its own `combined.pdf`.
+The run-level goodput overview shows A and B alongside aggregate background
+goodput, with the burst windows shaded. Goodput-only runs can supply the
+overview. Rerun them with the updated recording settings for the full PDFs.
+
+The K-specific fairness–efficiency plot averages per-second Jain fairness
+across the two foreground receivers during the two burst intervals. Efficiency
+is their aggregate application goodput divided by the 200 Mbps combined access ceiling.
 Each controller has a mean marker and an ellipse when runs have nonzero spread.
 The summary and per-run CSVs also give both fairness measures for each burst
 and the whole measurement window (local 10–99 s), with measurement coverage.

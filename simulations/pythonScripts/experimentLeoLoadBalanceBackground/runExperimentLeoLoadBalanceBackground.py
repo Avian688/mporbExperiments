@@ -27,6 +27,10 @@ DURATION = 100
 BURST_WINDOWS = backgroundRoutes.BURSTS
 BACKGROUND_FLOWS = 5
 BACKGROUND_MBPS = 60
+FOREGROUND_PAIRS = tuple(
+    dict(pair=role, source=sender, destination=receiver,
+         source_city=f'New York {role}', destination_city=f'London {role}')
+    for role, (sender, receiver) in zip(backgroundRoutes.ROLES[:2], backgroundRoutes.PAIRS[:2]))
 RANKS = {
     1: ((1,), (1,)),
     2: ((1, 2), (2, 3)),
@@ -45,17 +49,11 @@ def configurations(replay_start):
 
 
 def recording_lines():
-    entries = []
-    for _, receiver in backgroundRoutes.PAIRS:
-        scope = f'*.userTerminal[{receiver}].app[*].thread_*.goodput'
-        entries += [f'{scope}.statistic-recording = true',
-                    f'{scope}.result-recording-modes = vector',
-                    f'{scope}:vector.vector-recording = true']
-    sender = backgroundRoutes.PAIRS[0][0]
-    return entries + [f'*.userTerminal[{sender}].app[0].tOpen.param-recording = true',
-                      '**.param-recording = false',
-                      '**.statistic-recording = false', '**.vector-recording = false',
-                      '**.scalar-recording = false', '**.bin-recording = false']
+    sender = FOREGROUND_PAIRS[0]['source']
+    background_receiver = backgroundRoutes.PAIRS[2][1]
+    return [f'*.userTerminal[{sender}].app[0].tOpen.param-recording = true',
+            '**.param-recording = false',
+            *leo.recording_lines(pairs=FOREGROUND_PAIRS, extra_goodput_receivers=(background_receiver,))]
 
 
 def path_lines(pair, group, ranks):
@@ -156,7 +154,10 @@ def csv_path(config):
 
 
 def extract(config):
+    from terminalVectors import export_vectors
+
     vectors = ensure_index(config)
+    export_vectors(config, vectors, pairs=FOREGROUND_PAIRS)
     target = csv_path(config)
     target.parent.mkdir(parents=True, exist_ok=True)
     temporary = target.with_suffix('.tmp')
@@ -173,11 +174,11 @@ def extract(config):
     return config['config']
 
 
-def receiver_series(config):
+def goodput_series(config):
     path = csv_path(config)
     if not path.is_file():
         raise FileNotFoundError(f'{path}: extract selected simulations with --start-step 3 first')
-    series = {'A': {}, 'B': {}}
+    series = {role: {} for role in backgroundRoutes.ROLES}
     with path.open(newline='') as source:
         reader = csv.DictReader(source)
         if tuple(reader.fieldnames or ()) != CSV_FIELDS:
@@ -187,7 +188,19 @@ def receiver_series(config):
             if role in series:
                 samples = series[role].setdefault(row['module'], [])
                 samples.append((float(row['time']), float(row['goodput_bps'])))
-    return [list(threads.values()) for threads in series.values()]
+    return series
+
+
+def receiver_series(config):
+    series = goodput_series(config)
+    return [list(series[role].values()) for role in ('A', 'B')]
+
+
+def plot_individual(job):
+    from plotExperimentLeoLoadBalanceBackground import plot_run
+    config, output = job
+    plot_run(config, output, goodput_series(config), burst_windows=BURST_WINDOWS)
+    return config['config']
 
 
 def main(argv=None):
@@ -201,6 +214,8 @@ def main(argv=None):
     parser.add_argument('--replay-start', type=float, help='Original start time (default 0 s), aligned to 100 ms')
     parser.add_argument('--start-step', type=int, choices=range(1, 5), default=1)
     parser.add_argument('--end-step', type=int, choices=range(1, 5), default=4)
+    parser.add_argument('--plots', nargs='+', choices=('all', 'fairness-efficiency', 'individual'),
+                        default=['all'])
     parser.add_argument('--sim-timeout-seconds', type=float, default=12 * 3600)
     parser.add_argument('--retries', type=int, default=1)
     parser.add_argument('--skip-generate', action='store_true')
@@ -255,10 +270,24 @@ def main(argv=None):
         print(f'{EXPERIMENT}: extract goodput CSVs', flush=True)
         parallel(extract, selected, args.cores, processes=True)
     if args.start_step <= 4 <= args.end_step:
-        from plotExperimentLeoLoadBalanceBackground import plot
         output = PLOT_ROOT.with_name(EXPERIMENT + 'Omega10') if leo.OMEGA_10 in protocols else PLOT_ROOT
-        print(f'{EXPERIMENT}: plot foreground fairness and efficiency', flush=True)
-        plot(selected, output, receiver_series, burst_windows=BURST_WINDOWS)
+        plots = set(args.plots)
+        if plots & {'all', 'fairness-efficiency'}:
+            from plotExperimentLeoLoadBalanceBackground import plot
+            print(f'{EXPERIMENT}: plot foreground fairness and efficiency', flush=True)
+            plot(selected, output, receiver_series, burst_windows=BURST_WINDOWS)
+        if plots & {'all', 'individual'}:
+            print(f'{EXPERIMENT}: plot {len(selected)} individual goodput overviews', flush=True)
+            parallel(plot_individual, [(config, output) for config in selected],
+                     args.cores, processes=True)
+            from plotExperimentLeo import plot_metrics
+            detailed = [c for c in selected if (leo.vector_dir(c) / 'vectors.json').is_file()]
+            if detailed:
+                plot_metrics(detailed, cores=args.cores, pairs=FOREGROUND_PAIRS,
+                             output_root=output / 'individual')
+            if len(detailed) < len(selected):
+                print(f'{len(selected) - len(detailed)} runs have only the goodput CSV. '
+                      'Run step 3 to extract any recorded endpoint metrics.', flush=True)
 
 
 if __name__ == '__main__':

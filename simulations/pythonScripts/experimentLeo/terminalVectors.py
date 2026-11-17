@@ -82,7 +82,7 @@ def applicable(config, metric):
                 (metric in ('holBlockedBytes', 'metaReinjectedBytes') and config['protocol'] == 'OrbSingle'))
 
 
-def pair_vectors(vectors, config, pair, metric):
+def pair_vectors(vectors, config, pair, metric, *, saved_ranks=None):
     """Return (vector, label, rank) without inferring passive-side path identity."""
     if not applicable(config, metric):
         return []
@@ -92,12 +92,15 @@ def pair_vectors(vectors, config, pair, metric):
     pattern = re.compile(host + (r'\.app\[0\]\.thread_\d+$' if metric == 'goodput'
                                 else r'\.tcp\.conn-\d+$'))
     found = [v for v in vectors.items.values() if v.metric == metric and pattern.search(v.module)]
+    if not found:
+        return []
     found.sort(key=lambda v:int(v.module.rsplit('_' if metric == 'goodput' else '-', 1)[1]))
     if receiver:
         return [(v, 'Application goodput' if metric == 'goodput' and len(found) == 1 else
                     ('Receiver ' + v.module.rsplit('.',1)[-1]), None) for v in found]
     ranks = sender_ranks(vectors, pair['source'], config['k'], config['protocol'] == 'OrbSingle')
-    by_module = {v.module:rank for rank,v in ranks.items()}
+    by_module = {v.module: saved_ranks[rank - 1] if saved_ranks is not None else rank
+                 for rank, v in ranks.items()}
     if metric in DATA_SUBFLOWS:
         found = [v for v in found if v.module in by_module]
     curves = []
@@ -109,8 +112,9 @@ def pair_vectors(vectors, config, pair, metric):
     return curves
 
 
-def export_vectors(config, vectors, bins=3000):
+def export_vectors(config, vectors, bins=3000, *, pairs=None):
     """Stream full endpoint CSVs and compact plot CSVs to fixed file names."""
+    pairs = tuple(leo.PAIRS if pairs is None else pairs)
     root = leo.vector_dir(config)
     root.mkdir(parents=True,exist_ok=True)
     manifest = root/'vectors.json'
@@ -122,7 +126,7 @@ def export_vectors(config, vectors, bins=3000):
             continue
         receiver = vector.metric in RECEIVER_METRICS
         side = 'destination' if receiver else 'source'
-        pair = next((p for p in leo.PAIRS if re.search(
+        pair = next((p for p in pairs if re.search(
             rf'\.userTerminal\[{p[side]}\]\.'+
             (r'app\[0\]\.thread_\d+$' if vector.metric=='goodput' else r'tcp\.conn-\d+$'),
             vector.module)),None)

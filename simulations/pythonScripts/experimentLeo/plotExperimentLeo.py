@@ -24,6 +24,9 @@ LABELS = {
 TITLES = dict(goodput='Goodput',rtt='RTT',cwnd='CWND',U='Congestion U',
     holBlockedBytes='HoL Blocking',throughput='Throughput',retransmissionRate='Retransmission Rate',
     mbytesInFlight='Bytes In-Flight',metaReinjectedBytes='Reinjected Bytes',numRtos='Retransmission timeouts')
+PATH_STYLES = ('-', '--', '-.', ':', (0, (5, 1, 1, 1)), (0, (3, 1, 1, 1, 1, 1)))
+
+
 def draw_metric(ax, curves, metric, horizon, terminal_colors=None, legend_columns=1, compact_legend=False):
     """One terminal and one metric, shared by standalone and combined figures."""
     from matplotlib.ticker import MaxNLocator
@@ -42,7 +45,8 @@ def draw_metric(ax, curves, metric, horizon, terminal_colors=None, legend_column
             styles_used[terminal] = ordinal+1
             style = {'color':f'C{terminal%10}'}
             if metric!='rtt':
-                style['linestyle'] = ('-','--','-.',':',(0,(5,1,1,1)))[((rank-1) if rank is not None else ordinal)%5]
+                path_style = rank - 1 if rank is not None else ordinal % 5
+                style['linestyle'] = PATH_STYLES[path_style % len(PATH_STYLES)]
             terminal_handles[label.split(': ',1)[0]] = terminal
             if rank is not None:
                 ranks.add(rank)
@@ -65,7 +69,7 @@ def draw_metric(ax, curves, metric, horizon, terminal_colors=None, legend_column
                        for label,color in terminal_handles.items()]
             if metric!='rtt':
                 handles += [Line2D([],[],color='.4',
-                    linestyle=('-','--','-.',':',(0,(5,1,1,1)))[(rank-1)%5],label=f'Path {rank}')
+                    linestyle=PATH_STYLES[(rank - 1) % len(PATH_STYLES)],label=f'Path {rank}')
                     for rank in sorted(ranks)]
             legend_args['handles'] = handles
         ax.legend(fontsize=6.5 if terminal_colors is not None else 8,
@@ -105,7 +109,9 @@ def save_combined(prepared, title, path, horizon, terminal_colors=None):
 
 
 def plot_run(job):
-    config, metrics, output_root, source = job
+    if len(job) == 4:
+        job = (*job, leo.PAIRS)
+    config, metrics, output_root, source, pairs = job
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
@@ -116,7 +122,9 @@ def plot_run(job):
     figure_count = 0
     comparisons = {metric:[] for metric in metrics}
     terminal_colors = {}
-    for terminal_index,pair in enumerate(leo.PAIRS):
+    rank_maps = config.get('ranks')
+    for terminal_index,pair in enumerate(pairs):
+        saved_ranks = rank_maps[terminal_index] if rank_maps is not None else None
         for receiver in (False,True):
             side = 'destination' if receiver else 'source'
             terminal = pair[side]
@@ -128,7 +136,7 @@ def plot_run(job):
             for metric in metrics:
                 if (metric in RECEIVER_METRICS) != receiver:
                     continue
-                found = pair_vectors(vectors,config,pair,metric)
+                found = pair_vectors(vectors,config,pair,metric,saved_ranks=saved_ranks)
                 output = terminal_dir / metric
                 curves = []
                 if not found:
@@ -202,14 +210,15 @@ def plot_run(job):
                 combined_pdfs=sum(p.endswith('/combined.pdf') for p in outputs),records=records)
 
 
-def plot_metrics(configs, metrics=None, cores=1):
+def plot_metrics(configs, metrics=None, cores=1, *, pairs=None, output_root=None):
     metrics = list(leo.USER_METRICS if metrics is None else metrics)
     unknown = set(metrics)-set(leo.USER_METRICS)
     if unknown or not metrics or cores<1:
         raise ValueError(f'Invalid individual-plot selection: {sorted(unknown)}')
     if not configs:
         raise ValueError('No runs selected for individual plots')
-    output_root = leo.plot_directory(configs[0])/'individual'
+    pairs = tuple(leo.PAIRS if pairs is None else pairs)
+    output_root = leo.plot_directory(configs[0])/'individual' if output_root is None else Path(output_root)
     jobs = []
     for config in configs:
         source = leo.vector_dir(config)
@@ -218,7 +227,7 @@ def plot_metrics(configs, metrics=None, cores=1):
         if ((native.is_file() and leo.stat(native)!=exported.manifest['source_stat']) or
                 leo.input_hash(config)!=exported.manifest['input_hash']):
             raise ValueError(f'{config["config"]}: terminal CSVs are stale; re-extract step 3')
-        jobs.append((config,metrics,str(output_root),str(source)))
+        jobs.append((config,metrics,str(output_root),str(source),pairs))
     if cores == 1 or len(jobs) == 1:
         results = []
         for index,job in enumerate(jobs,1):
