@@ -197,7 +197,7 @@ def plot_run(config, output, series, *, burst_windows=((20, 40), (60, 80))):
             for index, (start, end) in enumerate(burst_windows):
                 axis.axvspan(start, end, color='#909090', alpha=.17, linewidth=0,
                              label='Scheduled burst' if axis is background and index == 0 else None)
-            axis.set(ylabel='Goodput (Mbps)', ylim=(0, None))
+            axis.set_ylabel('Goodput (Mbps)')
             axis.grid(axis='y', alpha=.3)
 
         for axis, roles in ((foreground, (('A', '#0072B2'), ('B', '#009E73'))),
@@ -218,6 +218,7 @@ def plot_run(config, output, series, *, burst_windows=((20, 40), (60, 80))):
                           transform=axis.transAxes, va='top', fontsize='small')
             if axis.get_legend_handles_labels()[0]:
                 axis.legend(loc='upper right', fontsize='small', frameon=False)
+            axis.set_ylim(bottom=0)
 
         foreground.set_title('Foreground connections')
         background.set(title='Aggregate background traffic', xlabel='Time (s)', xlim=(0, edges[-1]))
