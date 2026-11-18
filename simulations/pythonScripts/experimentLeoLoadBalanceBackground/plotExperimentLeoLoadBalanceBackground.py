@@ -74,7 +74,7 @@ def run_metrics(config, receiver_series, burst_windows, access_ceiling):
     return rows
 
 
-def summarize(rows):
+def summarize(rows, goodput_field='normalized_goodput'):
     cases = defaultdict(list)
     for row in rows:
         cases[row['window'], row['k'], row['protocol']].append(row)
@@ -83,8 +83,8 @@ def summarize(rows):
     for case, runs in cases.items():
         window, k, protocol = case
         usable = [run for run in runs if math.isfinite(run['mean_per_second_jain']) and
-                  math.isfinite(run['normalized_goodput'])]
-        samples[case] = [(run['mean_per_second_jain'], run['normalized_goodput']) for run in usable]
+                  math.isfinite(run[goodput_field])]
+        samples[case] = [(run['mean_per_second_jain'], run[goodput_field]) for run in usable]
         fields = ('mean_per_second_jain', 'jain_of_mean_goodput', 'aggregate_goodput_mbps', 'normalized_goodput')
         points.append(dict(
             window=window, k=k, protocol=protocol, intervals_s=runs[0]['intervals_s'],
@@ -99,7 +99,7 @@ def summarize(rows):
     return points, samples
 
 
-def plot_bursts(points, paired_runs, ks, output):
+def plot_bursts(points, paired_runs, ks, output, goodput_field):
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
@@ -111,12 +111,17 @@ def plot_bursts(points, paired_runs, ks, output):
     colours = {protocol: values[3] for protocol, values in PROTOCOLS.items()}
     colours.update({'Omega10': '#7851A9', 'OrbSingle': '#333333'})
     include_omega10 = any(point['protocol'] == 'Omega10' for point in visible)
+    raw_goodput = goodput_field == 'aggregate_goodput_mbps'
+    y_label = 'Aggregate foreground goodput (Mbps)' if raw_goodput else 'Normalized Aggregate Goodput'
     xlo, xhi, ylo, yhi = .95, 1.01, .85, 1.025
+    if raw_goodput:
+        ylo, yhi = (math.inf, -math.inf) if visible else (0, 100)
+    lower_y_margin, upper_y_margin = (5, 5) if raw_goodput else (.03, .025)
     ellipses = {}
     for point in visible:
         k, protocol = point['k'], point['protocol']
         samples = paired_runs['bursts', k, protocol]
-        x, y = point['mean_per_second_jain'], point['normalized_goodput']
+        x, y = point['mean_per_second_jain'], point[goodput_field]
         sx = sy = 0.
         if len(samples) > 1 and np.any(np.ptp(samples, axis=0) > 0):
             covariance = np.cov(samples, rowvar=False)
@@ -126,41 +131,68 @@ def plot_bursts(points, paired_runs, ks, output):
             ellipses[k, protocol] = dict(width=width, height=height, angle=angle)
             sx, sy = np.sqrt(np.diag(covariance))
         xlo, xhi = min(xlo, x - sx - .01), max(xhi, x + sx + .01)
-        ylo, yhi = min(ylo, y - sy - .03), max(yhi, y + sy + .025)
+        ylo, yhi = min(ylo, y - sy - lower_y_margin), max(yhi, y + sy + upper_y_margin)
 
-    for k in ks:
-        with plot_style(aggregate=True), plt.rc_context({'text.usetex': False}):
-            fig, ax = plt.subplots(figsize=(5, 3), layout='constrained')
-            for point in visible:
-                protocol, recorded_k = point['protocol'], point['k']
-                if recorded_k != (1 if protocol == 'OrbSingle' else k):
-                    continue
-                x, y = point['mean_per_second_jain'], point['normalized_goodput']
-                label = HEATMAP_LABELS[protocol].replace('\n', ' ')
-                if protocol == 'Omega' and include_omega10:
-                    label = 'Omega 5%'
-                colour = colours[protocol]
-                ellipse = ellipses.get((recorded_k, protocol))
-                if ellipse:
-                    ax.add_patch(Ellipse((x, y), **ellipse, facecolor=colour, edgecolor=colour,
-                                         alpha=.22, linewidth=.8))
-                ax.scatter(x, y, s=48, marker='o', facecolors='none', edgecolors=colour,
-                           linewidths=1.4, label=label, zorder=3)
-            if ax.collections:
-                ax.legend(loc='lower center', bbox_to_anchor=(.5, 1.02), ncol=3, fontsize=8)
-            else:
-                ax.text(.5, .5, 'No usable runs', transform=ax.transAxes, ha='center', va='center')
-            ax.set(xlabel='Mean 1 s Jain Fairness', ylabel='Normalized Aggregate Goodput',
-                   xlim=(max(0., xlo), xhi), ylim=(max(0., ylo), yhi))
-            ax.xaxis.set_major_locator(MaxNLocator(nbins=6))
-            ax.yaxis.set_major_locator(MaxNLocator(nbins=6))
-            ax.grid(alpha=.35)
-            fig.suptitle(f'LEO load balance during bursts, K={k}', fontsize=10)
-            save_figure(fig, output / f'fairness_efficiency_K{k}', aggregate=True)
+    def draw(ax, k):
+        for point in visible:
+            protocol, recorded_k = point['protocol'], point['k']
+            plot_k = 1 if protocol == 'OrbSingle' and not raw_goodput else k
+            if recorded_k != plot_k:
+                continue
+            x, y = point['mean_per_second_jain'], point[goodput_field]
+            label = HEATMAP_LABELS[protocol].replace('\n', ' ')
+            if protocol == 'Omega' and include_omega10:
+                label = 'Omega 5%'
+            colour = colours[protocol]
+            ellipse = ellipses.get((recorded_k, protocol))
+            if ellipse:
+                ax.add_patch(Ellipse((x, y), **ellipse, facecolor=colour, edgecolor=colour,
+                                     alpha=.22, linewidth=.8))
+            ax.scatter(x, y, s=48, marker='o', facecolors='none', edgecolors=colour,
+                       linewidths=1.4, label=label, zorder=3)
+        if not ax.collections:
+            ax.text(.5, .5, 'No usable runs', transform=ax.transAxes, ha='center', va='center')
+        ax.set(xlim=(max(0., xlo), xhi), ylim=(max(0., ylo), yhi))
+        ax.xaxis.set_major_locator(MaxNLocator(nbins=6))
+        ax.yaxis.set_major_locator(MaxNLocator(nbins=6))
+        ax.grid(alpha=.35)
+
+    with plot_style(aggregate=True), plt.rc_context({'text.usetex': False}):
+        if raw_goodput:
+            columns = min(2, len(ks))
+            rows = math.ceil(len(ks) / columns)
+            fig, axes = plt.subplots(rows, columns, figsize=(4 * columns, 2.4 * rows + .65),
+                                     squeeze=False, sharex=True, sharey=True)
+            handles_by_label = {}
+            for ax, k in zip(axes.flat, ks):
+                draw(ax, k)
+                ax.set_title(f'K={k}')
+                handles, labels = ax.get_legend_handles_labels()
+                handles_by_label.update(zip(labels, handles))
+            for ax in list(axes.flat)[len(ks):]:
+                ax.set_visible(False)
+            if handles_by_label:
+                fig.legend(handles_by_label.values(), handles_by_label.keys(), loc='upper center',
+                           ncol=min(3, len(handles_by_label)), fontsize=8)
+            fig.supxlabel('Mean per-second Jain fairness')
+            fig.supylabel(y_label)
+            fig.tight_layout(rect=(.02, .02, 1, .90 if handles_by_label else 1))
+            save_figure(fig, output / 'goodput_fairness', aggregate=True)
             plt.close(fig)
+        else:
+            for k in ks:
+                fig, ax = plt.subplots(figsize=(5, 3), layout='constrained')
+                draw(ax, k)
+                if ax.collections:
+                    ax.legend(loc='lower center', bbox_to_anchor=(.5, 1.02), ncol=3, fontsize=8)
+                ax.set(xlabel='Mean 1 s Jain Fairness', ylabel=y_label)
+                fig.suptitle(f'LEO load balance during bursts, K={k}', fontsize=10)
+                save_figure(fig, output / f'fairness_efficiency_K{k}', aggregate=True)
+                plt.close(fig)
 
 
-def plot(configs, output, receiver_series, *, burst_windows=((20, 40), (60, 80)), access_ceiling_mbps=200.):
+def plot(configs, output, receiver_series, *, burst_windows=((20, 40), (60, 80)),
+         access_ceiling_mbps=200., raw_goodput=False):
     """Plot foreground metrics from extracted goodput, expressed in bits per second."""
     output = Path(output)
     configs = list(configs)
@@ -168,14 +200,15 @@ def plot(configs, output, receiver_series, *, burst_windows=((20, 40), (60, 80))
         raise ValueError('Expected experiment configs and a positive foreground access ceiling')
     rows = [row for config in configs
             for row in run_metrics(config, receiver_series, burst_windows, access_ceiling_mbps)]
-    points, samples = summarize(rows)
+    goodput_field = 'aggregate_goodput_mbps' if raw_goodput else 'normalized_goodput'
+    points, samples = summarize(rows, goodput_field)
     write_csv(output / 'fairness_efficiency_runs.csv', rows)
     write_csv(output / 'fairness_efficiency_data.csv', points)
     for point in points:
         if point['window'] == 'bursts' and point['runs_plotted'] < point['runs_selected']:
             print(f'{point["protocol"]} K={point["k"]}: {point["runs_plotted"]}/{point["runs_selected"]} '
                   'runs have complete goodput and defined burst-window fairness', flush=True)
-    plot_bursts(points, samples, sorted({config['k'] for config in configs}), output)
+    plot_bursts(points, samples, sorted({config['k'] for config in configs}), output, goodput_field)
 
 
 def plot_run(config, output, series, *, burst_windows=((20, 40), (60, 80))):

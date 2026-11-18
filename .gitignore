@@ -14,6 +14,9 @@ simulations/experiments/experimentLeoLoadBalancePing/*.ini
 simulations/experiments/experimentLeoLoadBalanceBackground/*.ini
 simulations/experiments/experimentLeoLoadBalanceBackground/matrix.json
 simulations/experiments/experimentLeoLoadBalanceBackground/route_availability.json
+simulations/experiments/experimentLoadBalanceBottleneck*/*.ini
+simulations/experiments/experimentLoadBalanceBottleneck*/matrix.json
+simulations/experiments/experimentLoadBalanceBottleneck*/route_availability.json
 simulations/experiments/experimentLeoView/visualize.ini
 simulations/logs/
 simulations/plots/

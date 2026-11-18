@@ -171,11 +171,11 @@ def check_routes(store, root, replay_start, duration):
     return _check_routes(store, root, replay_start, duration, primary_hash)
 
 
-def report_burst_ranks(root, ranks_by_k):
+def report_burst_ranks(root, ranks_by_k, burst_ranks):
     report = json.loads((root / REPORT).read_text())
     for k, foreground in sorted(ranks_by_k.items()):
-        for burst in report['bursts']:
-            for role, ranks in zip(ROLES, (*foreground, (1,))):
+        for index, burst in enumerate(report['bursts']):
+            for role, ranks in zip(ROLES, (*foreground, (burst_ranks[k][index],))):
                 availability = burst['rank_seconds'][role]
                 for rank in ranks:
                     seconds = availability[str(rank)]
@@ -185,13 +185,21 @@ def report_burst_ranks(root, ranks_by_k):
                               f'local {burst["start"]}–{burst["end"]}s{suffix}', flush=True)
 
 
-def prepare_routes(store, root, replay_start, duration, timeout):
+def prepare_routes(store, root, replay_start, duration, timeout, *, reuse_existing=False):
     import runExperimentLeo as runner
     from runExperiments import logged
 
     end = replay_start + duration
     primary_hash = leo.check_routes(store, end, primary_only=True)
     primary, catalog, core = route_directories(store)
+    if reuse_existing:
+        try:
+            route_hash = _check_routes(store, root, replay_start, duration, primary_hash)
+        except FileNotFoundError:
+            pass
+        else:
+            print(f'Reuse background routes: {catalog}', flush=True)
+            return route_hash
     checkpoint = checkpoint_file(root, replay_start) if replay_start > 0 else None
     receipt = root / 'results/replay' / f'{replay_start:g}.routes.json'
     input_hash = hashlib.sha256((root / 'topology.ini').read_bytes())
