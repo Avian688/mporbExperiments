@@ -1,7 +1,7 @@
 # ExperimentLoadBalanceBottleneckSharedBudget
 
 This variant uses the same traffic, 400 Mbps access links, and saved routes
-as [ExperimentLoadBalanceBottleneck](../experimentLoadBalanceBottleneck/README.md).
+as [ExperimentLeoLoadBalanceBackground](../experimentLeoLoadBalanceBackground/README.md).
 The shared ranks split a 100 Mbps budget equally. Their configured rates are
 100, 50, 33⅓, and 25 Mbps per rank for K=2, 3, 4, and 5 respectively. Private
 ranks keep their 100 Mbps core links.

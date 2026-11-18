@@ -45,11 +45,10 @@ def configurations(replay_start, experiment=EXPERIMENT, shared_budget=False):
     for config in leo.configurations(DURATION, replay_start, include_omega10=True):
         k = config['k']
         config.update(experiment=experiment, starts=config['starts'][:2],
-                      ranks=[list(ranks) for ranks in RANKS[k]])
-        if experiment != EXPERIMENT:
-            config.update(terminal_mbps=400, background_ranks=[1, 3 if k > 1 else 1])
-            if shared_budget and k > 1:
-                config.update(shared_isl_budget_mbps=100)
+                      ranks=[list(ranks) for ranks in RANKS[k]],
+                      terminal_mbps=400, background_ranks=[1, 3 if k > 1 else 1])
+        if shared_budget and k > 1:
+            config.update(shared_isl_budget_mbps=100)
         matrix.append(config)
     return matrix
 
@@ -73,12 +72,12 @@ def path_lines(pair, group, ranks):
     return entries
 
 
-def background_lines(port_offset=0):
+def background_lines():
     pair = backgroundRoutes.PAIRS[2]
     source, destination = pair
     senders, receivers = f'*.userTerminal[{source}]', f'*.userTerminal[{destination}]'
     sessions = len(BURST_WINDOWS) * BACKGROUND_FLOWS
-    lines = path_lines(pair, 2, (1,) * sessions)
+    lines = []
     for terminal in (senders, receivers):
         lines += [f'{terminal}.tcp.typename = "Orbtcp"',
                   f'{terminal}.tcp.tcpAlgorithmClass = "OrbtcpPintFlavour"',
@@ -91,7 +90,8 @@ def background_lines(port_offset=0):
                                     for tick in range(start * 1000, end * 1000, period_ms)))
         for flow in range(BACKGROUND_FLOWS):
             index = burst * BACKGROUND_FLOWS + flow
-            port_slot = index + port_offset
+            # Offset zero aliases slot one in the saved-rank map.
+            port_slot = index + 1
             lines += leo.app_lines(f'{senders}.app[{index}]', dict(
                 typename='"TcpGoodputSessionApp"', localPort=4000 + port_slot,
                 connectAddress=f'"userTerminal[{destination}]"', connectPort=1000 + port_slot,
@@ -111,9 +111,8 @@ def traffic_lines(config):
                f'seed-set = {config["seed"]}', f'sim-time-limit = {DURATION}s',
                f'output-vector-file = "results/{name}-#0.vec"',
                f'output-scalar-file = "results/{name}-#0.sca"']
-    if 'background_ranks' in config:
-        burst_ranks = [rank for rank in config['background_ranks'] for _ in range(BACKGROUND_FLOWS)]
-        entries += path_lines(backgroundRoutes.PAIRS[2], 2, burst_ranks)
+    burst_ranks = [rank for rank in config['background_ranks'] for _ in range(BACKGROUND_FLOWS)]
+    entries += path_lines(backgroundRoutes.PAIRS[2], 2, burst_ranks)
     if 'shared_isl_budget_mbps' in config:
         common_ranks = sorted(set(config['ranks'][0]).intersection(config['ranks'][1]))
         ranks = ' '.join(map(str, common_ranks))
@@ -134,7 +133,7 @@ def traffic_lines(config):
             localPort=4000, connectPort=1000, connectAddress=f'"userTerminal[{destination}]"',
             tOpen=f'{start:g}s', tSend=f'{start:g}s', tClose=f'{DURATION + 1}s',
             sendBytes='1536MiB', dataTransferMode='"bytecount"')
-        if not single and 'terminal_mbps' in config:
+        if not single:
             sender.update(sendBytes='8MiB', keepBacklogged='true')
         entries += leo.app_lines(f'*.userTerminal[{source}].app[0]', sender)
         entries += leo.app_lines(f'*.userTerminal[{destination}].app[0]', dict(
@@ -157,13 +156,10 @@ def generate(matrix, store, replay_start):
     root = leo.directory(matrix[0])
     root.mkdir(parents=True, exist_ok=True)
     backgroundRoutes.write_topology(leo.topology_file(matrix[0]), replay_start + DURATION)
-    # Offset zero aliases slot one. The two-rank setup uses slots 1–10 exactly once.
-    port_offset = int('background_ranks' in matrix[0])
     lines = ['include topology.ini', '', '[Config BackgroundTransport]',
              *leo.replay_lines(store, root, matrix[0]), *leo.transport_parameters(),
-             *recording_lines(), *background_lines(port_offset), '*.userTerminal[*].numApps = 0']
-    if 'terminal_mbps' in matrix[0]:
-        lines += [f'*.channelConstructor.userTerminalDataRate = {matrix[0]["terminal_mbps"]}Mbps']
+             *recording_lines(), *background_lines(), '*.userTerminal[*].numApps = 0',
+             f'*.channelConstructor.userTerminalDataRate = {matrix[0]["terminal_mbps"]}Mbps']
     for config in matrix:
         lines.extend(traffic_lines(config))
     leo.ini_file(matrix[0]).write_text('\n'.join(lines) + '\n')
@@ -228,15 +224,14 @@ def plot_individual(job):
 
 
 def main(argv=None, *, experiment=EXPERIMENT, shared_budget=False):
-    bottleneck = experiment != EXPERIMENT
     root = leo.SIM_DIR / 'experiments' / experiment
     plot_root = leo.SIM_DIR / 'plots' / experiment
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--cores', type=int, default=int(os.environ.get('EXPERIMENT_CORES', '2')))
     parser.add_argument('--runs', type=int, choices=leo.RUNS, default=len(leo.RUNS))
-    parser.add_argument('--ks', nargs='+', type=int, choices=leo.KS, default=leo.KS[1:] if bottleneck else leo.KS)
+    parser.add_argument('--ks', nargs='+', type=int, choices=leo.KS, default=leo.KS[1:])
     parser.add_argument('--protocols', nargs='+', choices=tuple(leo.PROTOCOLS),
-                        default=[p for p in leo.DEFAULT_PROTOCOLS if not bottleneck or p != 'OrbSingle'])
+                        default=[p for p in leo.DEFAULT_PROTOCOLS if p != 'OrbSingle'])
     parser.add_argument('--include-omega10', action='store_true')
     parser.add_argument('--route-store', type=Path)
     parser.add_argument('--replay-start', type=float, help='Original start time (default 0 s), aligned to 100 ms')
@@ -277,11 +272,11 @@ def main(argv=None, *, experiment=EXPERIMENT, shared_budget=False):
               f'{flows} background flows per burst at local {BURST_WINDOWS}')
         print(f'{len(selected)} traffic runs, two measured connections per run')
         for config in selected:
-            settings = ''
-            if bottleneck:
-                settings = f', bursts on ranks {config["background_ranks"]}, access {config["terminal_mbps"]} Mbps'
-                if 'shared_isl_budget_mbps' in config:
-                    settings += f', shared budget {config["shared_isl_budget_mbps"]} Mbps'
+            ranks = config.get('background_ranks', [1, 1])
+            access = config.get('terminal_mbps', 100)
+            settings = f', bursts on ranks {ranks}, access {access} Mbps'
+            if 'shared_isl_budget_mbps' in config:
+                settings += f', shared budget {config["shared_isl_budget_mbps"]} Mbps'
             print(f'{config["config"]}: A {config["ranks"][0]}, B {config["ranks"][1]}{settings}')
         return
 
@@ -295,7 +290,7 @@ def main(argv=None, *, experiment=EXPERIMENT, shared_budget=False):
         generate(matrix, store, replay_start)
     if args.start_step <= 2:
         route_hash = backgroundRoutes.prepare_routes(store, root, replay_start, DURATION,
-                                                     args.sim_timeout_seconds, reuse_existing=bottleneck)
+                                                     args.sim_timeout_seconds, reuse_existing=True)
         backgroundRoutes.report_burst_ranks(root, active_ranks, burst_ranks)
         if args.end_step >= 2:
             print(f'{experiment}: simulate {len(selected)} traffic runs', flush=True)
@@ -310,7 +305,8 @@ def main(argv=None, *, experiment=EXPERIMENT, shared_budget=False):
             from plotExperimentLeoLoadBalanceBackground import plot
             print(f'{experiment}: plot foreground goodput and fairness', flush=True)
             plot(selected, output, receiver_series, burst_windows=BURST_WINDOWS,
-                 access_ceiling_mbps=2 * selected[0].get('terminal_mbps', 100), raw_goodput=bottleneck)
+                 access_ceiling_mbps=2 * selected[0].get('terminal_mbps', 100),
+                 raw_goodput='terminal_mbps' in selected[0])
         if plots & {'all', 'individual'}:
             print(f'{experiment}: plot {len(selected)} individual goodput overviews', flush=True)
             parallel(plot_individual, [(config, output) for config in selected],
