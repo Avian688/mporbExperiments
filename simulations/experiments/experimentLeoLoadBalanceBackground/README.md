@@ -28,9 +28,9 @@ available duration of each rank in `route_availability.json`, including
 reconnects. Five configured subflows require six distinct core routes to be
 fully usable for both foreground pairs.
 
-The default matrix has 100 runs. MPORB Alpha, Delta, Omega, uncoupled OrbCC,
-and uncoupled CUBIC each run at K=2–5 with five start-time patterns. Select
-`--ks 1` to run the one-subflow configurations with both bursts on rank 1.
+The default matrix has 140 runs. MPORB Alpha, Delta, Omega, uncoupled OrbCC,
+uncoupled CUBIC, OLIA, and BALIA each run at K=2–5 with five start-time patterns.
+Select `--ks 1` to run the one-subflow configurations with both bursts on rank 1.
 Select `--ks 1 --protocols OrbSingle` for native single-path OrbCC. All runs
 use simulation seed 1. Omega with 10% shuffling is opt-in.
 
@@ -43,6 +43,12 @@ from the folder containing `runExperimentLeoLoadBalanceBackground.py`.
 ```sh
 # Prepare, simulate, extract and plot the whole matrix.
 python3 runExperimentLeoLoadBalanceBackground.py --cores 30
+
+# Run OLIA and BALIA and generate their individual plots.
+python3 runExperimentLeoLoadBalanceBackground.py --cores 30 --protocols OLIA BALIA --plots individual
+
+# Regenerate the aggregate figure once all controller CSVs are available.
+python3 runExperimentLeoLoadBalanceBackground.py --start-step 4 --skip-generate --plots fairness-efficiency
 
 # Pilot one run per controller at K=2.
 python3 runExperimentLeoLoadBalanceBackground.py --cores 2 --ks 2 --runs 1 --protocols Omega OrbUncoupled

@@ -78,7 +78,7 @@ def finish_curve(points, count, metric, horizon, empty):
 
 
 def applicable(config, metric):
-    return not ((metric == 'U' and config['protocol'] == 'CubicUncoupled') or
+    return not ((metric == 'U' and config['protocol'] in ('CubicUncoupled', 'OLIA', 'BALIA')) or
                 (metric in ('holBlockedBytes', 'metaReinjectedBytes') and config['protocol'] == 'OrbSingle'))
 
 

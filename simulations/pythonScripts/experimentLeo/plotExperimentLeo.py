@@ -116,6 +116,8 @@ def plot_run(job):
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
     vectors = CsvVectors(source,config)
+    protocol = config['protocol']
+    protocol_label = leo.PROTOCOLS[protocol][2] if protocol in leo.PROTOCOLS else protocol
     output_dir = Path(output_root) / leo.run_subdir(config)
     output_dir.mkdir(parents=True,exist_ok=True)
     records, outputs = [], []
@@ -131,7 +133,7 @@ def plot_run(job):
             terminal_dir = output_dir / terminal_folder(pair,receiver)
             terminal_dir.mkdir(exist_ok=True)
             title = (f'{pair[side+"_city"]} (UT{terminal}, {"receiver" if receiver else "sender"}) - '
-                     f'{leo.PROTOCOLS[config["protocol"]][2]}, K={config["k"]}, Run {config["run"]}')
+                     f'{protocol_label}, K={config["k"]}, Run {config["run"]}')
             prepared = []
             for metric in metrics:
                 if (metric in RECEIVER_METRICS) != receiver:
@@ -175,7 +177,7 @@ def plot_run(job):
                 outputs.append(str(combined))
     aggregate = output_dir/'aggregate'
     aggregate.mkdir(exist_ok=True)
-    title = (f'All user terminals - {leo.PROTOCOLS[config["protocol"]][2]}, '
+    title = (f'All user terminals - {protocol_label}, '
              f'K={config["k"]}, Run {config["run"]}')
     prepared = []
     for metric,curves in comparisons.items():

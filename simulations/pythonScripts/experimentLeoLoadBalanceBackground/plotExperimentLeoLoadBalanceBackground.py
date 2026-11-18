@@ -109,7 +109,8 @@ def plot_bursts(points, paired_runs, ks, output, goodput_field):
 
     visible = [point for point in points if point['window'] == 'bursts' and point['runs_plotted']]
     colours = {protocol: values[3] for protocol, values in PROTOCOLS.items()}
-    colours.update({'Omega10': '#7851A9', 'OrbSingle': '#333333'})
+    colours.update({'Omega10': '#7851A9', 'OrbSingle': '#333333',
+                    'OLIA': '#CC79A7', 'BALIA': '#8C564B'})
     include_omega10 = any(point['protocol'] == 'Omega10' for point in visible)
     raw_goodput = goodput_field == 'aggregate_goodput_mbps'
     y_label = 'Aggregate foreground goodput (Mbps)' if raw_goodput else 'Normalized Aggregate Goodput'
@@ -140,7 +141,7 @@ def plot_bursts(points, paired_runs, ks, output, goodput_field):
             if recorded_k != plot_k:
                 continue
             x, y = point['mean_per_second_jain'], point[goodput_field]
-            label = HEATMAP_LABELS[protocol].replace('\n', ' ')
+            label = HEATMAP_LABELS.get(protocol, protocol).replace('\n', ' ')
             if protocol == 'Omega' and include_omega10:
                 label = 'Omega 5%'
             colour = colours[protocol]
@@ -173,7 +174,7 @@ def plot_bursts(points, paired_runs, ks, output, goodput_field):
                 ax.set_visible(False)
             if handles_by_label:
                 fig.legend(handles_by_label.values(), handles_by_label.keys(), loc='upper center',
-                           ncol=min(3, len(handles_by_label)), fontsize=8)
+                           ncol=min(4, len(handles_by_label)), fontsize=8)
             fig.supxlabel('Mean per-second Jain fairness')
             fig.supylabel(y_label)
             fig.tight_layout(rect=(.02, .02, 1, .90 if handles_by_label else 1))
@@ -255,7 +256,7 @@ def plot_run(config, output, series, *, burst_windows=((20, 40), (60, 80))):
 
         foreground.set_title('Foreground connections')
         background.set(title='Aggregate background traffic', xlabel='Time (s)', xlim=(0, edges[-1]))
-        label = HEATMAP_LABELS[protocol].replace('\n', ' ')
+        label = HEATMAP_LABELS.get(protocol, protocol).replace('\n', ' ')
         fig.suptitle(f'{label}, K={k}, run {run}')
         save_figure(fig, output / 'goodput')
         plt.close(fig)

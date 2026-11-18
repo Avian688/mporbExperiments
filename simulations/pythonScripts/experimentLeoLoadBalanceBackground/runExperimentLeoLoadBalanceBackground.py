@@ -25,6 +25,9 @@ DURATION = 100
 BURST_WINDOWS = backgroundRoutes.BURSTS
 BACKGROUND_FLOWS = 5
 BACKGROUND_MBPS = 60
+PROTOCOLS = {**leo.PROTOCOLS,
+             'OLIA': ('MpTcp', 'MpTcpOlia', 'OLIA'),
+             'BALIA': ('MpTcp', 'MpTcpBalia', 'BALIA')}
 FOREGROUND_PAIRS = tuple(
     dict(pair=role, source=sender, destination=receiver,
          source_city=f'New York {role}', destination_city=f'London {role}')
@@ -42,7 +45,7 @@ SINK_THREAD = '"tcpgoodputapplications.applications.tcpapp.TcpGoodputSinkAppThre
 
 def configurations(replay_start, experiment=EXPERIMENT, shared_budget=False):
     matrix = []
-    for config in leo.configurations(DURATION, replay_start, include_omega10=True):
+    for config in leo.configurations(DURATION, replay_start, protocols=PROTOCOLS):
         k = config['k']
         config.update(experiment=experiment, starts=config['starts'][:2],
                       ranks=[list(ranks) for ranks in RANKS[k]],
@@ -104,7 +107,7 @@ def background_lines():
 
 def traffic_lines(config):
     protocol, k = config['protocol'], config['k']
-    tcp, algorithm, _ = leo.PROTOCOLS[protocol]
+    tcp, algorithm, _ = PROTOCOLS[protocol]
     single = protocol == 'OrbSingle'
     name = config['config']
     entries = ['', f'[Config {name}]', 'extends = BackgroundTransport',
@@ -230,8 +233,8 @@ def main(argv=None, *, experiment=EXPERIMENT, shared_budget=False):
     parser.add_argument('--cores', type=int, default=int(os.environ.get('EXPERIMENT_CORES', '2')))
     parser.add_argument('--runs', type=int, choices=leo.RUNS, default=len(leo.RUNS))
     parser.add_argument('--ks', nargs='+', type=int, choices=leo.KS, default=leo.KS[1:])
-    parser.add_argument('--protocols', nargs='+', choices=tuple(leo.PROTOCOLS),
-                        default=[p for p in leo.DEFAULT_PROTOCOLS if p != 'OrbSingle'])
+    parser.add_argument('--protocols', nargs='+', choices=tuple(PROTOCOLS),
+                        default=[p for p in PROTOCOLS if p not in ('OrbSingle', leo.OMEGA_10)])
     parser.add_argument('--include-omega10', action='store_true')
     parser.add_argument('--route-store', type=Path)
     parser.add_argument('--replay-start', type=float, help='Original start time (default 0 s), aligned to 100 ms')

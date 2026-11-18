@@ -65,11 +65,13 @@ if len(PAIRS) != 5:
     raise ValueError('The shared route definitions must contain all five NY/UK pairs')
 
 
-def configurations(duration=DURATION, replay_start=0, *, include_omega10=False):
+def configurations(duration=DURATION, replay_start=0, *, include_omega10=False, protocols=None):
     if not math.isfinite(duration) or duration <= WARMUP + 2:
         raise ValueError('Duration must leave a measurement interval after the 10s warmup')
+    if protocols is None:
+        protocols = PROTOCOLS if replay_start or include_omega10 else DEFAULT_PROTOCOLS
     matrix = []
-    for protocol in (PROTOCOLS if replay_start or include_omega10 else DEFAULT_PROTOCOLS):
+    for protocol in protocols:
         for k in ((1,) if protocol == 'OrbSingle' else KS):
             for run in RUNS:
                 rng = random.Random(7999 + run)
