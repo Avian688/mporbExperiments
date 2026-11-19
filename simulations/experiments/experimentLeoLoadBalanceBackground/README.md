@@ -1,9 +1,11 @@
 # ExperimentLeoLoadBalanceBackground
 
 Two continuously backlogged foreground connections run between co-located New
-York and London user terminals, with independent 400 Mbps access links and
-100 Mbps core links. Both foreground connections run the controller under
-test. The third pair runs five concurrent single-path OrbCC background flows
+York and London user terminals, with independent 10 Gbps access links and
+100 Mbps core links. DropTail queues at both ends of the access links keep
+these links out of PINT bottleneck selection. Both foreground connections run
+the controller under test. The third pair runs five concurrent background connections with the same
+controller as the foreground, each configured with one data subflow. They run
 on A's private rank 1 during local 20–40 s and on B's private rank 3 during
 local 60–80 s. Each flow offers 60 Mbps and has its own TCP port pair. The five
 flows share the background pair's access links. The sender opens each session
@@ -37,7 +39,8 @@ use simulation seed 1. Omega with 10% shuffling is opt-in.
 ## Run
 
 Rebuild LeoSatellites and MPTCP and use the existing OMNeT++ environment and
-built experiment dependencies. Run these commands
+built experiment dependencies. The MPTCP update lets each background application
+socket own an independent meta connection. Run these commands
 from the folder containing `runExperimentLeoLoadBalanceBackground.py`.
 
 ```sh
@@ -47,7 +50,7 @@ python3 runExperimentLeoLoadBalanceBackground.py --cores 30
 # Run OLIA and BALIA and generate their individual plots.
 python3 runExperimentLeoLoadBalanceBackground.py --cores 30 --protocols OLIA BALIA --plots individual
 
-# Regenerate the aggregate figure once all controller CSVs are available.
+# Regenerate the aggregate figures once all controller CSVs are available.
 python3 runExperimentLeoLoadBalanceBackground.py --start-step 4 --skip-generate --plots fairness-efficiency
 
 # Pilot one run per controller at K=2.
@@ -86,12 +89,17 @@ The run-level goodput overview shows A and B alongside aggregate background
 goodput, with the burst windows shaded. Goodput-only runs can supply the
 overview. Rerun them with the updated recording settings for the full PDFs.
 
-`goodput_fairness.pdf` has a panel for each K. It plots mean per-second Jain
-fairness of the two foreground receivers against their aggregate application
-goodput in Mbps during the two burst intervals. Each controller has a mean
-marker and an ellipse when runs have nonzero spread.
-The summary and per-run CSVs also give both fairness measures for each burst
-and the whole measurement window (local 10–99 s), with measurement coverage.
+`goodput_fairness.pdf` plots mean per-second Jain fairness for A and B against
+their aggregate application goodput in Mbps during the two burst intervals.
+`goodput_ratio.pdf` uses the same layout and plots the mean per-second ratio
+of the lower goodput to the higher goodput. `goodput_r_fair.pdf` plots
+the mean per-second `1 − R_fair` using [Astraea Eq. (6)](https://home.cse.ust.hk/~kaichen/papers/astraea-eurosys24.pdf),
+where `R_fair` is the population standard deviation of A and B's goodputs
+divided by their sum. The CSVs record the mean per-second `R_fair` directly.
+Each figure has a panel for each K, with a mean marker and an ellipse when
+runs have nonzero spread.
+The summary and per-run CSVs include these metrics for each burst and the
+whole measurement window (local 10–99 s), with measurement coverage.
 Use `--include-omega10` to include the 10% variant and write to the separate
 `experimentLeoLoadBalanceBackgroundOmega10` plot folder.
 

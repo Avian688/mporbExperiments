@@ -49,7 +49,8 @@ def configurations(replay_start, experiment=EXPERIMENT, shared_budget=False):
         k = config['k']
         config.update(experiment=experiment, starts=config['starts'][:2],
                       ranks=[list(ranks) for ranks in RANKS[k]],
-                      terminal_mbps=400, background_ranks=[1, 3 if k > 1 else 1])
+                      terminal_mbps=10000, background_ranks=[1, 3 if k > 1 else 1],
+                      background_protocol=config['protocol'], background_subflows=1)
         if shared_budget and k > 1:
             config.update(shared_isl_budget_mbps=100)
         matrix.append(config)
@@ -75,16 +76,22 @@ def path_lines(pair, group, ranks):
     return entries
 
 
-def background_lines():
+def background_lines(config):
+    tcp, algorithm, _ = PROTOCOLS[config['background_protocol']]
+    single = config['background_protocol'] == 'OrbSingle'
     pair = backgroundRoutes.PAIRS[2]
     source, destination = pair
     senders, receivers = f'*.userTerminal[{source}]', f'*.userTerminal[{destination}]'
     sessions = len(BURST_WINDOWS) * BACKGROUND_FLOWS
     lines = []
     for terminal in (senders, receivers):
-        lines += [f'{terminal}.tcp.typename = "Orbtcp"',
-                  f'{terminal}.tcp.tcpAlgorithmClass = "OrbtcpPintFlavour"',
+        lines += [f'{terminal}.tcp.typename = "{tcp}"',
+                  f'{terminal}.tcp.tcpAlgorithmClass = "{algorithm}"',
                   f'{terminal}.numApps = {sessions}']
+        if not single:
+            lines += [f'{terminal}.tcp.independentAppConnections = true',
+                      f'{terminal}.tcp.**.numberOfSubflows = {config["background_subflows"]}',
+                      f'{terminal}.app[*].numberOfSubflows = {config["background_subflows"]}']
     # Each session has its own port tuple and uses the same saved route.
     period_ms = 20
     bytes_per_write = BACKGROUND_MBPS * 1000 * period_ms // 8
@@ -93,15 +100,17 @@ def background_lines():
                                     for tick in range(start * 1000, end * 1000, period_ms)))
         for flow in range(BACKGROUND_FLOWS):
             index = burst * BACKGROUND_FLOWS + flow
-            # Offset zero aliases slot one in the saved-rank map.
-            port_slot = index + 1
+            # Reserve distinct slots for each meta socket and its one data subflow.
+            port_slot = 2 * index + 1
             lines += leo.app_lines(f'{senders}.app[{index}]', dict(
-                typename='"TcpGoodputSessionApp"', localPort=4000 + port_slot,
+                typename='"TcpGoodputSessionApp"' if single else '"MpTcpSessionApp"',
+                localPort=4000 + port_slot,
                 connectAddress=f'"userTerminal[{destination}]"', connectPort=1000 + port_slot,
                 tOpen=f'{start - .5:g}s', tClose=f'{end}s', sendBytes='0B',
                 sendScript=script, abortAtClose='true'))
             lines += leo.app_lines(f'{receivers}.app[{index}]', dict(
-                typename='"TcpSinkApp"', localPort=1000 + port_slot, serverThreadModuleType=SINK_THREAD))
+                typename='"TcpSinkApp"' if single else '"MpTcpSinkApp"',
+                localPort=1000 + port_slot, serverThreadModuleType=SINK_THREAD))
     return lines
 
 
@@ -114,8 +123,9 @@ def traffic_lines(config):
                f'seed-set = {config["seed"]}', f'sim-time-limit = {DURATION}s',
                f'output-vector-file = "results/{name}-#0.vec"',
                f'output-scalar-file = "results/{name}-#0.sca"']
-    burst_ranks = [rank for rank in config['background_ranks'] for _ in range(BACKGROUND_FLOWS)]
+    burst_ranks = [rank for rank in config['background_ranks'] for _ in range(2 * BACKGROUND_FLOWS)]
     entries += path_lines(backgroundRoutes.PAIRS[2], 2, burst_ranks)
+    entries += background_lines(config)
     if 'shared_isl_budget_mbps' in config:
         common_ranks = sorted(set(config['ranks'][0]).intersection(config['ranks'][1]))
         ranks = ' '.join(map(str, common_ranks))
@@ -146,7 +156,7 @@ def traffic_lines(config):
         # Both the socket apps and the TCP module expose this parameter.
         entries += [f'**.numberOfSubflows = {k}']
     shuffle = leo.SHUFFLE_FRACTIONS.get(protocol)
-    for node in ('userTerminal', 'groundStation', 'satellite'):
+    for node in ('groundStation', 'satellite'):
         queue = f'*.{node}[*].ppp[*].queue'
         entries += [f'{queue}.typename = "{"MpOrbDeltaQueue" if shuffle else "PintQueue"}"']
         if shuffle:
@@ -161,8 +171,9 @@ def generate(matrix, store, replay_start):
     backgroundRoutes.write_topology(leo.topology_file(matrix[0]), replay_start + DURATION)
     lines = ['include topology.ini', '', '[Config BackgroundTransport]',
              *leo.replay_lines(store, root, matrix[0]), *leo.transport_parameters(),
-             *recording_lines(), *background_lines(), '*.userTerminal[*].numApps = 0',
-             f'*.channelConstructor.userTerminalDataRate = {matrix[0]["terminal_mbps"]}Mbps']
+             *recording_lines(), '*.userTerminal[*].numApps = 0',
+             f'*.channelConstructor.userTerminalDataRate = {matrix[0]["terminal_mbps"]}Mbps',
+             '*.channelConstructor.userTerminalDropTail = true']
     for config in matrix:
         lines.extend(traffic_lines(config))
     leo.ini_file(matrix[0]).write_text('\n'.join(lines) + '\n')

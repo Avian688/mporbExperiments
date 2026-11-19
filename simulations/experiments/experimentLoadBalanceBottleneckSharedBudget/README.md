@@ -1,7 +1,9 @@
 # ExperimentLoadBalanceBottleneckSharedBudget
 
-This variant uses the same traffic, 400 Mbps access links, and saved routes
+This variant uses the same traffic, 10 Gbps DropTail access links, and saved routes
 as [ExperimentLeoLoadBalanceBackground](../experimentLeoLoadBalanceBackground/README.md).
+Each background connection runs one data subflow of the selected foreground
+controller, including OLIA, BALIA, and the optional Omega10 variant.
 The shared ranks split a 100 Mbps budget equally. Their configured rates are
 100, 50, 33⅓, and 25 Mbps per rank for K=2, 3, 4, and 5 respectively. Private
 ranks keep their 100 Mbps core links.
