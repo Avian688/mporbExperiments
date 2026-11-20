@@ -356,30 +356,32 @@ def generate(duration=DURATION, store=DEFAULT_STORE, replay_start=0):
     return matrix
 
 
-def route_directories(store):
-    gs = len(SHARED.CITY_COORDINATES) + len(SHARED.load_ground_stations())
+def route_directories(store, *, definitions=SHARED):
+    gs = len(definitions.CITY_COORDINATES) + len(definitions.load_ground_stations())
     core = 1584 + gs
-    values = [len(SHARED.PAIR_DEFINITIONS)]
-    for _, _, _, a, b in SHARED.PAIR_DEFINITIONS:
+    values = [len(definitions.PAIR_DEFINITIONS)]
+    for _, _, _, a, b in definitions.PAIR_DEFINITIONS:
         values += [core + a, core + b]
     value_hash = 1469598103934665603
     for value in values:
         for byte in value.to_bytes(4, 'little'):
             value_hash = ((value_hash ^ byte) * 1099511628211) & ((1 << 64) - 1)
-    profile = f'v3-edge-disjoint-mincost-k{SHARED.PATH_COUNT}-rtt{SHARED.MAX_RTT_SPREAD_MS}ms-pairs-{value_hash:016x}'
+    profile = (f'v3-edge-disjoint-mincost-k{definitions.PATH_COUNT}'
+               f'-rtt{definitions.MAX_RTT_SPREAD_MS}ms-pairs-{value_hash:016x}')
     primary = Path(store).resolve() / f'1584_550_72_22_53_{gs}_ISL'
-    return primary, primary / 'kpaths' / SHARED.K_PATH_SNAPSHOT_SET / profile
+    return primary, primary / 'kpaths' / definitions.K_PATH_SNAPSHOT_SET / profile
 
 
 def capture_end(replay_start):
     return replay_start + .000002
 
 
-def check_routes(store, duration, *, primary_only=False):
+def check_routes(store, duration, *, primary_only=False, definitions=SHARED):
     expected = {0, *range(100001, math.ceil(duration * 1e6), 100000)}
     digest = hashlib.sha256()
-    core = 1584 + len(SHARED.CITY_COORDINATES) + len(SHARED.load_ground_stations())
-    for index, directory_path in enumerate(route_directories(store)):
+    primary_states = {}
+    core = 1584 + len(definitions.CITY_COORDINATES) + len(definitions.load_ground_stations())
+    for index, directory_path in enumerate(route_directories(store, definitions=definitions)):
         if primary_only and index:
             break
         present = {}
@@ -392,10 +394,12 @@ def check_routes(store, duration, *, primary_only=False):
                 present[micros] = path
         missing = expected - present.keys()
         if missing:
-            raise FileNotFoundError(f'{directory_path}: missing {len(missing)} route snapshots; '
-                f'first missing t={min(missing)/1e6:g}s. Generate shared routes with '
-                'leosatellites/simulations/pythonScripts/routingExamples/saveRoutes.py '
-                '--mode multiple --policies EdgeDisjoint --sim-time ' + str(duration))
+            detail = f'{directory_path}: missing {len(missing)} route snapshots; first missing t={min(missing)/1e6:g}s'
+            if definitions is SHARED:
+                detail += ('. Generate shared routes with '
+                           'leosatellites/simulations/pythonScripts/routingExamples/saveRoutes.py '
+                           f'--mode multiple --policies EdgeDisjoint --sim-time {duration}')
+            raise FileNotFoundError(detail)
         for micros in sorted(expected):
             path = present[micros]
             with path.open('rb') as f:
@@ -408,12 +412,16 @@ def check_routes(store, duration, *, primary_only=False):
             timestamp = struct.unpack_from('<q', header, 40 if index == 0 else 16)[0]
             if timestamp != micros:
                 raise ValueError(f'Route snapshot timestamp mismatch: {path}')
-            if index == 1:
+            if index == 0:
+                primary_states[micros] = words[4], words[18:20]
+            else:
                 spread = struct.unpack_from('<d', header, 44)[0]
-                if (words[6] != core or words[7] != core + len(SHARED.TERMINAL_DEFINITIONS) or
-                    words[8] != SHARED.PATH_COUNT or words[9] != 1 or words[10] != -1 or
-                    spread != SHARED.MAX_RTT_SPREAD_MS or words[16] != 2 or
-                    words[13] != len(SHARED.PAIR_DEFINITIONS)):
+                if (words[6] != core or words[7] != core + len(definitions.TERMINAL_DEFINITIONS) or
+                    words[8] != definitions.PATH_COUNT or words[9] != 1 or words[10] != -1 or
+                    spread != definitions.MAX_RTT_SPREAD_MS or words[16] != 2 or
+                    words[13] != len(definitions.PAIR_DEFINITIONS)):
                     raise ValueError(f'Wrong edge-disjoint route catalog: {path}')
+                if (words[3], words[17:19]) != primary_states[micros]:
+                    raise ValueError(f'K-path snapshot does not match the primary route state: {path}')
             digest.update(json.dumps([str(path), stat(path)]).encode())
     return digest.hexdigest()

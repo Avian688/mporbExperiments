@@ -26,7 +26,9 @@ PROJECTRELATIVE_PATH = src
 O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Object files for local .cc, .msg and .sm files
-OBJS = $O/visualizer/MpOrbLeoOsgVisualizer.o
+OBJS = $O/visualizer/MpOrbLeoOsgVisualizer.o \
+       $O/workload/WorkloadEndpoint.o \
+       $O/workload/WorkloadMetrics.o
 
 # Message files
 MSGFILES =
