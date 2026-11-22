@@ -126,7 +126,7 @@ void WorkloadEndpoint::readWorkload(const char *path)
         transfers.push_back({arrival + (sending ? SimTime::fromRaw(1) : SIMTIME_ZERO),
                              id, slot, size, client, sending});
         if (!sending)
-            metrics->registerFlow(id, size, arrival);
+            metrics->registerFlow(id, size, arrival, server, client);
     }
     if (!input.eof())
         throw cRuntimeError("Error reading workload '%s'", path);
@@ -206,6 +206,7 @@ void WorkloadEndpoint::socketEstablished(TcpSocket *socket)
     auto& session = sessions.at(socket->getSocketId());
     if (!session.sending || session.payloadSent)
         return;
+    metrics->connectionEstablished(session.flowId);
     // Stock single-path OrbCC sends full segments. Include the padding in its FIN sequence.
     auto wireBytes = session.bytes;
     if (paddingMss > 0)
@@ -256,7 +257,9 @@ void WorkloadEndpoint::socketClosed(TcpSocket *socket)
 
 void WorkloadEndpoint::socketFailure(TcpSocket *socket, int)
 {
-    sessions.at(socket->getSocketId()).finished = true;
+    auto& session = sessions.at(socket->getSocketId());
+    metrics->socketFailed(session.flowId);
+    session.finished = true;
 }
 
 void WorkloadEndpoint::socketStatusArrived(TcpSocket *, TcpStatusInfo *status)

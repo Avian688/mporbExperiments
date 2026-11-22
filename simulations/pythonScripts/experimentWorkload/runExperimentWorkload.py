@@ -2,19 +2,25 @@
 """Run the web-search workload on saved LEO routes and retain aggregate JSON only."""
 
 import argparse
+from collections import deque
 from contextlib import ExitStack
 import csv
+from dataclasses import dataclass
 import hashlib
 import json
 import math
+import os
 from pathlib import Path
+import re
 import signal
+import subprocess
 import sys
 import tempfile
+import time
 
 import saveWorkloadRoutes as routes
 from saveWorkloadRoutes import leo, runner
-from runExperiments import ACTIVE, LOCK, STOP, logged, parallel, terminate
+from runExperiments import STOP, terminate
 from webSearchWorkload import DEFAULT_OFFERED_MBPS, DEFAULT_WORKLOAD_SEED, MEAN_FLOW_BYTES, generate_flows
 from workloadTopology import DURATION, PAIRS, PATH_COUNT, TERMINALS, routing_definitions
 
@@ -37,6 +43,17 @@ PORT_STRIDE = PATH_COUNT + 1  # One meta port followed by the subflow ports.
 LIBRARY = leo.PROJECT_DIR / 'src/mporbExperiments'
 CDF_SOURCE = 'https://github.com/ht-gong/UCMP/blob/master/traffic/websearch.csv'
 INI = 'web-search.ini'
+MEMORY_RESERVE = 10_000_000_000
+MEMORY_CHECK_SECONDS = 30
+MEMORY_WORKER_STEP = 5
+
+
+@dataclass
+class RunningCase:
+    job: tuple
+    process: subprocess.Popen
+    log: Path
+    deadline: float
 
 
 def arrival_window(duration):
@@ -153,28 +170,137 @@ def command(config):
     return [*args, '-l', str(LIBRARY)]
 
 
-def run_case(job):
-    root, config, protocol, k, workload, timeout = job
+def available_memory():
+    if sys.platform == 'darwin':
+        stats = subprocess.check_output(['/usr/bin/vm_stat'], text=True, timeout=3)
+        page_size = re.search(r'page size of (\d+) bytes', stats)
+        counts = dict(re.findall(r'^(Pages free|Pages purgeable|File-backed pages):\s+(\d+)', stats, re.M))
+        if page_size and len(counts) == 3:
+            # Approximate XNU's readily reclaimable pages, excluding compressed memory.
+            return int(page_size[1]) * sum(int(count) for count in counts.values())
+    elif sys.platform.startswith('linux'):
+        with open('/proc/meminfo', encoding='ascii') as stats:
+            for line in stats:
+                if line.startswith('MemAvailable:'):
+                    return int(line.split()[1]) * 1024
+    raise ValueError('Available RAM statistics are missing')
+
+
+def start_case(job):
+    root, config, _, _, workload, timeout = job
     folder = scenario_folder(workload['duration_s'], workload['offered_mbps'])
     log = LOGS / folder / f'{config}.log'
-    if not logged(command(config), root, log, timeout):
+    # A killed attempt may leave an unpublished result in the private staging directory.
+    for suffix in ('.json', '.json.tmp'):
+        (root / f'{config}{suffix}').unlink(missing_ok=True)
+    argv = command(config)
+    log.parent.mkdir(parents=True, exist_ok=True)
+    with log.open('w', encoding='utf-8') as output:
+        output.write(json.dumps(argv) + '\n')
+        output.flush()
+        process = subprocess.Popen(argv, cwd=root, stdout=output, stderr=subprocess.STDOUT, start_new_session=True)
+    return RunningCase(job, process, log, time.monotonic() + timeout)
+
+
+def finish_case(case):
+    root, config, protocol, k, workload, _ = case.job
+    log = case.log
+    with log.open('a', encoding='utf-8') as output:
+        output.write(f'\nExit code: {case.process.returncode}\n')
+    if case.process.returncode != 0:
         raise RuntimeError(f'{config} failed; inspect {log}')
     staged = root / f'{config}.json'
     with staged.open(encoding='utf-8') as handle:
         result = json.load(handle)
     if result.get('schema_version') != 1:
         raise ValueError(f'{config} did not produce supported aggregate metrics; inspect {log}')
+    if not {'endpoint_pairs', 'transport_recovery', 'link_pressure'}.issubset(result):
+        raise ValueError(f'{config} produced outdated workload metrics; rebuild {LIBRARY.parent.parent}')
     if (result.get('offered_flows') != workload['scheduled_flows'] or
             result.get('offered_bytes') != workload['scheduled_bytes']):
         raise ValueError(f'{config} did not register every scheduled transfer; inspect {log}')
     result['case'] = {'controller': protocol, 'requested_subflows': k, 'workload': workload}
     staged.write_text(json.dumps(result, separators=(',', ':'), allow_nan=False) + '\n', encoding='utf-8')
-    destination = RESULTS / folder / staged.name
+    destination = RESULTS / scenario_folder(workload['duration_s'], workload['offered_mbps']) / staged.name
     destination.parent.mkdir(parents=True, exist_ok=True)
     staged.replace(destination)
     log.unlink(missing_ok=True)
     print(f'Saved {destination}', flush=True)
-    return config
+
+
+def run_cases(jobs, cores):
+    pending = deque(jobs)
+    running = []
+    limit = min(cores, len(jobs))
+    completed = 0
+    next_memory_check = time.monotonic()
+    warned = False
+
+    def finish(case):
+        nonlocal completed
+        running.remove(case)
+        finish_case(case)
+        completed += 1
+        print(f'Simulations: {completed}/{len(jobs)}', flush=True)
+
+    try:
+        while pending or running:
+            if STOP.is_set():
+                raise KeyboardInterrupt
+            now = time.monotonic()
+            for case in running[:]:
+                if case.process.poll() is not None:
+                    finish(case)
+                elif now >= case.deadline:
+                    terminate(case.process)
+                    with case.log.open('a', encoding='utf-8') as output:
+                        output.write('\nTIMEOUT\n')
+                    raise RuntimeError(f'{case.job[1]} timed out; inspect {case.log}')
+
+            if now >= next_memory_check and (pending or running):
+                next_memory_check = now + MEMORY_CHECK_SECONDS
+                try:
+                    available = available_memory()
+                except (OSError, ValueError, subprocess.SubprocessError) as error:
+                    if not warned:
+                        print(f'Unable to check available RAM: {error}. Will retry in 30 seconds.',
+                              file=sys.stderr, flush=True)
+                    warned = True
+                else:
+                    warned = False
+                    if available <= MEMORY_RESERVE and limit > 1:
+                        previous = min(limit, len(running) or len(pending))
+                        limit = max(1, previous - MEMORY_WORKER_STEP)
+                        print(f'RAM headroom {available / 1e9:.1f} GB. Reducing workers {previous} to {limit}.',
+                              flush=True)
+                        victims = running[limit:]
+                        killed = set()
+                        for case in victims:
+                            if case.process.poll() is None:
+                                try:
+                                    # Reclaim RAM immediately and avoid producing a partial result in finish().
+                                    os.killpg(case.process.pid, signal.SIGKILL)
+                                    killed.add(case.process.pid)
+                                except ProcessLookupError:
+                                    pass
+                        for case in victims:
+                            status = case.process.wait()
+                            if status == -signal.SIGKILL and case.process.pid in killed:
+                                running.remove(case)
+                                pending.append(case.job)
+                                print(f'Requeued {case.job[1]} after memory cancellation.', flush=True)
+                            else:
+                                finish(case)
+
+            while pending and len(running) < limit and not STOP.is_set():
+                running.append(start_case(pending.popleft()))
+            if running:
+                time.sleep(min(1, max(0, next_memory_check - time.monotonic())))
+        if STOP.is_set():
+            raise KeyboardInterrupt
+    finally:
+        for case in running:
+            terminate(case.process)
 
 
 def main(argv=None):
@@ -182,7 +308,7 @@ def main(argv=None):
     parser.add_argument('--sim-time', type=float, default=DURATION, help='Simulation duration in seconds (default: 600)')
     parser.add_argument('--route-store', type=Path, default=routes.STORE, help='Store prepared by saveWorkloadRoutes.py')
     parser.add_argument('--offered-mbps', type=float, default=DEFAULT_OFFERED_MBPS,
-                        help='Expected application payload offered per second in Mbps (default: 470)')
+                        help='Expected application payload offered per second in Mbps (default: %(default)s)')
     parser.add_argument('--workload-seed', nargs='+', type=int, default=DEFAULT_WORKLOAD_SEEDS,
                         help='One or more workload seeds, each shared across controllers and K (default: 1–5)')
     parser.add_argument('--protocols', nargs='+', choices=tuple(PROTOCOLS), default=tuple(PROTOCOLS),
@@ -238,22 +364,18 @@ def main(argv=None):
             write_schedule(schedule, flows, slots)
             write_config(root, store, args.sim_time, max_offset, cases, seed)
             workload = dict(profile='web-search', cdf_source=CDF_SOURCE, cdf_mean_bytes=MEAN_FLOW_BYTES,
+                            terminals=[name for name, _, _ in TERMINALS],
                             offered_mbps=args.offered_mbps, seed=seed, arrival_start_s=start,
                             arrival_end_s=end, duration_s=args.sim_time, scheduled_flows=len(flows),
                             scheduled_bytes=payload_bytes, schedule_sha256=hashlib.sha256(schedule.read_bytes()).hexdigest())
             jobs.extend((root, case_name(protocol, k, seed), protocol, k, workload, args.sim_timeout_seconds)
                         for protocol, k in cases)
         if jobs:
-            parallel(run_case, jobs, args.cores)
+            run_cases(jobs, args.cores)
 
 
 def stop(signum, _frame):
     STOP.set()
-    with LOCK:
-        processes = tuple(ACTIVE)
-    for process in processes:
-        terminate(process)
-    raise KeyboardInterrupt
 
 
 if __name__ == '__main__':

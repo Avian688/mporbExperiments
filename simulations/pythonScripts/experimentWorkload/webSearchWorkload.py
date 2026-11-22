@@ -15,7 +15,7 @@ from typing import NamedTuple
 from workloadTopology import PAIRS
 
 
-DEFAULT_OFFERED_MBPS = 470
+DEFAULT_OFFERED_MBPS = 640
 DEFAULT_WORKLOAD_SEED = 1
 
 
