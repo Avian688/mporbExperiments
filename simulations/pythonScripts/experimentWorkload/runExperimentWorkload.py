@@ -316,8 +316,8 @@ def main(argv=None):
     parser.add_argument('--ks', nargs='+', type=int, choices=SUBFLOW_COUNTS, default=SUBFLOW_COUNTS,
                         help='Requested subflow counts for multipath controllers (default: 1–5)')
     parser.add_argument('--cores', type=int, default=1, help='Maximum simultaneous simulations')
-    parser.add_argument('--sim-timeout-seconds', type=float, default=12 * 3600,
-                        help='Wall-clock limit per traffic simulation (default: 12 hours)')
+    parser.add_argument('--sim-timeout-seconds', type=float, default=16 * 3600,
+                        help='Wall-clock limit per traffic simulation (default: 16 hours)')
     parser.add_argument('--dry-run', action='store_true', help='Generate the workload in memory and print the run scope')
     args = parser.parse_args(argv)
     if not math.isfinite(args.sim_time) or args.sim_time <= 3:
