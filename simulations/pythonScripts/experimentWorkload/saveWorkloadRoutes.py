@@ -19,19 +19,20 @@ import leo
 import runExperimentLeo as runner
 from runExperiments import logged
 
-from workloadTopology import DURATION, PAIRS, PATH_COUNT, TERMINALS, routing_definitions, write_topology
+from workloadTopology import (
+    DEFAULT_LAYOUT, DURATION, LAYOUT_NAMES, PAIRS, PATH_COUNT, get_layout,
+    routing_definitions, write_topology,
+)
 
 
-STORE = leo.SIM_DIR / 'experiments/experimentWorkload/results/routes'
-LOG = leo.SIM_DIR / 'logs/experimentWorkload/save-routes.log'
 INI = 'save-routes.ini'
 RECONNECT_MANIFEST = 'reconnect-snapshots.json'
 GENERATE = 'GenerateWorkloadRoutes'
 REUSE_PRIMARY = 'GenerateWorkloadKPaths'
 
 
-def write_inputs(store, duration):
-    write_topology(store / 'topology.ini', duration)
+def write_inputs(store, duration, layout):
+    write_topology(store / 'topology.ini', duration, layout)
     (store / INI).write_text('''include topology.ini
 
 [Config GenerateWorkloadRoutes]
@@ -65,10 +66,10 @@ def compatible_primary(store, duration, definitions):
     return leo.route_directories(store, definitions=definitions)[0]
 
 
-def find_primary(args, definitions, same_topology):
+def find_primary(args, definitions, target_store, same_topology):
     if args.primary_store is not None:
         return compatible_primary(args.primary_store, args.sim_time, definitions)
-    for store in ((STORE, leo.DEFAULT_STORE) if same_topology else (leo.DEFAULT_STORE,)):
+    for store in ((target_store, leo.DEFAULT_STORE) if same_topology else (leo.DEFAULT_STORE,)):
         try:
             return compatible_primary(store, args.sim_time, definitions)
         except (FileNotFoundError, ValueError) as error:
@@ -76,8 +77,9 @@ def find_primary(args, definitions, same_topology):
     return None
 
 
-def stage_primary(source, target, duration):
+def stage_primary(source, target, duration, target_store):
     target.mkdir()
+    target_store = target_store.resolve()
     names = ['0.bin', *(f'{tick / 1_000_000:.6f}.bin'
               for tick in range(100001, math.ceil(duration * 1_000_000), 100000))]
     symlinks = 0
@@ -86,7 +88,7 @@ def stage_primary(source, target, duration):
         try:
             (target / name).hardlink_to(item)
         except OSError as error:
-            if error.errno not in (errno.EXDEV, errno.EACCES, errno.EPERM) or item.is_relative_to(STORE.resolve()):
+            if error.errno not in (errno.EXDEV, errno.EACCES, errno.EPERM) or item.is_relative_to(target_store):
                 raise
             (target / name).symlink_to(item)
             symlinks += 1
@@ -125,49 +127,53 @@ def publish(stage, target):
         raise
 
 
-def save_routes(args, definitions):
-    STORE.parent.mkdir(parents=True, exist_ok=True)
-    with (STORE.parent / '.save-routes.lock').open('a') as lock:
+def save_routes(args, layout, definitions):
+    store = layout.store
+    log = layout.logs / 'save-routes.log'
+    store.parent.mkdir(parents=True, exist_ok=True)
+    with (store.parent / '.save-routes.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        with tempfile.TemporaryDirectory(prefix='.workload-routes-', dir=STORE.parent) as temporary:
+        with tempfile.TemporaryDirectory(prefix='.workload-routes-', dir=store.parent) as temporary:
             stage = Path(temporary) / 'routes'
-            write_inputs(stage, args.sim_time)
-            previous_topology = STORE / 'topology.ini'
+            write_inputs(stage, args.sim_time, layout)
+            previous_topology = store / 'topology.ini'
             same_topology = previous_topology.is_file() and (
                 topology_identity(previous_topology) == topology_identity(stage / 'topology.ini'))
             if same_topology and not args.rerun and args.primary_store is None:
                 try:
-                    check_workload_routes(STORE, args.sim_time, definitions)
+                    check_workload_routes(store, args.sim_time, definitions)
                 except (FileNotFoundError, ValueError):
                     pass
                 else:
-                    print(f'Reuse complete workload routes: {STORE}', flush=True)
+                    print(f'Reuse complete workload routes: {store}', flush=True)
                     return
 
-            primary = find_primary(args, definitions, same_topology)
+            primary = find_primary(args, definitions, store, same_topology)
             config = GENERATE
             if primary is not None:
                 target = leo.route_directories(stage, definitions=definitions)[0]
-                stage_primary(primary, target, args.sim_time)
+                stage_primary(primary, target, args.sim_time, store)
                 print(f'Reuse primary routes: {primary}', flush=True)
                 config = REUSE_PRIMARY
 
-            print(f'{config}: {args.sim_time:g}s, {len(PAIRS)} pairs, up to {PATH_COUNT} edge-disjoint paths per pair',
-                  flush=True)
-            if not logged(command(config), stage, LOG, args.sim_timeout_seconds):
-                raise RuntimeError(f'Workload route generation failed; inspect {LOG}')
+            print(f'{config} ({layout.name}): {args.sim_time:g}s, {len(PAIRS)} pairs, '
+                  f'up to {PATH_COUNT} edge-disjoint paths per pair', flush=True)
+            if not logged(command(config), stage, log, args.sim_timeout_seconds):
+                raise RuntimeError(f'Workload route generation failed; inspect {log}')
             leo.check_routes(stage, args.sim_time, definitions=definitions)
             _, catalog = leo.route_directories(stage, definitions=definitions)
             (catalog / RECONNECT_MANIFEST).write_text(json.dumps(reconnect_files(catalog), indent=2) + '\n',
                                                        encoding='utf-8')
-            publish(stage, STORE)
+            publish(stage, store)
 
-    _, catalog = leo.route_directories(STORE, definitions=definitions)
+    _, catalog = leo.route_directories(store, definitions=definitions)
     print(f'Saved workload routes: {catalog}', flush=True)
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--layout', choices=LAYOUT_NAMES, default=DEFAULT_LAYOUT,
+                        help='Terminal layout (default: %(default)s)')
     parser.add_argument('--sim-time', type=float, default=DURATION, help='Route coverage in seconds (default: 600)')
     parser.add_argument('--primary-store', type=Path, help='Reuse a compatible primary route store covering the full duration')
     parser.add_argument('--sim-timeout-seconds', type=float, default=72 * 3600,
@@ -182,17 +188,19 @@ def main(argv=None):
     if not math.isfinite(args.sim_timeout_seconds) or args.sim_timeout_seconds <= 0:
         parser.error('--sim-timeout-seconds must be finite and positive')
 
-    definitions = routing_definitions()
-    _, catalog = leo.route_directories(STORE, definitions=definitions)
+    layout = get_layout(args.layout)
+    definitions = routing_definitions(layout)
+    _, catalog = leo.route_directories(layout.store, definitions=definitions)
     if args.dry_run:
-        print(f'{len(TERMINALS)} terminals, {len(PAIRS)} pairs, up to {PATH_COUNT} edge-disjoint paths per pair')
+        print(f'{layout.name}: {len(layout.terminals)} terminals, {len(PAIRS)} pairs, '
+              f'up to {PATH_COUNT} edge-disjoint paths per pair')
         print(f'Save {args.sim_time:g}s of routes to {catalog}')
         print('One route-only simulation if needed. Apps and recording disabled.')
     elif args.check_routes:
-        check_workload_routes(STORE, args.sim_time, definitions)
+        check_workload_routes(layout.store, args.sim_time, definitions)
         print(f'Workload route headers, time coverage, and reconnect files verified for {args.sim_time:g}s: {catalog}')
     else:
-        save_routes(args, definitions)
+        save_routes(args, layout, definitions)
 
 
 if __name__ == '__main__':

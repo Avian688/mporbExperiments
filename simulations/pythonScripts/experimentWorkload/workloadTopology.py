@@ -1,6 +1,7 @@
-"""Define the approved US–Europe workload endpoints and their routing topology."""
+"""Define workload terminal layouts over a common matrix of endpoint slots."""
 
 import contextlib
+from dataclasses import dataclass
 import io
 from pathlib import Path
 import tempfile
@@ -8,14 +9,14 @@ import tempfile
 import leo
 
 
-SNAPSHOT_SET = "LeoWorkload"
 PATH_COUNT = 5
 DURATION = 600
+DEFAULT_LAYOUT = "eastbound"
 
 # GeoNames city centers (latitude, longitude) from the approved terminal map.
 # Keep servers first and the order stable so the server-to-client groups keep
 # their snapshot indices.
-TERMINALS = (
+LEGACY_TERMINALS = (
     ("Boston", 42.3584, -71.0598),
     ("New York", 40.7143, -74.006),
     ("Philadelphia", 39.9524, -75.1636),
@@ -62,30 +63,94 @@ CLIENT_SERVER_GROUPS = (
     (("Rotterdam", "Brussels", "Hamburg"), ("Amsterdam", "Ashburn", "Boston")),
     (("Lille", "Rouen", "Rennes"), ("Paris", "Philadelphia", "New York")),
 )
-TERMINAL_IDS = {name: index for index, (name, _, _) in enumerate(TERMINALS)}
+LEGACY_TERMINAL_IDS = {name: index for index, (name, _, _) in enumerate(LEGACY_TERMINALS)}
+TERMINAL_COUNT = len(LEGACY_TERMINALS)
+# Use the legacy name groups to define numeric pairs once, so both layouts
+# draw the same endpoint slots in the same order for each workload seed.
 PAIRS = tuple(sorted(
-    (TERMINAL_IDS[server], TERMINAL_IDS[client])
+    (LEGACY_TERMINAL_IDS[server], LEGACY_TERMINAL_IDS[client])
     for clients, servers in CLIENT_SERVER_GROUPS
     for client in clients
     for server in servers
 ))
 
+SITES = {site[0]: site for site in LEGACY_TERMINALS}
+EASTBOUND_TERMINALS = (
+    *LEGACY_TERMINALS[:4],
+    SITES["Providence"],
+    SITES["Newark"],
+    SITES["Wilmington (Delaware)"],
+    SITES["Baltimore"],
+    SITES["London"],
+    ("Cardiff", 51.482619, -3.167598),
+    ("Southampton", 50.900031, -1.399977),
+    SITES["Dublin"],
+    ("Glasgow", 55.862270, -4.239101),
+    ("Liverpool", 53.405068, -2.961934),
+    SITES["Amsterdam"],
+    ("Antwerp", 51.222319, 4.413071),
+    ("Leeds", 53.790017, -1.551348),
+    SITES["Paris"],
+    ("Caen", 49.183754, -0.349989),
+    ("Nantes", 47.210386, -1.590017),
+    *LEGACY_TERMINALS[20:],
+)
 
-def routing_definitions():
+
+@dataclass(frozen=True)
+class Layout:
+    name: str
+    terminals: tuple[tuple[str, float, float], ...]
+    snapshot_set: str
+
+    def _directory(self, category):
+        root = leo.SIM_DIR / category / "experimentWorkload"
+        return root if self.name == "legacy" else root / self.name
+
+    @property
+    def store(self):
+        return self._directory("experiments") / "results/routes"
+
+    @property
+    def results(self):
+        return self.store.parent / "web-search"
+
+    @property
+    def logs(self):
+        return self._directory("logs")
+
+    @property
+    def plots(self):
+        return self._directory("plots")
+
+
+LAYOUTS = {
+    "legacy": Layout("legacy", LEGACY_TERMINALS, "LeoWorkload"),
+    "eastbound": Layout("eastbound", EASTBOUND_TERMINALS, "LeoWorkloadEastbound"),
+}
+LAYOUT_NAMES = tuple(LAYOUTS)
+
+
+def get_layout(name=DEFAULT_LAYOUT):
+    return LAYOUTS[name]
+
+
+def routing_definitions(layout):
     generator = leo.shared_definitions()
-    generator.TERMINAL_DEFINITIONS = TERMINALS
+    terminals = layout.terminals
+    generator.TERMINAL_DEFINITIONS = terminals
     generator.PAIR_DEFINITIONS = tuple(
-        (f"{TERMINALS[source][0]} to {TERMINALS[destination][0]}",
-         TERMINALS[source][0], TERMINALS[destination][0], source, destination)
+        (f"{terminals[source][0]} to {terminals[destination][0]}",
+         terminals[source][0], terminals[destination][0], source, destination)
         for source, destination in PAIRS
     )
-    generator.K_PATH_SNAPSHOT_SET = SNAPSHOT_SET
+    generator.K_PATH_SNAPSHOT_SET = layout.snapshot_set
     generator.PATH_COUNT = PATH_COUNT
     return generator
 
 
-def write_topology(target: Path, duration: float):
-    generator = routing_definitions()
+def write_topology(target: Path, duration: float, layout: Layout):
+    generator = routing_definitions(layout)
     with tempfile.TemporaryDirectory(prefix="leo-workload-topology-") as temporary:
         generator.EXPERIMENT_DIR = Path(temporary)
         generator.INI_FILE = generator.EXPERIMENT_DIR / "routing.ini"

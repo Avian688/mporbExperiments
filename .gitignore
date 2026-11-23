@@ -6,6 +6,7 @@ out/
 __pycache__/
 .DS_Store
 simulations/experiments/*/results/
+simulations/experiments/experimentWorkload/eastbound/results/
 simulations/experiments/*/csvs/
 simulations/experiments/experimentLeo/matrix.json
 simulations/experiments/experimentLeoLoadBalance/*.ini

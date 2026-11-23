@@ -302,3 +302,25 @@ export, extraction, summary plots, and all 22 individual metric figures. Their
 raw vectors contain only the requested metrics; queue vectors come only from
 bottleneck queues. These bounded runs are not full-duration controller comparisons.
 The complete 1,250-run matrix has not been executed.
+
+## ExperimentWorkload
+
+The 640 Mb/s web-search experiment defaults to the `eastbound` layout. Eight
+US East Coast servers send downloads to 24 UK and Western European clients
+over the same 72 slot pairs used by the `legacy` layout. For a given workload
+seed, both layouts use the same arrivals, download sizes, and pair slots.
+
+From `simulations/pythonScripts/experimentWorkload`:
+
+```bash
+python3 saveWorkloadRoutes.py
+python3 runExperimentWorkload.py --cores 25
+python3 plotExperimentWorkload.py
+```
+
+The route saver generates one 600 s EdgeDisjoint catalog with up to five
+core path ranks per pair per snapshot. Each K uses the first K ranks, and
+single-path OrbCC uses rank 1. Eastbound routes and aggregate JSONs live under
+`simulations/experiments/experimentWorkload/eastbound/results/`. Plots go under
+`simulations/plots/experimentWorkload/eastbound/`. Pass `--layout legacy` to
+any of the three scripts to use the original layout and its existing paths.

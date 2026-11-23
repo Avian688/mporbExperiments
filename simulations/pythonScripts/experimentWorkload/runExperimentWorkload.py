@@ -22,11 +22,11 @@ import saveWorkloadRoutes as routes
 from saveWorkloadRoutes import leo, runner
 from runExperiments import STOP, terminate
 from webSearchWorkload import DEFAULT_OFFERED_MBPS, DEFAULT_WORKLOAD_SEED, MEAN_FLOW_BYTES, generate_flows
-from workloadTopology import DURATION, PAIRS, PATH_COUNT, TERMINALS, routing_definitions
+from workloadTopology import (
+    DEFAULT_LAYOUT, DURATION, LAYOUT_NAMES, PAIRS, PATH_COUNT, TERMINAL_COUNT, get_layout, routing_definitions,
+)
 
 
-RESULTS = routes.STORE.parent / 'web-search'
-LOGS = leo.SIM_DIR / 'logs/experimentWorkload/web-search'
 PROTOCOLS = {
     'Omega': leo.PROTOCOLS['Omega'],
     'CubicUncoupled': leo.PROTOCOLS['CubicUncoupled'],
@@ -63,7 +63,7 @@ def arrival_window(duration):
 
 
 def port_slots(flows):
-    occupied = [0] * len(TERMINALS)
+    occupied = [0] * TERMINAL_COUNT
     slots = []
     for flow in flows:
         in_use = occupied[flow.server] | occupied[flow.client]
@@ -121,7 +121,7 @@ def shared_config(store, duration, max_offset):
         f'{ip}.kPathTcpRankMap = "{ranks}"',
         *[line for line in leo.transport_parameters() if '.kPathTcp' not in line],
     ]
-    by_terminal = [[] for _ in TERMINALS]
+    by_terminal = [[] for _ in range(TERMINAL_COUNT)]
     for group, (server, client) in enumerate(PAIRS):
         by_terminal[server].append(str(group))
         by_terminal[client].append(str(group))
@@ -186,10 +186,10 @@ def available_memory():
     raise ValueError('Available RAM statistics are missing')
 
 
-def start_case(job):
+def start_case(job, layout):
     root, config, _, _, workload, timeout = job
     folder = scenario_folder(workload['duration_s'], workload['offered_mbps'])
-    log = LOGS / folder / f'{config}.log'
+    log = layout.logs / 'web-search' / folder / f'{config}.log'
     # A killed attempt may leave an unpublished result in the private staging directory.
     for suffix in ('.json', '.json.tmp'):
         (root / f'{config}{suffix}').unlink(missing_ok=True)
@@ -202,7 +202,7 @@ def start_case(job):
     return RunningCase(job, process, log, time.monotonic() + timeout)
 
 
-def finish_case(case):
+def finish_case(case, layout):
     root, config, protocol, k, workload, _ = case.job
     log = case.log
     with log.open('a', encoding='utf-8') as output:
@@ -221,14 +221,14 @@ def finish_case(case):
         raise ValueError(f'{config} did not register every scheduled transfer; inspect {log}')
     result['case'] = {'controller': protocol, 'requested_subflows': k, 'workload': workload}
     staged.write_text(json.dumps(result, separators=(',', ':'), allow_nan=False) + '\n', encoding='utf-8')
-    destination = RESULTS / scenario_folder(workload['duration_s'], workload['offered_mbps']) / staged.name
+    destination = layout.results / scenario_folder(workload['duration_s'], workload['offered_mbps']) / staged.name
     destination.parent.mkdir(parents=True, exist_ok=True)
     staged.replace(destination)
     log.unlink(missing_ok=True)
     print(f'Saved {destination}', flush=True)
 
 
-def run_cases(jobs, cores):
+def run_cases(jobs, cores, layout):
     pending = deque(jobs)
     running = []
     limit = min(cores, len(jobs))
@@ -239,7 +239,7 @@ def run_cases(jobs, cores):
     def finish(case):
         nonlocal completed
         running.remove(case)
-        finish_case(case)
+        finish_case(case, layout)
         completed += 1
         print(f'Simulations: {completed}/{len(jobs)}', flush=True)
 
@@ -293,7 +293,7 @@ def run_cases(jobs, cores):
                                 finish(case)
 
             while pending and len(running) < limit and not STOP.is_set():
-                running.append(start_case(pending.popleft()))
+                running.append(start_case(pending.popleft(), layout))
             if running:
                 time.sleep(min(1, max(0, next_memory_check - time.monotonic())))
         if STOP.is_set():
@@ -305,8 +305,10 @@ def run_cases(jobs, cores):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--layout', choices=LAYOUT_NAMES, default=DEFAULT_LAYOUT,
+                        help='Terminal layout (default: %(default)s)')
     parser.add_argument('--sim-time', type=float, default=DURATION, help='Simulation duration in seconds (default: 600)')
-    parser.add_argument('--route-store', type=Path, default=routes.STORE, help='Store prepared by saveWorkloadRoutes.py')
+    parser.add_argument('--route-store', type=Path, help='Override the selected layout’s saved route store')
     parser.add_argument('--offered-mbps', type=float, default=DEFAULT_OFFERED_MBPS,
                         help='Expected application payload offered per second in Mbps (default: %(default)s)')
     parser.add_argument('--workload-seed', nargs='+', type=int, default=DEFAULT_WORKLOAD_SEEDS,
@@ -328,18 +330,19 @@ def main(argv=None):
     if any(seed < 0 for seed in seeds):
         parser.error('--workload-seed values must be nonnegative')
 
-    store = args.route_store.resolve()
+    layout = get_layout(args.layout)
+    store = (args.route_store or layout.store).resolve()
     cases = list(dict.fromkeys((protocol, k) for protocol in args.protocols
                               for k in ([1] if protocol == 'OrbSingle' else args.ks)))
-    print(f'Web search: {len(cases) * len(seeds)} runs '
+    print(f'Web search ({layout.name}): {len(cases) * len(seeds)} runs '
           f'({len(cases)} configurations × {len(seeds)} workload seeds)', flush=True)
     if args.dry_run:
-        print(f'Saved routes: {store}\nAggregate results: {RESULTS / scenario_folder(args.sim_time, args.offered_mbps)}')
+        print(f'Saved routes: {store}\nAggregate results: {layout.results / scenario_folder(args.sim_time, args.offered_mbps)}')
     else:
-        routes.check_workload_routes(store, args.sim_time, routing_definitions())
+        routes.check_workload_routes(store, args.sim_time, routing_definitions(layout))
         if not any(LIBRARY.with_name(f'lib{LIBRARY.name}{suffix}').is_file() for suffix in ('.so', '.dylib')):
             raise FileNotFoundError(f'Build the release library for {leo.PROJECT_DIR} before running this workload')
-        RESULTS.mkdir(parents=True, exist_ok=True)
+        layout.results.mkdir(parents=True, exist_ok=True)
 
     start, end = arrival_window(args.sim_time)
     with ExitStack() as batches:
@@ -359,19 +362,19 @@ def main(argv=None):
                 continue
 
             root = Path(batches.enter_context(tempfile.TemporaryDirectory(
-                prefix=f'.web-search-seed{seed}-', dir=RESULTS)))
+                prefix=f'.web-search-seed{seed}-', dir=layout.results)))
             schedule = root / 'arrivals.csv'
             write_schedule(schedule, flows, slots)
             write_config(root, store, args.sim_time, max_offset, cases, seed)
-            workload = dict(profile='web-search', cdf_source=CDF_SOURCE, cdf_mean_bytes=MEAN_FLOW_BYTES,
-                            terminals=[name for name, _, _ in TERMINALS],
+            workload = dict(profile='web-search', layout=layout.name, cdf_source=CDF_SOURCE, cdf_mean_bytes=MEAN_FLOW_BYTES,
+                            terminals=[name for name, _, _ in layout.terminals],
                             offered_mbps=args.offered_mbps, seed=seed, arrival_start_s=start,
                             arrival_end_s=end, duration_s=args.sim_time, scheduled_flows=len(flows),
                             scheduled_bytes=payload_bytes, schedule_sha256=hashlib.sha256(schedule.read_bytes()).hexdigest())
             jobs.extend((root, case_name(protocol, k, seed), protocol, k, workload, args.sim_timeout_seconds)
                         for protocol, k in cases)
         if jobs:
-            run_cases(jobs, args.cores)
+            run_cases(jobs, args.cores, layout)
 
 
 def stop(signum, _frame):

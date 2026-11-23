@@ -7,12 +7,12 @@ import math
 from pathlib import Path
 
 from runExperimentWorkload import (
-    DURATION, DEFAULT_OFFERED_MBPS, DEFAULT_WORKLOAD_SEED, PROTOCOLS, RESULTS,
-    SUBFLOW_COUNTS, case_name, leo, scenario_folder,
+    DURATION, DEFAULT_OFFERED_MBPS, DEFAULT_WORKLOAD_SEED, PROTOCOLS,
+    SUBFLOW_COUNTS, case_name, scenario_folder,
 )
+from workloadTopology import DEFAULT_LAYOUT, LAYOUT_NAMES, get_layout
 
 
-PLOTS = leo.SIM_DIR / 'plots/experimentWorkload'
 SHORT_MAX = 100_000
 LONG_MIN = 1_000_000
 LARGE_MIN = 10_000_000
@@ -21,7 +21,7 @@ CASES = tuple((controller, k) for controller in PROTOCOLS
               for k in ((1,) if controller == 'OrbSingle' else SUBFLOW_COUNTS))
 
 
-def read_results(folder, seed):
+def read_results(folder, seed, layout):
     results = {}
     schedule_hashes = set()
     scenario_values = {'offered_mbps': set(), 'duration_s': set()}
@@ -37,6 +37,9 @@ def read_results(folder, seed):
         workload = case['workload']
         if (case['controller'], case['requested_subflows'], workload.get('seed', seed)) != (controller, k, seed):
             raise ValueError(f'Workload case does not match the file name in {path}')
+        saved_layout = workload.get('layout', 'legacy')
+        if saved_layout != layout:
+            raise ValueError(f'Workload layout {saved_layout!r} in {path} does not match {layout!r}')
         if schedule_hash := workload.get('schedule_sha256'):
             schedule_hashes.add(schedule_hash)
         for key, values in scenario_values.items():
@@ -190,6 +193,8 @@ def draw_workload(plt, output, metrics, workload_label, spreads=None):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--layout', choices=LAYOUT_NAMES, default=DEFAULT_LAYOUT,
+                        help='Workload terminal layout (default: %(default)s)')
     parser.add_argument('--sim-time', type=float, default=DURATION)
     parser.add_argument('--offered-mbps', type=float, default=DEFAULT_OFFERED_MBPS)
     parser.add_argument('--workload-seed', type=int,
@@ -200,8 +205,9 @@ def main():
     parser.add_argument('--output-dir', type=Path, help='Override the PDF output directory')
     args = parser.parse_args()
 
+    layout = get_layout(args.layout)
     scenario = scenario_folder(args.sim_time, args.offered_mbps)
-    folder = args.results_dir or RESULTS / scenario
+    folder = args.results_dir or layout.results / scenario
     available = saved_seeds(folder)
     seeds = sorted(set(args.average_seeds)) if args.average_seeds is not None else available
     if args.average_seeds is not None and (len(seeds) < 2 or seeds[0] < 0):
@@ -211,7 +217,7 @@ def main():
         individual_seed = DEFAULT_WORKLOAD_SEED
         if available and individual_seed not in available:
             individual_seed = available[0]
-    individual_results, individual_scenario = read_results(folder, individual_seed)
+    individual_results, individual_scenario = read_results(folder, individual_seed, layout.name)
     individual_metrics = run_metrics(individual_results, individual_seed)
     offered = individual_scenario['offered_mbps']
     if offered is None:
@@ -221,7 +227,7 @@ def main():
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
 
-    output = args.output_dir or PLOTS / scenario / f'seed{individual_seed}'
+    output = args.output_dir or layout.plots / scenario / f'seed{individual_seed}'
     draw_workload(plt, output, individual_metrics,
                   f'{offered:g} Mb/s offered load · Workload seed {individual_seed}')
 
@@ -234,7 +240,7 @@ def main():
         if seed == individual_seed:
             metrics, seed_scenario = individual_metrics, individual_scenario
         else:
-            results, seed_scenario = read_results(folder, seed)
+            results, seed_scenario = read_results(folder, seed, layout.name)
             metrics = run_metrics(results, seed)
         by_seed.append(metrics)
         for key, value in seed_scenario.items():
@@ -244,7 +250,7 @@ def main():
         raise ValueError('Averaged plots require the same offered load and duration across seeds')
 
     averages, spreads = average_metrics(by_seed)
-    mean_output = args.output_dir / 'averaged' if args.output_dir else PLOTS / scenario / 'averaged'
+    mean_output = args.output_dir / 'averaged' if args.output_dir else layout.plots / scenario / 'averaged'
     offered = next(iter(scenarios['offered_mbps']), args.offered_mbps)
     seed_label = ', '.join(map(str, seeds))
     draw_workload(plt, mean_output, averages,
