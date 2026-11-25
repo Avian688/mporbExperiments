@@ -341,3 +341,22 @@ compressed outcomes for all downloads in that prefix. The TCP vectors use
 100 ms bins for up to 64 matched short and large downloads across the eight
 servers. A blank completion time marks a download that did not finish during
 the run. Core queue recording is disabled in this mode.
+
+The `eastbound76` layout serves the same 24 European clients from 15 US East
+Coast servers over 76 pairs at 520 Mb/s. It has its own endpoint catalog, results
+and plot directory. From the same script folder, generate its endpoint catalog
+using the existing Eastbound primary core saves, then run the four matched cases.
+
+```bash
+python3 saveWorkloadRoutes.py --layout eastbound76 --primary-store ../../experiments/experimentWorkload/eastbound/results/routes && \
+python3 runExperimentWorkload.py --layout eastbound --offered-mbps 520 --diagnostic --cores 2 && \
+python3 runExperimentWorkload.py --layout eastbound76 --offered-mbps 520 --diagnostic --cores 2
+```
+
+Both layouts run Omega and OrbCC uncoupled at K=5 using seed 1. The runner draws
+matching arrival times and sizes from the 600 s schedule and assigns the new
+layout's endpoints with a separate seeded draw. Each case runs from 0 to 180 s
+and samples TCP endpoints for downloads starting from 80 to 180 s, with a
+dedicated sampling interval from 151.5 to 165 s. Compare `arrivals_sizes_sha256`
+in the aggregate JSONs to confirm the schedules match on those fields. The logs
+and results go under `web-search/600s/520Mbps/diagnostics/` within each layout.

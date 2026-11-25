@@ -2,6 +2,7 @@
 """Run the web-search workload on saved LEO routes."""
 
 import argparse
+from bisect import bisect_right
 from collections import deque
 from contextlib import ExitStack
 import csv
@@ -24,9 +25,9 @@ import time
 import saveWorkloadRoutes as routes
 from saveWorkloadRoutes import leo, runner
 from runExperiments import STOP, terminate
-from webSearchWorkload import DEFAULT_OFFERED_MBPS, DEFAULT_WORKLOAD_SEED, MEAN_FLOW_BYTES, generate_flows
+from webSearchWorkload import DEFAULT_WORKLOAD_SEED, MEAN_FLOW_BYTES, assign_pairs, generate_flows
 from workloadTopology import (
-    DEFAULT_LAYOUT, DURATION, LAYOUT_NAMES, PAIRS, PATH_COUNT, TERMINAL_COUNT, get_layout, routing_definitions,
+    DEFAULT_LAYOUT, DEFAULT_OFFERED_MBPS, DURATION, LAYOUT_NAMES, PAIRS, PATH_COUNT, get_layout, routing_definitions,
 )
 
 
@@ -45,6 +46,9 @@ DIAGNOSTIC_KS = (3, 5)
 DIAGNOSTIC_CSVS = ('tcp_vectors.csv', 'flow_outcomes.csv')
 DIAGNOSTIC_START = 20
 DIAGNOSTIC_END = 120
+MATCHED_DIAGNOSTIC_START = 80
+MATCHED_DIAGNOSTIC_END = 180
+MATCHED_DIAGNOSTIC_CUTS = (115, 151.5, 165)
 ACTIVE_PORT = 33000
 PASSIVE_PORT = 1000
 PORT_STRIDE = PATH_COUNT + 1  # One meta port followed by the subflow ports.
@@ -70,8 +74,8 @@ def arrival_window(duration):
     return 10 * scale, 490 * scale
 
 
-def port_slots(flows):
-    occupied = [0] * TERMINAL_COUNT
+def port_slots(flows, terminal_count):
+    occupied = [0] * terminal_count
     slots = []
     for flow in flows:
         in_use = occupied[flow.server] | occupied[flow.client]
@@ -95,9 +99,11 @@ def write_schedule(path, flows, slots):
             writer.writerow((flow.id, f'{flow.start:.12f}', flow.server, flow.client, flow.bytes, slot))
 
 
-def diagnostic_flow_ids(flows, start, end):
+def diagnostic_flow_ids(flows, start, end, cuts=None):
     # Sample across all servers and phases, with the same flow IDs in every run.
-    quarter = (end - start) / 4
+    if cuts is None:
+        cuts = tuple(start + (end - start) * index / 4 for index in range(1, 4))
+    boundaries = (start, *cuts, end)
     groups = {}
     for flow in flows:
         if not start <= flow.start < end:
@@ -108,12 +114,12 @@ def diagnostic_flow_ids(flows, start, end):
             short = False
         else:
             continue
-        phase = min(3, int((flow.start - start) / quarter))
+        phase = bisect_right(cuts, flow.start)
         groups.setdefault((flow.server, phase, short), []).append(flow)
 
     selected = []
     for (_, phase, short), group in groups.items():
-        midpoint = start + (phase + 0.5) * quarter
+        midpoint = (boundaries[phase] + boundaries[phase + 1]) / 2
         representative_size = 0 if short else median(flow.bytes for flow in group)
         chosen = min(group, key=lambda flow: (
             0 if short else abs(flow.bytes - representative_size), abs(flow.start - midpoint), flow.id,
@@ -144,7 +150,7 @@ def verify_diagnostic_schedule(results, cases, workload_seed, schedule_hash):
                 raise ValueError(f'Diagnostic workload schedule differs from {original}')
 
 
-def shared_config(store, duration, max_offset):
+def shared_config(store, duration, max_offset, layout):
     terminals = '*.userTerminal[*]'
     ip = f'{terminals}.ipv4.ip'
     ranks = ' '.join(str(max(1, offset % PORT_STRIDE)) for offset in range(1, max_offset + 1))
@@ -170,10 +176,10 @@ def shared_config(store, duration, max_offset):
         f'{ip}.kPathTcpRankMap = "{ranks}"',
         *[line for line in leo.transport_parameters() if '.kPathTcp' not in line],
     ]
-    by_terminal = [[] for _ in range(TERMINAL_COUNT)]
-    for group, (server, client) in enumerate(PAIRS):
-        by_terminal[server].append(str(group))
-        by_terminal[client].append(str(group))
+    by_terminal = [[] for _ in layout.terminals]
+    for group, (first, second) in enumerate(layout.route_pairs):
+        by_terminal[first].append(str(group))
+        by_terminal[second].append(str(group))
     lines.extend(f'*.userTerminal[{terminal}].ipv4.ip.kPathTcpPathGroups = "{" ".join(groups)}"'
                  for terminal, groups in enumerate(by_terminal))
     return lines
@@ -204,15 +210,15 @@ def case_config(protocol, k, workload_seed):
     return lines
 
 
-def write_config(root, store, duration, max_offset, cases, workload_seed, *, diagnostic_ids=()):
+def write_config(root, store, duration, max_offset, cases, workload_seed, layout, *, diagnostic_ids, diagnostic_end):
     (root / 'topology.ini').write_bytes((store / 'topology.ini').read_bytes())
-    lines = shared_config(store, duration, max_offset)
+    lines = shared_config(store, duration, max_offset, layout)
     for protocol, k in cases:
         lines.extend(case_config(protocol, k, workload_seed))
         if diagnostic_ids:
             config = case_name(protocol, k, workload_seed)
             ids = ' '.join(map(str, diagnostic_ids))
-            lines.extend((f'sim-time-limit = {DIAGNOSTIC_END}s',
+            lines.extend((f'sim-time-limit = {diagnostic_end}s',
                           f'*.workloadMetrics.diagnosticDir = "{config}.diagnostics"',
                           f'*.workloadMetrics.diagnosticFlowIds = "{ids}"'))
     (root / INI).write_text('\n'.join(lines) + '\n', encoding='utf-8')
@@ -398,8 +404,8 @@ def main(argv=None):
                         help='Terminal layout (default: %(default)s)')
     parser.add_argument('--sim-time', type=float, default=DURATION, help='Simulation duration in seconds (default: 600)')
     parser.add_argument('--route-store', type=Path, help='Override the selected layout’s saved route store')
-    parser.add_argument('--offered-mbps', type=float, default=DEFAULT_OFFERED_MBPS,
-                        help='Expected application payload offered per second in Mbps (default: %(default)s)')
+    parser.add_argument('--offered-mbps', type=float,
+                        help='Expected offered payload in Mbps (default: 520 for eastbound76, otherwise 640)')
     parser.add_argument('--workload-seed', nargs='+', type=int,
                         help='One or more workload seeds, each shared across controllers and K (default: 1–5)')
     parser.add_argument('--protocols', nargs='+', choices=tuple(PROTOCOLS),
@@ -407,7 +413,8 @@ def main(argv=None):
     parser.add_argument('--ks', nargs='+', type=int, choices=SUBFLOW_COUNTS,
                         help='Requested subflow counts for multipath controllers (default: 1–5)')
     parser.add_argument('--diagnostic', action='store_true',
-                        help='Observe 20–120 s of the 600 s, 640 Mb/s Eastbound schedule (seed 1, Omega and OrbUncoupled at K=3 and K=5)')
+                        help='Seed-1 Omega and OrbUncoupled diagnostics at 640 Mbps (eastbound, K=3 and K=5, '
+                             '20–120 s) or 520 Mbps (both eastbound layouts, K=5, 80–180 s)')
     parser.add_argument('--cores', type=int, default=1, help='Maximum simultaneous simulations')
     parser.add_argument('--sim-timeout-seconds', type=float, default=16 * 3600,
                         help='Wall-clock limit per traffic simulation (default: 16 hours)')
@@ -417,18 +424,28 @@ def main(argv=None):
         parser.error('--sim-time must be finite and above 3 seconds')
     if args.cores < 1 or not math.isfinite(args.sim_timeout_seconds) or args.sim_timeout_seconds <= 0:
         parser.error('Cores and wall-clock timeout must be positive')
+    layout = get_layout(args.layout)
+    if args.offered_mbps is None:
+        args.offered_mbps = layout.default_offered_mbps
     seeds = tuple(dict.fromkeys(args.workload_seed or ((1,) if args.diagnostic else DEFAULT_WORKLOAD_SEEDS)))
     protocols = args.protocols or (DIAGNOSTIC_PROTOCOLS if args.diagnostic else PROTOCOLS)
-    subflow_counts = args.ks or (DIAGNOSTIC_KS if args.diagnostic else SUBFLOW_COUNTS)
     if any(seed < 0 for seed in seeds):
         parser.error('--workload-seed values must be nonnegative')
+    diagnostic_start, diagnostic_end = DIAGNOSTIC_START, DIAGNOSTIC_END
+    diagnostic_ks = DIAGNOSTIC_KS
+    diagnostic_cuts = None
     if args.diagnostic:
-        if (args.layout, args.sim_time, args.offered_mbps, seeds) != ('eastbound', 600, 640, (1,)):
-            parser.error('--diagnostic requires the 600 s Eastbound schedule at 640 Mb/s and workload seed 1')
-        if set(protocols) - set(DIAGNOSTIC_PROTOCOLS) or set(subflow_counts) - set(DIAGNOSTIC_KS):
-            parser.error('--diagnostic supports Omega and OrbUncoupled at K=3 and K=5')
-
-    layout = get_layout(args.layout)
+        if args.sim_time != DURATION or seeds != (1,):
+            parser.error('--diagnostic requires a 600 s source schedule and workload seed 1')
+        if args.layout in ('eastbound', 'eastbound76') and args.offered_mbps == 520:
+            diagnostic_start, diagnostic_end = MATCHED_DIAGNOSTIC_START, MATCHED_DIAGNOSTIC_END
+            diagnostic_ks = (5,)
+            diagnostic_cuts = MATCHED_DIAGNOSTIC_CUTS
+        elif (args.layout, args.offered_mbps) != ('eastbound', DEFAULT_OFFERED_MBPS):
+            parser.error('--diagnostic supports eastbound at 640 Mbps and either eastbound layout at 520 Mbps')
+        if set(protocols) - set(DIAGNOSTIC_PROTOCOLS) or set(args.ks or ()) - set(diagnostic_ks):
+            parser.error(f'--diagnostic supports Omega and OrbUncoupled at K={", ".join(map(str, diagnostic_ks))}')
+    subflow_counts = args.ks or (diagnostic_ks if args.diagnostic else SUBFLOW_COUNTS)
     store = (args.route_store or layout.store).resolve()
     cases = list(dict.fromkeys((protocol, k) for protocol in protocols
                               for k in ([1] if protocol == 'OrbSingle' else subflow_counts)))
@@ -456,7 +473,9 @@ def main(argv=None):
             flows = generate_flows(start, end, args.offered_mbps, seed)
             if not flows:
                 raise ValueError(f'Workload seed {seed} has no arrivals. Increase the load or duration.')
-            slots, max_offset = port_slots(flows)
+            if layout.pairs != PAIRS:
+                flows = assign_pairs(flows, layout.pairs, seed)
+            slots, max_offset = port_slots(flows, len(layout.terminals))
             payload_bytes = sum(flow.bytes for flow in flows)
             print(f'Seed {seed}: {len(flows):,} downloads over {start:g}–{end:g}s; '
                   f'{args.offered_mbps:g} Mbps offered ({payload_bytes * 8 / (end-start) / 1e6:.1f} Mbps drawn)',
@@ -466,15 +485,16 @@ def main(argv=None):
             duration, arrival_end = args.sim_time, end
             diagnostic_ids = ()
             if args.diagnostic:
-                duration = arrival_end = DIAGNOSTIC_END
+                duration = arrival_end = diagnostic_end
                 scheduled_flows = [flow for flow in flows if flow.start < arrival_end]
                 scheduled_slots = slots[:len(scheduled_flows)]
                 scheduled_bytes = sum(flow.bytes for flow in scheduled_flows)
-                diagnostic_ids = diagnostic_flow_ids(scheduled_flows, DIAGNOSTIC_START, DIAGNOSTIC_END)
+                diagnostic_ids = diagnostic_flow_ids(scheduled_flows, diagnostic_start, diagnostic_end,
+                                                     cuts=diagnostic_cuts)
                 if not diagnostic_ids:
                     raise ValueError(f'No eligible diagnostic downloads in workload seed {seed}')
                 print(f'Run to {duration:g}s with {len(scheduled_flows):,} arrivals from the original schedule. '
-                      f'Sample {len(diagnostic_ids)} selected downloads over {DIAGNOSTIC_START}–{DIAGNOSTIC_END}s.', flush=True)
+                      f'Sample {len(diagnostic_ids)} selected downloads over {diagnostic_start}–{diagnostic_end}s.', flush=True)
             if args.dry_run:
                 for protocol, k in cases:
                     print(case_name(protocol, k, seed))
@@ -505,12 +525,17 @@ def main(argv=None):
                                  if flow.id in selected]
                 write_schedule(cohort, *zip(*selected_rows, strict=True))
                 cohort.replace(staging_parent / cohort.name)
+                arrivals_sizes_hash = hashlib.sha256(''.join(
+                    f'{flow.id},{flow.start:.12f},{flow.bytes}\n' for flow in flows
+                ).encode('ascii')).hexdigest()
                 workload.update(baseline_duration_s=args.sim_time, baseline_arrival_end_s=end,
-                                baseline_schedule_sha256=baseline_hash, tcp_recording_start_s=DIAGNOSTIC_START,
-                                tcp_recording_end_s=DIAGNOSTIC_END)
+                                baseline_schedule_sha256=baseline_hash, arrivals_sizes_sha256=arrivals_sizes_hash,
+                                tcp_recording_start_s=diagnostic_start, tcp_recording_end_s=diagnostic_end)
                 print(f'Seed {seed} original schedule SHA-256: {baseline_hash}\n'
-                      f'Diagnostic schedule prefix SHA-256: {schedule_hash}', flush=True)
-            write_config(root, store, args.sim_time, max_offset, cases, seed, diagnostic_ids=diagnostic_ids)
+                      f'Diagnostic schedule prefix SHA-256: {schedule_hash}\n'
+                      f'Full arrival times and sizes SHA-256: {arrivals_sizes_hash}', flush=True)
+            write_config(root, store, args.sim_time, max_offset, cases, seed, layout,
+                         diagnostic_ids=diagnostic_ids, diagnostic_end=diagnostic_end)
             jobs.extend((root, case_name(protocol, k, seed), protocol, k, workload, args.sim_timeout_seconds)
                         for protocol, k in cases)
         if jobs:

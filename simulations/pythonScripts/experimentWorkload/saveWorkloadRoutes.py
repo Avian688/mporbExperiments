@@ -20,7 +20,7 @@ import runExperimentLeo as runner
 from runExperiments import logged
 
 from workloadTopology import (
-    DEFAULT_LAYOUT, DURATION, LAYOUT_NAMES, PAIRS, PATH_COUNT, get_layout,
+    DEFAULT_LAYOUT, DURATION, LAYOUT_NAMES, PATH_COUNT, get_layout,
     routing_definitions, write_topology,
 )
 
@@ -156,7 +156,7 @@ def save_routes(args, layout, definitions):
                 print(f'Reuse primary routes: {primary}', flush=True)
                 config = REUSE_PRIMARY
 
-            print(f'{config} ({layout.name}): {args.sim_time:g}s, {len(PAIRS)} pairs, '
+            print(f'{config} ({layout.name}): {args.sim_time:g}s, {len(layout.pairs)} pairs, '
                   f'up to {PATH_COUNT} edge-disjoint paths per pair', flush=True)
             if not logged(command(config), stage, log, args.sim_timeout_seconds):
                 raise RuntimeError(f'Workload route generation failed; inspect {log}')
@@ -192,7 +192,7 @@ def main(argv=None):
     definitions = routing_definitions(layout)
     _, catalog = leo.route_directories(layout.store, definitions=definitions)
     if args.dry_run:
-        print(f'{layout.name}: {len(layout.terminals)} terminals, {len(PAIRS)} pairs, '
+        print(f'{layout.name}: {len(layout.terminals)} terminals, {len(layout.pairs)} pairs, '
               f'up to {PATH_COUNT} edge-disjoint paths per pair')
         print(f'Save {args.sim_time:g}s of routes to {catalog}')
         print('One route-only simulation if needed. Apps and recording disabled.')

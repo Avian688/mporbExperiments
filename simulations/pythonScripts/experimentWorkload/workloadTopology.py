@@ -1,4 +1,4 @@
-"""Define workload terminal layouts over a common matrix of endpoint slots."""
+"""Define workload terminal layouts and their endpoint route groups."""
 
 import contextlib
 from dataclasses import dataclass
@@ -12,10 +12,10 @@ import leo
 PATH_COUNT = 5
 DURATION = 600
 DEFAULT_LAYOUT = "eastbound"
+DEFAULT_OFFERED_MBPS = 640
 
 # GeoNames city centers (latitude, longitude) from the approved terminal map.
-# Keep servers first and the order stable so the server-to-client groups keep
-# their snapshot indices.
+# Keep the original order to preserve terminal IDs in existing catalogs.
 LEGACY_TERMINALS = (
     ("Boston", 42.3584, -71.0598),
     ("New York", 40.7143, -74.006),
@@ -64,9 +64,8 @@ CLIENT_SERVER_GROUPS = (
     (("Lille", "Rouen", "Rennes"), ("Paris", "Philadelphia", "New York")),
 )
 LEGACY_TERMINAL_IDS = {name: index for index, (name, _, _) in enumerate(LEGACY_TERMINALS)}
-TERMINAL_COUNT = len(LEGACY_TERMINALS)
-# Use the legacy name groups to define numeric pairs once, so both layouts
-# draw the same endpoint slots in the same order for each workload seed.
+# The original layouts share these numeric pairs, so they draw the same
+# endpoint slots in the same order for each workload seed.
 PAIRS = tuple(sorted(
     (LEGACY_TERMINAL_IDS[server], LEGACY_TERMINAL_IDS[client])
     for clients, servers in CLIENT_SERVER_GROUPS
@@ -96,12 +95,50 @@ EASTBOUND_TERMINALS = (
     *LEGACY_TERMINALS[20:],
 )
 
+# Append the additional senders after the existing receivers to preserve the
+# original terminal IDs and the route-solving orientation of each added pair.
+EASTBOUND76_SENDERS = (
+    ("Portland (Maine)", ("Amsterdam",)),
+    ("Hartford", ("Amsterdam",)),
+    ("Syracuse", ("Paris",)),
+    ("Harrisburg", ("London",)),
+    ("Allentown", ("London", "Paris")),
+    ("Richmond", ("Dublin", "Amsterdam")),
+    ("Norfolk", ("Amsterdam",)),
+)
+EASTBOUND76_TERMINALS = EASTBOUND_TERMINALS + tuple(SITES[server] for server, _ in EASTBOUND76_SENDERS)
+EASTBOUND76_TERMINAL_IDS = {name: index for index, (name, _, _) in enumerate(EASTBOUND76_TERMINALS)}
+EASTBOUND76_REMOVED_PAIRS = {
+    (EASTBOUND76_TERMINAL_IDS[server], EASTBOUND76_TERMINAL_IDS[client])
+    for server, client in (
+        ("Boston", "Southampton"),
+        ("Boston", "Cork"),
+        ("Philadelphia", "Antwerp"),
+        ("Providence", "Leeds"),
+        ("Wilmington (Delaware)", "Hamburg"),
+    )
+}
+EASTBOUND76_ADDED_PAIRS = {
+    (EASTBOUND76_TERMINAL_IDS[server], EASTBOUND76_TERMINAL_IDS[client])
+    for server, clients in EASTBOUND76_SENDERS
+    for client in clients
+}
+EASTBOUND76_PAIRS = tuple(sorted((set(PAIRS) - EASTBOUND76_REMOVED_PAIRS) | EASTBOUND76_ADDED_PAIRS))
+
 
 @dataclass(frozen=True)
 class Layout:
     name: str
     terminals: tuple[tuple[str, float, float], ...]
     snapshot_set: str
+    pairs: tuple[tuple[int, int], ...]
+    default_offered_mbps: float = DEFAULT_OFFERED_MBPS
+
+    @property
+    def route_pairs(self):
+        # Match the configurator's canonical endpoint orientation and group ordering.
+        return tuple(sorted((min(source, destination), max(source, destination))
+                            for source, destination in self.pairs))
 
     def _directory(self, category):
         root = leo.SIM_DIR / category / "experimentWorkload"
@@ -125,8 +162,10 @@ class Layout:
 
 
 LAYOUTS = {
-    "legacy": Layout("legacy", LEGACY_TERMINALS, "LeoWorkload"),
-    "eastbound": Layout("eastbound", EASTBOUND_TERMINALS, "LeoWorkloadEastbound"),
+    "legacy": Layout("legacy", LEGACY_TERMINALS, "LeoWorkload", PAIRS),
+    "eastbound": Layout("eastbound", EASTBOUND_TERMINALS, "LeoWorkloadEastbound", PAIRS),
+    "eastbound76": Layout("eastbound76", EASTBOUND76_TERMINALS, "LeoWorkloadEastbound76",
+                          EASTBOUND76_PAIRS, default_offered_mbps=520),
 }
 LAYOUT_NAMES = tuple(LAYOUTS)
 
@@ -142,7 +181,7 @@ def routing_definitions(layout):
     generator.PAIR_DEFINITIONS = tuple(
         (f"{terminals[source][0]} to {terminals[destination][0]}",
          terminals[source][0], terminals[destination][0], source, destination)
-        for source, destination in PAIRS
+        for source, destination in layout.route_pairs
     )
     generator.K_PATH_SNAPSHOT_SET = layout.snapshot_set
     generator.PATH_COUNT = PATH_COUNT

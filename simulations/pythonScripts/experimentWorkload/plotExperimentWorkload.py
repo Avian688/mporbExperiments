@@ -7,7 +7,7 @@ import math
 from pathlib import Path
 
 from runExperimentWorkload import (
-    DURATION, DEFAULT_OFFERED_MBPS, DEFAULT_WORKLOAD_SEED, PROTOCOLS,
+    DURATION, DEFAULT_WORKLOAD_SEED, PROTOCOLS,
     SUBFLOW_COUNTS, case_name, scenario_folder,
 )
 from workloadTopology import DEFAULT_LAYOUT, LAYOUT_NAMES, get_layout
@@ -210,7 +210,8 @@ def main():
     parser.add_argument('--layout', choices=LAYOUT_NAMES, default=DEFAULT_LAYOUT,
                         help='Workload terminal layout (default: %(default)s)')
     parser.add_argument('--sim-time', type=float, default=DURATION)
-    parser.add_argument('--offered-mbps', type=float, default=DEFAULT_OFFERED_MBPS)
+    parser.add_argument('--offered-mbps', type=float,
+                        help='Expected offered payload in Mbps (default: 520 for eastbound76, otherwise 640)')
     parser.add_argument('--workload-seed', type=int,
                         help='Seed for the individual plots (default: seed 1 if available)')
     parser.add_argument('--average-seeds', type=int, nargs='+',
@@ -220,7 +221,8 @@ def main():
     args = parser.parse_args()
 
     layout = get_layout(args.layout)
-    scenario = scenario_folder(args.sim_time, args.offered_mbps)
+    offered_mbps = layout.default_offered_mbps if args.offered_mbps is None else args.offered_mbps
+    scenario = scenario_folder(args.sim_time, offered_mbps)
     folder = args.results_dir or layout.results / scenario
     available = saved_seeds(folder)
     seeds = sorted(set(args.average_seeds)) if args.average_seeds is not None else available

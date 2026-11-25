@@ -12,10 +12,9 @@ from pathlib import Path
 import random
 from typing import NamedTuple
 
-from workloadTopology import PAIRS
+from workloadTopology import DEFAULT_OFFERED_MBPS, PAIRS
 
 
-DEFAULT_OFFERED_MBPS = 640
 DEFAULT_WORKLOAD_SEED = 1
 
 
@@ -64,3 +63,13 @@ def generate_flows(start, end, offered_mbps=DEFAULT_OFFERED_MBPS, workload_seed=
         # UCMP samples the first CDF point at or above the draw, including the largest flows.
         size = FLOW_SIZES[bisect_left(SIZE_CDF, rng.random())]
         flows.append(Flow(len(flows) + 1, arrival, server, client, size))
+
+
+def assign_pairs(flows, pairs, workload_seed):
+    """Change endpoints while preserving the original arrival and size draws."""
+    rng = random.Random(f'workload-pairs:{workload_seed}')
+    assigned = []
+    for flow in flows:
+        server, client = rng.choice(pairs)
+        assigned.append(flow._replace(server=server, client=client))
+    return assigned
