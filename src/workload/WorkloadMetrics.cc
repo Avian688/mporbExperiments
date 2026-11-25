@@ -2,6 +2,7 @@
 #include "WorkloadMetrics.h"
 #include "WorkloadTcpDiagnostics.h"
 
+#include "../../../mptcp/src/transportlayer/tcp/SubflowConnection.h"
 #include "inet/common/Simsignals.h"
 #include "inet/common/Simsignals_m.h"
 
@@ -16,6 +17,7 @@
 #include <locale>
 #include <map>
 #include <numeric>
+#include <sstream>
 
 namespace mporbexperiments {
 
@@ -147,12 +149,32 @@ WorkloadMetrics::~WorkloadMetrics()
     cancelAndDelete(discoverIsls);
 }
 
-void WorkloadMetrics::registerFlow(int id, int64_t expectedBytes, simtime_t arrival, int server, int client)
+void WorkloadMetrics::registerFlow(int id, int64_t expectedBytes, simtime_t arrival, int server, int client,
+                                   int passivePort, int portStride)
 {
     if (id <= 0 || expectedBytes <= 0 || arrival < SIMTIME_ZERO)
         throw cRuntimeError("Invalid workload flow %d", id);
-    if (!flows.try_emplace(id, Flow{expectedBytes, arrival, server, client}).second)
+    auto [entry, inserted] = flows.try_emplace(id, Flow{expectedBytes, arrival, server, client});
+    if (!inserted)
         throw cRuntimeError("Workload flow %d registered more than once", id);
+    if (arrival.raw() >= hotspotEndTick)
+        return;
+    for (size_t index = 0; index < hotspotPairs.size(); ++index) {
+        const auto& pair = hotspotPairs[index];
+        if (server != pair.server || client != pair.client)
+            continue;
+        if (hotspotRanks >= portStride)
+            throw cRuntimeError("Hotspot ranks exceed the subflow ports for workload flow %d", id);
+        entry->second.hotspotPair = static_cast<int>(index);
+        auto& ports = hotspotPorts.at(pair.receiverTcp);
+        // Register earlier arrivals as they can still be receiving payload during the hotspot.
+        for (size_t rank = 0; rank < static_cast<size_t>(hotspotRanks); ++rank) {
+            const int port = passivePort + static_cast<int>(rank) + 1;
+            if (!ports.emplace(port, HotspotPort{index, rank}).second)
+                throw cRuntimeError("Duplicate hotspot TCP port %d at terminal %d", port, client);
+        }
+        break;
+    }
 }
 
 void WorkloadMetrics::connectionEstablished(int id)
@@ -196,6 +218,13 @@ void WorkloadMetrics::receiveBytes(int id, int64_t receivedBytes)
     flow.deliveredBytes += receivedBytes;
     if (diagnostics)
         diagnostics->received(id, flow.deliveredBytes);
+    if (flow.hotspotPair >= 0) {
+        const auto tick = simTime().raw();
+        if (tick >= hotspotStartTick && tick < hotspotEndTick) {
+            auto& bin = hotspotPairs[flow.hotspotPair].bins[(tick - hotspotStartTick) / hotspotBinTicks];
+            bin.appDeliveredBytes += receivedBytes;
+        }
+    }
     if (flow.deliveredBytes == flow.expectedBytes)
         flow.completion = simTime();
 }
@@ -207,6 +236,8 @@ void WorkloadMetrics::initialize()
         measurementEnd = SimTime::parse(limit);
     if (const char *directory = par("diagnosticDir").stringValue(); *directory)
         diagnostics = std::make_unique<WorkloadTcpDiagnostics>(directory, par("diagnosticFlowIds").stringValue());
+    if (const char *pairs = par("hotspotPairs").stringValue(); *pairs)
+        watchHotspot(pairs);
     watchTransportRecovery();
     queueAttemptSignal = registerSignal("packetPushStarted");
     queueDropSignal = registerSignal("packetDropped");
@@ -239,6 +270,58 @@ void WorkloadMetrics::watchTransportRecovery()
             tcp->subscribe(reinjectedBytesSignal, this);
         }
     }
+}
+
+void WorkloadMetrics::watchHotspot(const char *pairs)
+{
+    const simtime_t start = par("hotspotStart");
+    const simtime_t end = par("hotspotEnd");
+    hotspotRanks = par("hotspotRanks").intValue();
+    if (!diagnostics || start < SIMTIME_ZERO || end <= start || end > measurementEnd || hotspotRanks < 1)
+        throw cRuntimeError("Hotspot recording requires diagnostics, a valid interval and a positive rank count");
+
+    hotspotStartTick = start.raw();
+    hotspotEndTick = end.raw();
+    hotspotBinTicks = SimTime(100, SIMTIME_MS).raw();
+    const size_t binCount = 1 + (hotspotEndTick - hotspotStartTick - 1) / hotspotBinTicks;
+    const HotspotBin emptyBin{std::vector<uint64_t>(hotspotRanks)};
+    hotspotPayloadSignal = registerSignal("tcpRcvPayloadBytes");
+
+    std::istringstream endpoints(pairs);
+    while (!(endpoints >> std::ws).eof()) {
+        int server;
+        int client;
+        if (!(endpoints >> server >> client) || server < 0 || client < 0 || server == client)
+            throw cRuntimeError("Invalid workload hotspot pair specification '%s'", pairs);
+        auto *sender = getParentModule()->getSubmodule("userTerminal", server);
+        auto *receiver = getParentModule()->getSubmodule("userTerminal", client);
+        auto *tcp = receiver ? receiver->getSubmodule("tcp") : nullptr;
+        if (!sender || !tcp)
+            throw cRuntimeError("Missing workload hotspot endpoint for pair %d -> %d", server, client);
+        // Signals from dynamically created subflows reach their TCP parent, even before app establishment.
+        if (hotspotPorts.try_emplace(tcp).second)
+            tcp->subscribe(hotspotPayloadSignal, this);
+        hotspotPairs.push_back({server, client, tcp, std::vector<HotspotBin>(binCount, emptyBin)});
+    }
+    if (hotspotPairs.empty())
+        throw cRuntimeError("Invalid workload hotspot pair specification '%s'", pairs);
+}
+
+void WorkloadMetrics::receiveSignal(cComponent *source, simsignal_t signal, intval_t value, cObject *)
+{
+    const auto tick = simTime().raw();
+    if (signal != hotspotPayloadSignal || value <= 0 || tick < hotspotStartTick || tick >= hotspotEndTick)
+        return;
+    const auto *subflow = dynamic_cast<const inet::tcp::SubflowConnection *>(source);
+    if (!subflow)
+        return;
+    const auto& ports = hotspotPorts.at(subflow->getParentModule());
+    const auto match = ports.find(subflow->getLocalPort());
+    if (match == ports.end())
+        return;
+    const auto& port = match->second;
+    auto& bin = hotspotPairs[port.pairIndex].bins[(tick - hotspotStartTick) / hotspotBinTicks];
+    bin.receivedBytesByRank[port.rankIndex] += value;
 }
 
 void WorkloadMetrics::receiveSignal(cComponent *source, simsignal_t signal, uintval_t value, cObject *)
@@ -648,7 +731,37 @@ void WorkloadMetrics::finish()
     if (diagnostics) {
         diagnostics->finish();
         writeDiagnosticFlows();
+        if (!hotspotPairs.empty())
+            writeHotspotBytes();
     }
+}
+
+void WorkloadMetrics::writeHotspotBytes()
+{
+    const auto path = std::filesystem::path(par("diagnosticDir").stringValue()) / "hotspot_bytes.csv";
+    std::ofstream out(path);
+    if (!out)
+        throw cRuntimeError("Cannot write workload hotspot bytes: %s", path.string().c_str());
+    out.imbue(std::locale::classic());
+    out << "server,client,bin_start_s,bin_end_s";
+    for (int rank = 1; rank <= hotspotRanks; ++rank)
+        out << ",rank_" << rank << "_received_bytes";
+    out << ",app_delivered_bytes\n";
+
+    for (const auto& pair : hotspotPairs) {
+        auto start = hotspotStartTick;
+        for (const auto& bin : pair.bins) {
+            const auto end = std::min(start + hotspotBinTicks, hotspotEndTick);
+            out << pair.server << ',' << pair.client << ',' << SimTime::fromRaw(start) << ',' << SimTime::fromRaw(end);
+            for (auto bytes : bin.receivedBytesByRank)
+                out << ',' << bytes;
+            out << ',' << bin.appDeliveredBytes << '\n';
+            start = end;
+        }
+    }
+    out.close();
+    if (!out)
+        throw cRuntimeError("Failed writing workload hotspot bytes: %s", path.string().c_str());
 }
 
 void WorkloadMetrics::writeDiagnosticFlows()

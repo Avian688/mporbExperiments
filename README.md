@@ -355,8 +355,14 @@ python3 runExperimentWorkload.py --layout eastbound76 --offered-mbps 520 --diagn
 
 Both layouts run Omega and OrbCC uncoupled at K=5 using seed 1. The runner draws
 matching arrival times and sizes from the 600 s schedule and assigns the new
-layout's endpoints with a separate seeded draw. Each case runs from 0 to 180 s
-and samples TCP endpoints for downloads starting from 80 to 180 s, with a
-dedicated sampling interval from 151.5 to 165 s. Compare `arrivals_sizes_sha256`
-in the aggregate JSONs to confirm the schedules match on those fields. The logs
-and results go under `web-search/600s/520Mbps/diagnostics/` within each layout.
+layout's endpoints with a separate seeded draw. The cases use the 600 s route
+saves, start at 0 s, and stop at 180 s. TCP sampling covers downloads starting
+from 80 to 180 s. Compare `arrivals_sizes_sha256` in the aggregate JSONs to
+confirm the schedules match on those fields.
+
+Each case also writes `hotspot_bytes.csv` with 100 ms bins from 151.5 s up to
+165 s for Ashburn → Birmingham and Boston → London. The counters include
+downloads already active at 151.5 s. Each row reports received TCP payload
+bytes per rank, including retransmissions and duplicates, and bytes delivered
+to the receiving application across all ranks. The logs and results go under
+`web-search/600s/520Mbps/diagnostics/` within each layout.

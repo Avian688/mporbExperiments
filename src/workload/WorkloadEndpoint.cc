@@ -126,7 +126,7 @@ void WorkloadEndpoint::readWorkload(const char *path)
         transfers.push_back({arrival + (sending ? SimTime::fromRaw(1) : SIMTIME_ZERO),
                              id, slot, size, client, sending});
         if (!sending)
-            metrics->registerFlow(id, size, arrival, server, client);
+            metrics->registerFlow(id, size, arrival, server, client, port, portStride);
     }
     if (!input.eof())
         throw cRuntimeError("Error reading workload '%s'", path);

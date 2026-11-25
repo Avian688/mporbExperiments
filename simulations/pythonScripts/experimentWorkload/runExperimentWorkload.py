@@ -48,7 +48,10 @@ DIAGNOSTIC_START = 20
 DIAGNOSTIC_END = 120
 MATCHED_DIAGNOSTIC_START = 80
 MATCHED_DIAGNOSTIC_END = 180
-MATCHED_DIAGNOSTIC_CUTS = (115, 151.5, 165)
+HOTSPOT_START = 151.5
+HOTSPOT_END = 165
+HOTSPOT_PAIRS = (('Ashburn', 'Birmingham'), ('Boston', 'London'))
+MATCHED_DIAGNOSTIC_CUTS = (115, HOTSPOT_START, HOTSPOT_END)
 ACTIVE_PORT = 33000
 PASSIVE_PORT = 1000
 PORT_STRIDE = PATH_COUNT + 1  # One meta port followed by the subflow ports.
@@ -210,7 +213,8 @@ def case_config(protocol, k, workload_seed):
     return lines
 
 
-def write_config(root, store, duration, max_offset, cases, workload_seed, layout, *, diagnostic_ids, diagnostic_end):
+def write_config(root, store, duration, max_offset, cases, workload_seed, layout, *,
+                 diagnostic_ids, diagnostic_end, hotspot_pairs=()):
     (root / 'topology.ini').write_bytes((store / 'topology.ini').read_bytes())
     lines = shared_config(store, duration, max_offset, layout)
     for protocol, k in cases:
@@ -221,6 +225,12 @@ def write_config(root, store, duration, max_offset, cases, workload_seed, layout
             lines.extend((f'sim-time-limit = {diagnostic_end}s',
                           f'*.workloadMetrics.diagnosticDir = "{config}.diagnostics"',
                           f'*.workloadMetrics.diagnosticFlowIds = "{ids}"'))
+            if hotspot_pairs:
+                pairs = ' '.join(str(terminal) for pair in hotspot_pairs for terminal in pair)
+                lines.extend((f'*.workloadMetrics.hotspotPairs = "{pairs}"',
+                              f'*.workloadMetrics.hotspotStart = {HOTSPOT_START}s',
+                              f'*.workloadMetrics.hotspotEnd = {HOTSPOT_END}s',
+                              f'*.workloadMetrics.hotspotRanks = {k}'))
     (root / INI).write_text('\n'.join(lines) + '\n', encoding='utf-8')
 
 
@@ -293,6 +303,10 @@ def finish_case(case, layout, *, diagnostic=False):
     results = layout.results / case_scenario_folder(workload)
     if diagnostic:
         diagnostics = root / f'{config}.diagnostics'
+        if 'hotspot' in workload:
+            hotspot = diagnostics / 'hotspot_bytes.csv'
+            if not hotspot.is_file() or not hotspot.stat().st_size:
+                raise ValueError(f'{config} did not produce {hotspot.name}; inspect {log}')
         for name in DIAGNOSTIC_CSVS:
             csv_path = diagnostics / name
             if not csv_path.is_file() or not csv_path.stat().st_size:
@@ -434,6 +448,7 @@ def main(argv=None):
     diagnostic_start, diagnostic_end = DIAGNOSTIC_START, DIAGNOSTIC_END
     diagnostic_ks = DIAGNOSTIC_KS
     diagnostic_cuts = None
+    hotspot_pairs = ()
     if args.diagnostic:
         if args.sim_time != DURATION or seeds != (1,):
             parser.error('--diagnostic requires a 600 s source schedule and workload seed 1')
@@ -441,6 +456,10 @@ def main(argv=None):
             diagnostic_start, diagnostic_end = MATCHED_DIAGNOSTIC_START, MATCHED_DIAGNOSTIC_END
             diagnostic_ks = (5,)
             diagnostic_cuts = MATCHED_DIAGNOSTIC_CUTS
+            terminal_ids = {name: index for index, (name, _, _) in enumerate(layout.terminals)}
+            hotspot_pairs = tuple((terminal_ids[server], terminal_ids[client]) for server, client in HOTSPOT_PAIRS)
+            if any(pair not in layout.pairs for pair in hotspot_pairs):
+                raise ValueError(f'Hotspot endpoint pairs are missing from {layout.name}')
         elif (args.layout, args.offered_mbps) != ('eastbound', DEFAULT_OFFERED_MBPS):
             parser.error('--diagnostic supports eastbound at 640 Mbps and either eastbound layout at 520 Mbps')
         if set(protocols) - set(DIAGNOSTIC_PROTOCOLS) or set(args.ks or ()) - set(diagnostic_ks):
@@ -531,11 +550,13 @@ def main(argv=None):
                 workload.update(baseline_duration_s=args.sim_time, baseline_arrival_end_s=end,
                                 baseline_schedule_sha256=baseline_hash, arrivals_sizes_sha256=arrivals_sizes_hash,
                                 tcp_recording_start_s=diagnostic_start, tcp_recording_end_s=diagnostic_end)
+                if hotspot_pairs:
+                    workload['hotspot'] = dict(start_s=HOTSPOT_START, end_s=HOTSPOT_END, pairs=hotspot_pairs)
                 print(f'Seed {seed} original schedule SHA-256: {baseline_hash}\n'
                       f'Diagnostic schedule prefix SHA-256: {schedule_hash}\n'
                       f'Full arrival times and sizes SHA-256: {arrivals_sizes_hash}', flush=True)
             write_config(root, store, args.sim_time, max_offset, cases, seed, layout,
-                         diagnostic_ids=diagnostic_ids, diagnostic_end=diagnostic_end)
+                         diagnostic_ids=diagnostic_ids, diagnostic_end=diagnostic_end, hotspot_pairs=hotspot_pairs)
             jobs.extend((root, case_name(protocol, k, seed), protocol, k, workload, args.sim_timeout_seconds)
                         for protocol, k in cases)
         if jobs:

@@ -7,5 +7,9 @@ simple WorkloadMetrics
         string outputFile = default("workload-metrics.json");
         string diagnosticDir = default(""); // Empty disables the endpoint diagnostic CSVs.
         string diagnosticFlowIds = default("");
+        string hotspotPairs = default(""); // Whitespace-separated server and client terminal indices.
+        double hotspotStart @unit(s) = default(0s);
+        double hotspotEnd @unit(s) = default(0s);
+        int hotspotRanks = default(0);
         @class(mporbexperiments::WorkloadMetrics);
 }
