@@ -28,7 +28,8 @@ O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 # Object files for local .cc, .msg and .sm files
 OBJS = $O/visualizer/MpOrbLeoOsgVisualizer.o \
        $O/workload/WorkloadEndpoint.o \
-       $O/workload/WorkloadMetrics.o
+       $O/workload/WorkloadMetrics.o \
+       $O/workload/WorkloadTcpDiagnostics.o
 
 # Message files
 MSGFILES =

@@ -17,6 +17,7 @@ SHORT_MAX = 100_000
 LONG_MIN = 1_000_000
 LARGE_MIN = 10_000_000
 MARKERS = ('o', 's', '^', 'D', 'v')
+OMEGA_COMPARISON = ('Omega', 'OrbUncoupled')
 CASES = tuple((controller, k) for controller in PROTOCOLS
               for k in ((1,) if controller == 'OrbSingle' else SUBFLOW_COUNTS))
 
@@ -191,6 +192,19 @@ def draw_workload(plt, output, metrics, workload_label, spreads=None):
          f'Large-flow completion time (>10 MB)\n{workload_label}', 'P95 FCT (s)', spread=spreads.get('large_p95'))
 
 
+def draw_workload_comparisons(plt, output, metrics, workload_label, spreads=None):
+    draw_workload(plt, output, metrics, workload_label, spreads)
+
+    def comparison_only(series):
+        return {
+            metric: {case: value for case, value in values.items() if case[0] in OMEGA_COMPARISON}
+            for metric, values in series.items()
+        }
+
+    draw_workload(plt, output / 'omega_vs_uncoupled', comparison_only(metrics),
+                  workload_label, comparison_only(spreads or {}))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--layout', choices=LAYOUT_NAMES, default=DEFAULT_LAYOUT,
@@ -228,8 +242,8 @@ def main():
     import matplotlib.pyplot as plt
 
     output = args.output_dir or layout.plots / scenario / f'seed{individual_seed}'
-    draw_workload(plt, output, individual_metrics,
-                  f'{offered:g} Mb/s offered load · Workload seed {individual_seed}')
+    draw_workload_comparisons(plt, output, individual_metrics,
+                              f'{offered:g} Mb/s offered load · Workload seed {individual_seed}')
 
     if len(seeds) < 2:
         print('Averaged plots require at least two saved workload seeds.')
@@ -253,8 +267,8 @@ def main():
     mean_output = args.output_dir / 'averaged' if args.output_dir else layout.plots / scenario / 'averaged'
     offered = next(iter(scenarios['offered_mbps']), args.offered_mbps)
     seed_label = ', '.join(map(str, seeds))
-    draw_workload(plt, mean_output, averages,
-                  f'{offered:g} Mb/s offered load · Seeds {seed_label} (mean and min–max)', spreads)
+    draw_workload_comparisons(plt, mean_output, averages,
+                              f'{offered:g} Mb/s offered load · Seeds {seed_label} (mean and min–max)', spreads)
 
 
 if __name__ == '__main__':

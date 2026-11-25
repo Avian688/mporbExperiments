@@ -324,3 +324,20 @@ single-path OrbCC uses rank 1. Eastbound routes and aggregate JSONs live under
 `simulations/experiments/experimentWorkload/eastbound/results/`. Plots go under
 `simulations/plots/experimentWorkload/eastbound/`. Pass `--layout legacy` to
 any of the three scripts to use the original layout and its existing paths.
+
+For a matched TCP diagnostic, run this from the same script folder:
+
+```bash
+python3 runExperimentWorkload.py --diagnostic --cores 4
+```
+
+This uses the saved Eastbound routes and the original 640 Mb/s seed-1 arrivals
+for Omega and OrbCC uncoupled at K=3 and K=5. Traffic starts at 10 s, the
+measurement window is 20–120 s, and each run stops at 120 s. Under the scenario's
+`diagnostics/` directory, `arrivals.csv` records the full original schedule,
+`diagnostic_arrivals.csv` records the prefix used for these runs, and
+`selected_flows.csv` identifies the common TCP sample. Each case writes
+compressed outcomes for all downloads in that prefix. The TCP vectors use
+100 ms bins for up to 64 matched short and large downloads across the eight
+servers. A blank completion time marks a download that did not finish during
+the run. Core queue recording is disabled in this mode.

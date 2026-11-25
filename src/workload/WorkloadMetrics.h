@@ -5,11 +5,14 @@
 #include <omnetpp.h>
 
 #include <cstdint>
+#include <memory>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 
 namespace mporbexperiments {
+
+class WorkloadTcpDiagnostics;
 
 class WorkloadMetrics : public omnetpp::cSimpleModule, public omnetpp::cListener
 {
@@ -65,6 +68,7 @@ class WorkloadMetrics : public omnetpp::cSimpleModule, public omnetpp::cListener
     };
 
     std::unordered_map<int, Flow> flows;
+    std::unique_ptr<WorkloadTcpDiagnostics> diagnostics;
     std::vector<int64_t> payloadBySecond;
     omnetpp::simtime_t measurementEnd;
     std::unordered_map<omnetpp::cComponent *, Isl> isls;
@@ -107,6 +111,7 @@ class WorkloadMetrics : public omnetpp::cSimpleModule, public omnetpp::cListener
                            const omnetpp::cPacket *packet);
     void recordAccessQueueDrop(omnetpp::cComponent *source, bool overflow);
     void writeLinkMetrics(std::ostream& out, omnetpp::simtime_t end);
+    void writeDiagnosticFlows();
 
   protected:
     void initialize() override;
@@ -122,6 +127,7 @@ class WorkloadMetrics : public omnetpp::cSimpleModule, public omnetpp::cListener
     ~WorkloadMetrics() override;
     void registerFlow(int id, int64_t expectedBytes, omnetpp::simtime_t arrival, int server, int client);
     void connectionEstablished(int id);
+    void watchDiagnosticConnection(int id, omnetpp::cModule *terminal, int socketId, bool sender);
     void socketFailed(int id);
     void receiveBytes(int id, int64_t receivedBytes);
 };

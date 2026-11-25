@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #include "WorkloadMetrics.h"
+#include "WorkloadTcpDiagnostics.h"
 
 #include "inet/common/Simsignals.h"
 #include "inet/common/Simsignals_m.h"
@@ -159,6 +160,12 @@ void WorkloadMetrics::connectionEstablished(int id)
     flows.at(id).established = simTime();
 }
 
+void WorkloadMetrics::watchDiagnosticConnection(int id, cModule *terminal, int socketId, bool sender)
+{
+    if (diagnostics)
+        diagnostics->watch(id, terminal, socketId, sender);
+}
+
 void WorkloadMetrics::socketFailed(int id)
 {
     flows.at(id).socketFailed = true;
@@ -187,6 +194,8 @@ void WorkloadMetrics::receiveBytes(int id, int64_t receivedBytes)
     if (flow.deliveredBytes == 0)
         flow.firstByte = simTime();
     flow.deliveredBytes += receivedBytes;
+    if (diagnostics)
+        diagnostics->received(id, flow.deliveredBytes);
     if (flow.deliveredBytes == flow.expectedBytes)
         flow.completion = simTime();
 }
@@ -196,6 +205,8 @@ void WorkloadMetrics::initialize()
     const char *limit = getEnvir()->getConfig()->getConfigValue("sim-time-limit");
     if (limit && *limit)
         measurementEnd = SimTime::parse(limit);
+    if (const char *directory = par("diagnosticDir").stringValue(); *directory)
+        diagnostics = std::make_unique<WorkloadTcpDiagnostics>(directory, par("diagnosticFlowIds").stringValue());
     watchTransportRecovery();
     queueAttemptSignal = registerSignal("packetPushStarted");
     queueDropSignal = registerSignal("packetDropped");
@@ -261,20 +272,22 @@ void WorkloadMetrics::watchFixedIsls()
             if (!next || !isSatellite(next->getOwnerModule(), network))
                 continue;
             auto *channel = check_and_cast<cDatarateChannel *>(gate->getChannel());
-            auto *ppp = satellite->getSubmodule("ppp", index);
-            auto *queue = ppp ? ppp->getSubmodule("queue") : nullptr;
-            if (!queue)
-                throw cRuntimeError("Missing ISL PPP queue at %s", gate->getFullPath().c_str());
             auto& isl = isls[channel];
             isl.capacityBps = activeCapacity(channel);
             isl.sourceSatellite = satellite->getIndex();
             isl.targetSatellite = next->getOwnerModule()->getIndex();
             islCapacityBps += isl.capacityBps;
-            islQueues.emplace(queue, &isl);
             channel->subscribe(channelSentSignal, this);
             channel->subscribe(channelDiscardSignal, this);
             channel->subscribe(POST_MODEL_CHANGE, this);
-            queue->subscribe(queueAttemptSignal, this);
+            if (!diagnostics) {
+                auto *ppp = satellite->getSubmodule("ppp", index);
+                auto *queue = ppp ? ppp->getSubmodule("queue") : nullptr;
+                if (!queue)
+                    throw cRuntimeError("Missing ISL PPP queue at %s", gate->getFullPath().c_str());
+                islQueues.emplace(queue, &isl);
+                queue->subscribe(queueAttemptSignal, this);
+            }
         }
     }
 }
@@ -537,9 +550,10 @@ void WorkloadMetrics::finish()
            "\"endpoint_pairs\": \"Totals, FCT for completed downloads up to 100 kB and goodput for completed downloads over 1 MB\", "
            "\"transport_recovery\": \"Terminal TCP retransmission timeout events and meta-level MPTCP payload reinjections\", "
            "\"jain\": \"Payload-rate Jain index across long flows outstanding for the entire second\", "
-           "\"core_utilization\": \"Transmitted wire bits divided by capacity integrated over directed ISLs and simulation time\", "
-           "\"core_queue_drop_fraction\": \"ISL queue drops divided by queue push attempts\", "
-           "\"core_channel_loss_fraction\": \"ISL channel discards and corrupt packets divided by channel send attempts\"}"
+           "\"core_utilization\": \"Transmitted wire bits divided by capacity integrated over directed ISLs and simulation time\", ";
+    if (!diagnostics)
+        out << "\"core_queue_drop_fraction\": \"ISL queue drops divided by queue push attempts\", ";
+    out << "\"core_channel_loss_fraction\": \"ISL channel discards and corrupt packets divided by channel send attempts\"}"
         << ",\n  \"size_classes\": [";
     for (size_t index = 0; index < sizeClasses.size(); ++index) {
         auto& aggregate = sizeClasses[index];
@@ -614,9 +628,11 @@ void WorkloadMetrics::finish()
         << ", \"capacity_bits\": " << islCapacityBits << ", \"wire_bits_transmitted\": " << sentBits
         << ", \"utilization\": ";
     writeRatio(out, sentBits, islCapacityBits);
-    out << ", \"queue_attempt_packets\": " << islQueueAttempts << ", \"queue_drop_packets\": " << islQueueDrops
-        << ", \"queue_overflow_packets\": " << islQueueOverflow << ", \"queue_drop_fraction\": ";
-    writeRatio(out, islQueueDrops, islQueueAttempts);
+    if (!diagnostics) {
+        out << ", \"queue_attempt_packets\": " << islQueueAttempts << ", \"queue_drop_packets\": " << islQueueDrops
+            << ", \"queue_overflow_packets\": " << islQueueOverflow << ", \"queue_drop_fraction\": ";
+        writeRatio(out, islQueueDrops, islQueueAttempts);
+    }
     out << ", \"channel_attempt_packets\": " << islChannelAttempts
         << ", \"channel_discard_packets\": " << islChannelDiscards
         << ", \"channel_corrupt_packets\": " << islChannelCorrupt
@@ -629,6 +645,42 @@ void WorkloadMetrics::finish()
     if (!out)
         throw cRuntimeError("Failed writing workload metrics: %s", temporary.c_str());
     std::filesystem::rename(temporary, target);
+    if (diagnostics) {
+        diagnostics->finish();
+        writeDiagnosticFlows();
+    }
+}
+
+void WorkloadMetrics::writeDiagnosticFlows()
+{
+    const auto path = std::filesystem::path(par("diagnosticDir").stringValue()) / "flow_outcomes.csv";
+    std::ofstream out(path);
+    if (!out)
+        throw cRuntimeError("Cannot write workload flow outcomes: %s", path.string().c_str());
+    out.imbue(std::locale::classic());
+    out << "flow_id,server,client,offered_bytes,delivered_bytes,arrival_s,established_s,first_payload_s,"
+           "completion_s,socket_failed,tcp_cohort\n";
+
+    std::vector<int> ids;
+    ids.reserve(flows.size());
+    for (const auto& entry : flows)
+        ids.push_back(entry.first);
+    std::sort(ids.begin(), ids.end());
+
+    for (const int id : ids) {
+        const auto& flow = flows.at(id);
+        out << id << ',' << flow.server << ',' << flow.client << ',' << flow.expectedBytes << ','
+            << flow.deliveredBytes << ',' << flow.arrival;
+        for (const auto time : {flow.established, flow.firstByte, flow.completion}) {
+            out << ',';
+            if (time >= SIMTIME_ZERO)
+                out << time;
+        }
+        out << ',' << flow.socketFailed << ',' << diagnostics->includes(id) << '\n';
+    }
+    out.close();
+    if (!out)
+        throw cRuntimeError("Failed writing workload flow outcomes: %s", path.string().c_str());
 }
 
 void WorkloadMetrics::writeLinkMetrics(std::ostream& out, simtime_t end)
@@ -662,8 +714,10 @@ void WorkloadMetrics::writeLinkMetrics(std::ostream& out, simtime_t end)
             out << ',';
         out << "\n    {\"source_satellite\": " << isl.sourceSatellite
             << ", \"target_satellite\": " << isl.targetSatellite
-            << ", \"wire_bits_started\": " << isl.wireBitsStarted
-            << ", \"queue_drops\": " << isl.queueDrops << ", \"busy_fraction\": ";
+            << ", \"wire_bits_started\": " << isl.wireBitsStarted;
+        if (!diagnostics)
+            out << ", \"queue_drops\": " << isl.queueDrops;
+        out << ", \"busy_fraction\": ";
         writeRatio(out, isl.totalBusyTicks, end.raw());
         out << '}';
     }

@@ -204,6 +204,7 @@ void WorkloadEndpoint::close(Session& session)
 void WorkloadEndpoint::socketEstablished(TcpSocket *socket)
 {
     auto& session = sessions.at(socket->getSocketId());
+    metrics->watchDiagnosticConnection(session.flowId, getParentModule(), socket->getSocketId(), session.sending);
     if (!session.sending || session.payloadSent)
         return;
     metrics->connectionEstablished(session.flowId);
