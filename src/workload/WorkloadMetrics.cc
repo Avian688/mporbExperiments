@@ -235,7 +235,8 @@ void WorkloadMetrics::initialize()
     if (limit && *limit)
         measurementEnd = SimTime::parse(limit);
     if (const char *directory = par("diagnosticDir").stringValue(); *directory)
-        diagnostics = std::make_unique<WorkloadTcpDiagnostics>(directory, par("diagnosticFlowIds").stringValue());
+        diagnostics = std::make_unique<WorkloadTcpDiagnostics>(directory, par("diagnosticFlowIds").stringValue(),
+                                                              par("diagnosticDetailedSender").boolValue());
     if (const char *pairs = par("hotspotPairs").stringValue(); *pairs)
         watchHotspot(pairs);
     watchTransportRecovery();
@@ -772,7 +773,7 @@ void WorkloadMetrics::writeDiagnosticFlows()
         throw cRuntimeError("Cannot write workload flow outcomes: %s", path.string().c_str());
     out.imbue(std::locale::classic());
     out << "flow_id,server,client,offered_bytes,delivered_bytes,arrival_s,established_s,first_payload_s,"
-           "completion_s,socket_failed,tcp_cohort\n";
+           "completion_s,socket_failed,tcp_cohort,fct_s\n";
 
     std::vector<int> ids;
     ids.reserve(flows.size());
@@ -789,7 +790,10 @@ void WorkloadMetrics::writeDiagnosticFlows()
             if (time >= SIMTIME_ZERO)
                 out << time;
         }
-        out << ',' << flow.socketFailed << ',' << diagnostics->includes(id) << '\n';
+        out << ',' << flow.socketFailed << ',' << diagnostics->includes(id) << ',';
+        if (flow.completion >= SIMTIME_ZERO)
+            out << flow.completion - flow.arrival;
+        out << '\n';
     }
     out.close();
     if (!out)

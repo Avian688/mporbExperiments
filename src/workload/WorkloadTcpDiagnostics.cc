@@ -5,6 +5,9 @@
 #include "../../../mptcp/src/transportlayer/tcp/MpTcp.h"
 #include "../../../mptcp/src/transportlayer/tcp/MpTcpConnection.h"
 
+#include "inet/common/ProtocolTag_m.h"
+#include "inet/common/Simsignals.h"
+
 #include <algorithm>
 #include <charconv>
 #include <cmath>
@@ -34,12 +37,17 @@ constexpr const char *receiverMetaSignals[] = {"state", "holBlockedBytes", "meta
 
 } // namespace
 
-WorkloadTcpDiagnostics::WorkloadTcpDiagnostics(const std::string& directory, const std::string& flowIds) :
+WorkloadTcpDiagnostics::WorkloadTcpDiagnostics(const std::string& directory, const std::string& flowIds,
+                                               bool detailedSender) :
+    detailedSender(detailedSender),
     binWidth(SimTime(100, SIMTIME_MS).raw()),
     utilizationSignal(cComponent::registerSignal("U")),
     payloadSignal(cComponent::registerSignal("tcpRcvPayloadBytes")),
     pintHopSignal(cComponent::registerSignal("sampledPintHopId")),
-    appBytesSignal(cComponent::registerSignal("appDeliveredBytes"))
+    appBytesSignal(cComponent::registerSignal("appDeliveredBytes")),
+    sentPayloadSignal(cComponent::registerSignal("tcpSentPayloadBytes")),
+    appliedShuffleSignal(cComponent::registerSignal("mpOrbDeltaAppliedShuffle")),
+    omegaBoostSignal(cComponent::registerSignal("omegaAdditionalIncrease"))
 {
     std::istringstream ids(flowIds);
     std::string token;
@@ -65,6 +73,13 @@ WorkloadTcpDiagnostics::WorkloadTcpDiagnostics(const std::string& directory, con
             << "flow_id,endpoint,terminal,rank,local_port,module_id,metric,bin_start_s,"
                "first_time_s,last_time_s,first,min,max,last,count,sum\n";
     hops << "hop_id,node_path\n";
+    if (detailedSender) {
+        adjustments.open(output / "window_adjustments.csv");
+        if (!adjustments)
+            throw cRuntimeError("Cannot open window adjustment CSV in '%s'", directory.c_str());
+        adjustments.imbue(std::locale::classic());
+        adjustments << std::setprecision(12) << "flow_id,terminal,rank,time_s,metric,value\n";
+    }
 }
 
 bool WorkloadTcpDiagnostics::includes(int flowId) const
@@ -92,11 +107,25 @@ void WorkloadTcpDiagnostics::watch(int flowId, cModule *terminal, int socketId, 
         appTraces.try_emplace(flowId, Trace{appIdentity, {}}).first->second.identity = appIdentity;
     }
 
+    std::unordered_map<int, int> *senderPorts = nullptr;
+    if (sender && detailedSender) {
+        auto *ipv4 = terminal->getModuleByPath(".ipv4.ip");
+        if (!ipv4)
+            throw cRuntimeError("Missing sender IPv4 module at %s", terminal->getFullPath().c_str());
+        auto [position, inserted] = senderSubflowsByIpv4.try_emplace(ipv4);
+        if (inserted)
+            ipv4->subscribe(inet::packetReceivedFromUpperSignal, this);
+        senderPorts = &position->second;
+    }
+
     // The saved path rank is encoded by the offset within the flow's port block.
     for (auto *subflow : meta->getSubflows()) {
         const int port = subflow->getLocalPort();
-        if (port > basePort)
-            watchConnection(subflow, Identity{flowId, sender, terminal->getIndex(), port - basePort, port, subflow->getId()});
+        if (port <= basePort)
+            continue;
+        watchConnection(subflow, Identity{flowId, sender, terminal->getIndex(), port - basePort, port, subflow->getId()});
+        if (senderPorts)
+            (*senderPorts)[port] = subflow->getId();
     }
 }
 
@@ -140,6 +169,11 @@ void WorkloadTcpDiagnostics::sample(cComponent *source, simsignal_t signal, doub
         return;
     auto& trace = tcpTraces.at(source->getId());
     add(trace, signal, value);
+    if (detailedSender && value != 0 && (signal == appliedShuffleSignal || signal == omegaBoostSignal)) {
+        const auto& id = trace.identity;
+        adjustments << id.flowId << ',' << id.terminal << ',' << id.rank << ',' << simTime()
+                    << ',' << cComponent::getSignalName(signal) << ',' << value << '\n';
+    }
     if (signal == utilizationSignal)
         samplePintHop(source, trace);
 }
@@ -214,6 +248,31 @@ void WorkloadTcpDiagnostics::finish()
     hops.close();
     if (!vectors || !hops)
         throw cRuntimeError("Failed writing workload TCP diagnostic CSVs");
+    if (detailedSender) {
+        adjustments.close();
+        if (!adjustments)
+            throw cRuntimeError("Failed writing workload window adjustment CSV");
+    }
+}
+
+void WorkloadTcpDiagnostics::receiveSignal(cComponent *source, simsignal_t signal, cObject *value, cObject *)
+{
+    if (signal != inet::packetReceivedFromUpperSignal)
+        return;
+    const auto *packet = check_and_cast<const inet::Packet *>(value);
+    if (packet->getDataLength() <= inet::tcp::TCP_MIN_HEADER_LENGTH)
+        return;
+    const auto& protocol = packet->findTag<inet::PacketProtocolTag>();
+    if (!protocol || protocol->getProtocol() != &inet::Protocol::tcp)
+        return;
+    const auto& header = packet->peekAtFront<inet::tcp::TcpHeader>();
+    const auto& ports = senderSubflowsByIpv4.at(source);
+    const auto match = ports.find(header->getSrcPort());
+    if (match == ports.end())
+        return;
+    const auto bytes = packet->getByteLength() - header->getHeaderLength().get();
+    if (bytes > 0)
+        add(tcpTraces.at(match->second), sentPayloadSignal, bytes);
 }
 
 void WorkloadTcpDiagnostics::receiveSignal(cComponent *source, simsignal_t signal, bool value, cObject *)

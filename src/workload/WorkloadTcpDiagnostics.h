@@ -15,7 +15,7 @@ namespace mporbexperiments {
 class WorkloadTcpDiagnostics : private omnetpp::cListener
 {
   public:
-    WorkloadTcpDiagnostics(const std::string& directory, const std::string& flowIds);
+    WorkloadTcpDiagnostics(const std::string& directory, const std::string& flowIds, bool detailedSender);
 
     bool includes(int flowId) const;
     void watch(int flowId, omnetpp::cModule *terminal, int socketId, bool sender);
@@ -52,14 +52,20 @@ class WorkloadTcpDiagnostics : private omnetpp::cListener
     std::unordered_set<int> selectedFlows;
     std::unordered_map<int, Trace> tcpTraces;
     std::unordered_map<int, Trace> appTraces;
+    std::unordered_map<omnetpp::cComponent *, std::unordered_map<int, int>> senderSubflowsByIpv4;
     std::unordered_set<int> pintHopIds;
     std::ofstream vectors;
     std::ofstream hops;
+    std::ofstream adjustments;
+    const bool detailedSender;
     int64_t binWidth;
     omnetpp::simsignal_t utilizationSignal;
     omnetpp::simsignal_t payloadSignal;
     omnetpp::simsignal_t pintHopSignal;
     omnetpp::simsignal_t appBytesSignal;
+    omnetpp::simsignal_t sentPayloadSignal;
+    omnetpp::simsignal_t appliedShuffleSignal;
+    omnetpp::simsignal_t omegaBoostSignal;
 
     void watchConnection(omnetpp::cModule *module, const Identity& identity);
     void sample(omnetpp::cComponent *source, omnetpp::simsignal_t signal, double value);
@@ -79,6 +85,8 @@ class WorkloadTcpDiagnostics : private omnetpp::cListener
                        double value, omnetpp::cObject *) override;
     void receiveSignal(omnetpp::cComponent *source, omnetpp::simsignal_t signal,
                        const omnetpp::SimTime& value, omnetpp::cObject *) override;
+    void receiveSignal(omnetpp::cComponent *source, omnetpp::simsignal_t signal,
+                       omnetpp::cObject *value, omnetpp::cObject *) override;
 };
 
 } // namespace mporbexperiments

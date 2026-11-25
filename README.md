@@ -366,3 +366,20 @@ downloads already active at 151.5 s. Each row reports received TCP payload
 bytes per rank, including retransmissions and duplicates, and bytes delivered
 to the receiving application across all ranks. The logs and results go under
 `web-search/600s/520Mbps/diagnostics/` within each layout.
+
+To add Alpha and Delta to the 76-pair diagnostic, run the following from the
+same script folder after rebuilding the release library.
+
+```bash
+python3 runExperimentWorkload.py --layout eastbound76 --offered-mbps 520 --diagnostic --ks 5 --workload-seed 1 --protocols Alpha Delta --cores 2
+```
+
+The runner checks the arrival schedule and sampled downloads against any existing
+diagnostic inputs before running. `flow_outcomes.csv.gz` includes an `fct_s`
+column for completed downloads. For the sampled downloads, sum
+`tcpSentPayloadBytes` within each 100 ms bin in `tcp_vectors.csv.gz` to obtain
+bytes passed from TCP to IPv4 per rank, including retransmissions. Cwnd,
+pacing rate, and receiver bytes are in the same file.
+`window_adjustments.csv.gz` records timestamps for nonzero Delta shuffle
+commits (bits/s) and Omega's proposed extra additive increase (bytes).
+Pass `--protocols Omega` to collect these extra sender measurements for Omega.
