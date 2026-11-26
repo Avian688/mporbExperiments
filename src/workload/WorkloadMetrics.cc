@@ -236,7 +236,8 @@ void WorkloadMetrics::initialize()
         measurementEnd = SimTime::parse(limit);
     if (const char *directory = par("diagnosticDir").stringValue(); *directory)
         diagnostics = std::make_unique<WorkloadTcpDiagnostics>(directory, par("diagnosticFlowIds").stringValue(),
-                                                              par("diagnosticDetailedSender").boolValue());
+                                                              par("diagnosticDetailedSender").boolValue(),
+                                                              par("diagnosticWindowUpdates").boolValue());
     if (const char *pairs = par("hotspotPairs").stringValue(); *pairs)
         watchHotspot(pairs);
     watchTransportRecovery();

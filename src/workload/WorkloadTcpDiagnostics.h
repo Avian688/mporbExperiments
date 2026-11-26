@@ -15,7 +15,8 @@ namespace mporbexperiments {
 class WorkloadTcpDiagnostics : private omnetpp::cListener
 {
   public:
-    WorkloadTcpDiagnostics(const std::string& directory, const std::string& flowIds, bool detailedSender);
+    WorkloadTcpDiagnostics(const std::string& directory, const std::string& flowIds,
+                           bool detailedSender, bool traceWindowUpdates);
 
     bool includes(int flowId) const;
     void watch(int flowId, omnetpp::cModule *terminal, int socketId, bool sender);
@@ -57,7 +58,9 @@ class WorkloadTcpDiagnostics : private omnetpp::cListener
     std::ofstream vectors;
     std::ofstream hops;
     std::ofstream adjustments;
+    std::ofstream windowUpdates;
     const bool detailedSender;
+    const bool traceWindowUpdates;
     int64_t binWidth;
     omnetpp::simsignal_t utilizationSignal;
     omnetpp::simsignal_t payloadSignal;

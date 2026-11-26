@@ -383,3 +383,27 @@ pacing rate, and receiver bytes are in the same file.
 `window_adjustments.csv.gz` records timestamps for nonzero Delta shuffle
 commits (bits/s) and Omega's proposed extra additive increase (bytes).
 Pass `--protocols Omega` to collect these extra sender measurements for Omega.
+
+For a committed-window comparison, rebuild `orbtcp`, `mporb`, and
+`mporbExperiments` in release mode and run from the same script folder.
+
+```bash
+python3 runExperimentWorkload.py --layout eastbound76 --offered-mbps 520 --diagnostic --trace-window-updates --ks 5 --workload-seed 1 --protocols Alpha Delta Omega --cores 3
+```
+
+This selects the two largest downloads over 10 MB from the existing TCP
+sample in each arrival interval of 80–115 s, 115–151.5 s, and 151.5–165 s.
+Each case uses the original schedule and routes and writes under
+`diagnostics/window_updates/`. The existing diagnostic results remain in
+their original directories.
+
+`window_updates.csv.gz` records each RTT-paced PINT commit on the sampled
+sender subflows. It includes the PINT and Alpha additive increases, Omega's
+extra proposed increase, the current and previous committed cwnd, the final
+cwnd, the reported U, the cwnd-limit check, and the resulting pacing rate.
+The effective Alpha and Omega contributions compare the windows on the same
+ACK with the same multiplicative decrease, growth gate, and MSS floor. The
+signed Delta contribution is the difference between the final and pre-shuffle
+windows. `window_update_summary.json` sums these values by flow and rank and
+for the entire sample, with separate positive and negative Delta totals and
+commit counts.

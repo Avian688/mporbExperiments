@@ -2,6 +2,7 @@
 #include "WorkloadTcpDiagnostics.h"
 
 #include "../../../mporb/src/transportlayer/tcp/MpOrbSubflowConnection.h"
+#include "../../../mporb/src/transportlayer/tcp/flavours/MpOrbSemiCoupledAlpha.h"
 #include "../../../mptcp/src/transportlayer/tcp/MpTcp.h"
 #include "../../../mptcp/src/transportlayer/tcp/MpTcpConnection.h"
 
@@ -38,8 +39,9 @@ constexpr const char *receiverMetaSignals[] = {"state", "holBlockedBytes", "meta
 } // namespace
 
 WorkloadTcpDiagnostics::WorkloadTcpDiagnostics(const std::string& directory, const std::string& flowIds,
-                                               bool detailedSender) :
+                                               bool detailedSender, bool traceWindowUpdates) :
     detailedSender(detailedSender),
+    traceWindowUpdates(traceWindowUpdates),
     binWidth(SimTime(100, SIMTIME_MS).raw()),
     utilizationSignal(cComponent::registerSignal("U")),
     payloadSignal(cComponent::registerSignal("tcpRcvPayloadBytes")),
@@ -79,6 +81,17 @@ WorkloadTcpDiagnostics::WorkloadTcpDiagnostics(const std::string& directory, con
             throw cRuntimeError("Cannot open window adjustment CSV in '%s'", directory.c_str());
         adjustments.imbue(std::locale::classic());
         adjustments << std::setprecision(12) << "flow_id,terminal,rank,time_s,metric,value\n";
+    }
+    if (traceWindowUpdates) {
+        windowUpdates.open(output / "window_updates.csv");
+        if (!windowUpdates)
+            throw cRuntimeError("Cannot open window update CSV in '%s'", directory.c_str());
+        windowUpdates.imbue(std::locale::classic());
+        windowUpdates << std::setprecision(12)
+                      << "flow_id,terminal,rank,time_s,u,cwnd_limited,pacing_mbps,pint_ai_bytes,alpha_ai_bytes,"
+                         "omega_boost_ai_bytes,alpha_removed_bytes,omega_restored_bytes,delta_bytes,"
+                         "cwnd_before_bytes,previous_committed_cwnd_bytes,cwnd_after_bytes,"
+                         "cwnd_change_bytes,committed_cwnd_change_bytes\n";
     }
 }
 
@@ -150,7 +163,13 @@ void WorkloadTcpDiagnostics::watchConnection(cModule *module, const Identity& id
         subscribe(receiverSubflowSignals);
 
     // The establishment callback follows the first TCP state transitions.
-    const auto *connection = check_and_cast<const inet::tcp::TcpConnection *>(module);
+    auto *connection = check_and_cast<inet::tcp::TcpConnection *>(module);
+    if (traceWindowUpdates && identity.sender && identity.rank > 0) {
+        using inet::tcp::MpOrbSemiCoupledAlpha;
+        auto *algorithm = check_and_cast<MpOrbSemiCoupledAlpha *>(connection->getTcpAlgorithm());
+        algorithm->enableWindowUpdateTrace();
+        module->subscribe(MpOrbSemiCoupledAlpha::windowUpdateSignal, this);
+    }
     sample(module, cComponent::registerSignal("state"), connection->getFsmState());
 }
 
@@ -253,10 +272,29 @@ void WorkloadTcpDiagnostics::finish()
         if (!adjustments)
             throw cRuntimeError("Failed writing workload window adjustment CSV");
     }
+    if (traceWindowUpdates) {
+        windowUpdates.close();
+        if (!windowUpdates)
+            throw cRuntimeError("Failed writing workload window update CSV");
+    }
 }
 
 void WorkloadTcpDiagnostics::receiveSignal(cComponent *source, simsignal_t signal, cObject *value, cObject *)
 {
+    if (signal == inet::tcp::MpOrbSemiCoupledAlpha::windowUpdateSignal) {
+        const auto& update = *check_and_cast<const inet::tcp::MpOrbWindowUpdate *>(value);
+        const auto& id = tcpTraces.at(source->getId()).identity;
+        const int64_t cwnd = update.cwndAfter;
+        windowUpdates << id.flowId << ',' << id.terminal << ',' << id.rank << ',' << simTime() << ','
+                      << update.u << ',' << update.cwndLimited << ',' << update.pacingRateMbps << ','
+                      << update.pintIncrease << ',' << update.alphaIncrease << ','
+                      << static_cast<int64_t>(update.increaseWithBoost) - update.alphaIncrease << ','
+                      << update.alphaRemoved << ',' << update.omegaRestored << ','
+                      << cwnd - update.windowBeforeShuffle << ',' << update.cwndBefore << ','
+                      << update.previousCommitted << ',' << cwnd << ',' << cwnd - update.cwndBefore << ','
+                      << cwnd - update.previousCommitted << '\n';
+        return;
+    }
     if (signal != inet::packetReceivedFromUpperSignal)
         return;
     const auto *packet = check_and_cast<const inet::Packet *>(value);

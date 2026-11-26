@@ -3,7 +3,7 @@
 
 import argparse
 from bisect import bisect_right
-from collections import deque
+from collections import Counter, deque
 from contextlib import ExitStack
 import csv
 from dataclasses import dataclass
@@ -43,6 +43,9 @@ SUBFLOW_COUNTS = tuple(range(1, PATH_COUNT + 1))
 DEFAULT_WORKLOAD_SEEDS = tuple(range(DEFAULT_WORKLOAD_SEED, DEFAULT_WORKLOAD_SEED + 5))
 DIAGNOSTIC_PROTOCOLS = ('Omega', 'OrbUncoupled')
 DIAGNOSTIC_ONLY_PROTOCOLS = {name: leo.PROTOCOLS[name] for name in ('Alpha', 'Delta')}
+WINDOW_TRACE_PROTOCOLS = ('Alpha', 'Delta', 'Omega')
+WINDOW_TRACE_FLOWS_PER_INTERVAL = 2
+WINDOW_TRACE_FOLDER = 'window_updates'
 DIAGNOSTIC_KS = (3, 5)
 DIAGNOSTIC_CSVS = ('tcp_vectors.csv', 'flow_outcomes.csv')
 DIAGNOSTIC_START = 20
@@ -216,7 +219,8 @@ def case_config(protocol, k, workload_seed):
 
 
 def write_config(root, store, duration, max_offset, cases, workload_seed, layout, *,
-                 diagnostic_ids, diagnostic_end, hotspot_pairs=(), detailed_sender=False):
+                 diagnostic_ids, diagnostic_end, hotspot_pairs=(), detailed_sender=False,
+                 trace_window_updates=False):
     (root / 'topology.ini').write_bytes((store / 'topology.ini').read_bytes())
     lines = shared_config(store, duration, max_offset, layout)
     for protocol, k in cases:
@@ -229,6 +233,8 @@ def write_config(root, store, duration, max_offset, cases, workload_seed, layout
                           f'*.workloadMetrics.diagnosticFlowIds = "{ids}"'))
             if detailed_sender:
                 lines.append('*.workloadMetrics.diagnosticDetailedSender = true')
+            if trace_window_updates:
+                lines.append('*.workloadMetrics.diagnosticWindowUpdates = true')
             if hotspot_pairs:
                 pairs = ' '.join(str(terminal) for pair in hotspot_pairs for terminal in pair)
                 lines.extend((f'*.workloadMetrics.hotspotPairs = "{pairs}"',
@@ -254,6 +260,38 @@ def publish_diagnostic_inputs(inputs):
             source.replace(destination)
 
 
+def summarize_window_updates(trace, output, flow_ids):
+    totals = Counter()
+    by_rank = {}
+    with trace.open(encoding='utf-8', newline='') as handle:
+        for row in csv.DictReader(handle):
+            flow_id, rank = int(row['flow_id']), int(row['rank'])
+            if flow_id not in flow_ids:
+                raise ValueError(f'Unexpected flow {flow_id} in {trace}')
+            delta = int(row['delta_bytes'])
+            amounts = dict(
+                commits=1,
+                cwnd_limited_commits=int(row['cwnd_limited']),
+                alpha_ai_removed_bytes=int(row['pint_ai_bytes']) - int(row['alpha_ai_bytes']),
+                alpha_removed_bytes=int(row['alpha_removed_bytes']),
+                omega_boost_ai_bytes=int(row['omega_boost_ai_bytes']),
+                omega_restored_bytes=int(row['omega_restored_bytes']),
+                delta_added_bytes=max(0, delta),
+                delta_removed_bytes=max(0, -delta),
+                delta_net_bytes=delta,
+            )
+            totals.update(amounts)
+            by_rank.setdefault((flow_id, rank), Counter()).update(amounts)
+    if not totals:
+        raise ValueError(f'No committed window updates in {trace}; check the release libraries')
+    summary = dict(totals=dict(totals),
+                   by_flow_rank=[dict(flow_id=flow_id, rank=rank, **counts)
+                                 for (flow_id, rank), counts in sorted(by_rank.items())],
+                   flows_without_updates=sorted(set(flow_ids) - {flow_id for flow_id, _ in by_rank}))
+    output.write_text(json.dumps(summary, indent=2) + '\n', encoding='utf-8')
+    return totals
+
+
 def available_memory():
     if sys.platform == 'darwin':
         stats = subprocess.check_output(['/usr/bin/vm_stat'], text=True, timeout=3)
@@ -275,6 +313,8 @@ def start_case(job, layout, *, diagnostic=False):
     log_dir = layout.logs / 'web-search' / case_scenario_folder(workload)
     if diagnostic:
         log_dir /= 'diagnostics'
+        if 'window_update_flow_ids' in workload:
+            log_dir /= WINDOW_TRACE_FOLDER
         diagnostics = root / f'{config}.diagnostics'
         if diagnostics.exists():
             shutil.rmtree(diagnostics)
@@ -321,6 +361,18 @@ def finish_case(case, layout, *, diagnostic=False):
             if not hotspot.is_file() or not hotspot.stat().st_size:
                 raise ValueError(f'{config} did not produce {hotspot.name}; inspect {log}')
         names = DIAGNOSTIC_CSVS + (('window_adjustments.csv',) if workload.get('detailed_sender') else ())
+        destination = results / 'diagnostics'
+        if flow_ids := workload.get('window_update_flow_ids'):
+            destination /= WINDOW_TRACE_FOLDER
+            trace = diagnostics / 'window_updates.csv'
+            if not trace.is_file():
+                raise ValueError(f'{config} did not produce {trace.name}; inspect {log}')
+            totals = summarize_window_updates(trace, diagnostics / 'window_update_summary.json', flow_ids)
+            print(f'{config}: {totals["commits"]:,} commits, Alpha removed {totals["alpha_removed_bytes"]:,} B, '
+                  f'Omega restored {totals["omega_restored_bytes"]:,} B, '
+                  f'Delta added {totals["delta_added_bytes"]:,} B and removed {totals["delta_removed_bytes"]:,} B',
+                  flush=True)
+            names += (trace.name,)
         for name in names:
             csv_path = diagnostics / name
             if not csv_path.is_file() or not csv_path.stat().st_size:
@@ -329,7 +381,8 @@ def finish_case(case, layout, *, diagnostic=False):
                 shutil.copyfileobj(source, target)
             csv_path.unlink()
         staged.replace(diagnostics / staged.name)
-        destination = results / 'diagnostics' / config
+        destination /= config
+        destination.parent.mkdir(parents=True, exist_ok=True)
         backup = root / f'{config}.previous'
         if destination.exists():
             destination.rename(backup)
@@ -443,6 +496,8 @@ def main(argv=None):
     parser.add_argument('--diagnostic', action='store_true',
                         help='Seed-1 Omega and OrbUncoupled diagnostics at 640 Mbps (eastbound, K=3 and K=5, '
                              '20–120 s) or 520 Mbps (both eastbound layouts, K=5, 80–180 s)')
+    parser.add_argument('--trace-window-updates', action='store_true',
+                        help='Trace committed windows for six matched large downloads in the eastbound76 diagnostic')
     parser.add_argument('--cores', type=int, default=1, help='Maximum simultaneous simulations')
     parser.add_argument('--sim-timeout-seconds', type=float, default=16 * 3600,
                         help='Wall-clock limit per traffic simulation (default: 16 hours)')
@@ -483,6 +538,8 @@ def main(argv=None):
             parser.error(f'--diagnostic supports {", ".join(allowed)} at K={", ".join(map(str, diagnostic_ks))}')
     elif set(protocols) & DIAGNOSTIC_ONLY_PROTOCOLS.keys():
         parser.error('Alpha and Delta require --layout eastbound76 --offered-mbps 520 --diagnostic')
+    if args.trace_window_updates and (not detailed_sender or set(protocols) - set(WINDOW_TRACE_PROTOCOLS)):
+        parser.error('--trace-window-updates requires the eastbound76 diagnostic and --protocols Alpha, Delta or Omega')
     subflow_counts = args.ks or (diagnostic_ks if args.diagnostic else SUBFLOW_COUNTS)
     store = (args.route_store or layout.store).resolve()
     cases = list(dict.fromkeys((protocol, k) for protocol in protocols
@@ -494,8 +551,11 @@ def main(argv=None):
     if args.dry_run:
         print(f'Saved routes: {store}')
         if args.diagnostic:
-            print(f'Diagnostic results: {staging_parent}')
-            print(f'Diagnostic logs: {layout.logs / "web-search" / scenario / "diagnostics"}')
+            folder = Path('diagnostics')
+            if args.trace_window_updates:
+                folder /= WINDOW_TRACE_FOLDER
+            print(f'Diagnostic results: {layout.results / scenario / folder}')
+            print(f'Diagnostic logs: {layout.logs / "web-search" / scenario / folder}')
         else:
             print(f'Aggregate results: {layout.results / scenario}')
     else:
@@ -522,6 +582,7 @@ def main(argv=None):
             scheduled_bytes = payload_bytes
             duration, arrival_end = args.sim_time, end
             diagnostic_ids = ()
+            window_trace_ids = ()
             if args.diagnostic:
                 duration = arrival_end = diagnostic_end
                 scheduled_flows = [flow for flow in flows if flow.start < arrival_end]
@@ -533,6 +594,20 @@ def main(argv=None):
                     raise ValueError(f'No eligible diagnostic downloads in workload seed {seed}')
                 print(f'Run to {duration:g}s with {len(scheduled_flows):,} arrivals from the original schedule. '
                       f'Sample {len(diagnostic_ids)} selected downloads over {diagnostic_start}–{diagnostic_end}s.', flush=True)
+                if args.trace_window_updates:
+                    original_sample = set(diagnostic_ids)
+                    eligible = [flow for flow in scheduled_flows
+                                if flow.id in original_sample and flow.bytes > 10_000_000]
+                    selected_ids = []
+                    boundaries = (diagnostic_start, *MATCHED_DIAGNOSTIC_CUTS)
+                    for left, right in zip(boundaries, boundaries[1:]):
+                        candidates = sorted((flow for flow in eligible if left <= flow.start < right),
+                                            key=lambda flow: (-flow.bytes, flow.id))
+                        selected_ids.extend(flow.id for flow in candidates[:WINDOW_TRACE_FLOWS_PER_INTERVAL])
+                    window_trace_ids = tuple(sorted(selected_ids))
+                    if not window_trace_ids:
+                        raise ValueError('No eligible large downloads in the diagnostic sample')
+                    print(f'Window trace flow IDs: {", ".join(map(str, window_trace_ids))}', flush=True)
             if args.dry_run:
                 for protocol, k in cases:
                     print(case_name(protocol, k, seed))
@@ -575,12 +650,22 @@ def main(argv=None):
                     workload['hotspot'] = dict(start_s=HOTSPOT_START, end_s=HOTSPOT_END, pairs=hotspot_pairs)
                 if detailed_sender:
                     workload['detailed_sender'] = True
+                if window_trace_ids:
+                    selected = set(window_trace_ids)
+                    trace_cohort = root / 'window_selected_flows.csv'
+                    trace_rows = [(flow, slot) for flow, slot in selected_rows if flow.id in selected]
+                    write_schedule(trace_cohort, *zip(*trace_rows, strict=True))
+                    trace_folder = staging_parent / WINDOW_TRACE_FOLDER
+                    trace_folder.mkdir(exist_ok=True)
+                    publish_diagnostic_inputs(((trace_cohort, trace_folder / 'selected_flows.csv'),))
+                    workload['window_update_flow_ids'] = window_trace_ids
                 print(f'Seed {seed} original schedule SHA-256: {baseline_hash}\n'
                       f'Diagnostic schedule prefix SHA-256: {schedule_hash}\n'
                       f'Full arrival times and sizes SHA-256: {arrivals_sizes_hash}', flush=True)
             write_config(root, store, args.sim_time, max_offset, cases, seed, layout,
-                         diagnostic_ids=diagnostic_ids, diagnostic_end=diagnostic_end, hotspot_pairs=hotspot_pairs,
-                         detailed_sender=detailed_sender)
+                         diagnostic_ids=window_trace_ids or diagnostic_ids, diagnostic_end=diagnostic_end,
+                         hotspot_pairs=hotspot_pairs, detailed_sender=detailed_sender,
+                         trace_window_updates=args.trace_window_updates)
             jobs.extend((root, case_name(protocol, k, seed), protocol, k, workload, args.sim_timeout_seconds)
                         for protocol, k in cases)
         if jobs:

@@ -8,6 +8,7 @@ simple WorkloadMetrics
         string diagnosticDir = default(""); // Empty disables the endpoint diagnostic CSVs.
         string diagnosticFlowIds = default("");
         bool diagnosticDetailedSender = default(false);
+        bool diagnosticWindowUpdates = default(false);
         string hotspotPairs = default(""); // Whitespace-separated server and client terminal indices.
         double hotspotStart @unit(s) = default(0s);
         double hotspotEnd @unit(s) = default(0s);
