@@ -1,6 +1,66 @@
 # MpORB multipath experiments
 
-This suite contains only four experiments: two-path responsiveness, responsiveness
+## Numbered MPOrb evaluation
+
+Run from `simulations/pythonScripts` after building the existing transport
+libraries and the release `mporbExperiments` library.
+
+```sh
+python3 runEvaluation.py --experiments A B 1 2 3 4 5 6 --cores 30
+```
+
+Use `--step generate` to prepare inputs, `--step plot` to replot completed
+runs, or `--dry-run` to list the matrix. For a small pilot, select a trial,
+controller and sweep value, such as
+`python3 runEvaluation.py --experiments 1 --values 60 --protocols Omega --trials 1 --cores 1`.
+
+| Test | Sweep | Main measurements |
+| --- | --- | --- |
+| A | Offer 0, 20, 40, 60, 80, or 95 Mb/s of UDP payload on one of two paths, ending at 60 s | Delta and Omega subflow recovery, first 5 s receive rate, time to sustain 90 Mb/s |
+| B | Reuse experiment 1 with uncoupled OrbCC, Alpha, Delta and Omega | Connection fairness and A's traffic on the shared link |
+| 1 | A uses links 1/2, B and C use 2/3, and link 1 sweeps 20–100 Mb/s | Connection goodput, Jain fairness and A's shared-link receive rate |
+| 2 | A stays on link 1 and B/C each use K=1–5 links | Per-connection goodput against the feasible max-min shares |
+| 3 | Both A paths have 20 ms RTT and both B paths sweep 20–200 ms | Goodput ratio and aggregate goodput |
+| 4 | All four paths have the same RTT, swept from 20–200 ms | Goodput ratio and time-resolved connection fairness |
+| 5 | 3, 5, 10, 15, or 20 connections with K=2 and routes redrawn every 15 s | Time-resolved and aggregate connection fairness and goodput |
+| 6 | 1, 2, 4, 6, or 8 connections join the two incumbents at about 100 s and leave at about 200 s | Incumbent goodput and fairness before, during and after the population change |
+
+Each numbered benchmark compares Omega, OLIA, BALIA, uncoupled CUBIC and
+uncoupled OrbCC. It uses one controller throughout each run and the same
+`defaultCwnd` scheduler for every controller. K=1 uses a single subflow of
+the selected controller. All trials reuse the same start times, handovers
+and assignments across controllers. The default is five trials per point
+and 300 s per run, for 1,160 cases across the eight tests. The experiment 6
+newcomers share a slightly jittered start time and are cut off together.
+
+In tests 1–6 both directions of the core links disconnect every 15 s.
+They reconnect after paired 45–120 ms outages based on the OrbCC
+responsiveness experiment. Test 5 remaps both endpoints of each rank
+during that outage and refreshes routing on reconnect. Each connection has
+distinct core links and a common base RTT for its ranks. Access links run
+at 10 Gb/s. Core buffers hold one reference BDP at the link capacity and
+mean base RTT for the run, with a common 1,200-byte MSS. A and B run without
+handovers to isolate their mechanisms.
+
+The recorder writes 100 ms endpoint byte bins. It measures application
+goodput for each connection and receiver TCP payload per rank for
+connection A where needed. The latter includes retransmissions, while
+the connection-level goodput counts bytes delivered to the application.
+The sweep plots report the mean and min–max across paired trials. For
+experiment 2 the feasible A, B and C reference in Mb/s is
+`(100/3,100/3,100/3)`, `(200/3,200/3,200/3)`, `(100,100,100)`,
+`(100,150,150)`, and `(100,200,200)` as K increases from 1 to 5.
+The normalized Jain index uses each connection's goodput divided by its
+reference rate.
+
+Generated inputs and results are under
+`simulations/experiments/evaluation/experimentX/<duration>s/`; the
+corresponding summary CSVs and PNG/PDF figures are under
+`simulations/plots/evaluation/`.
+
+## Earlier two-path suite
+
+The earlier suite contains four experiments: two-path responsiveness, responsiveness
 with loss, inter-connection RTT, and intra-connection RTT. Every connection has
 **two subflows**, one bound to each physical path. The controller order is
 **Delta, Omega, Alpha, OrbCC uncoupled, CUBIC uncoupled**. Delta selects `MpOrbDelta`, the

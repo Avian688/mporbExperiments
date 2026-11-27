@@ -6,6 +6,7 @@ out/
 __pycache__/
 .DS_Store
 simulations/experiments/*/results/
+simulations/experiments/evaluation/
 simulations/experiments/experimentWorkload/eastbound/results/
 simulations/experiments/experimentWorkload/eastbound76/results/
 simulations/experiments/*/csvs/
