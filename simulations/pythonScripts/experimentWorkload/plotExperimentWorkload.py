@@ -16,6 +16,8 @@ from workloadTopology import DEFAULT_LAYOUT, LAYOUT_NAMES, get_layout
 SHORT_MAX = 100_000
 LONG_MIN = 1_000_000
 LARGE_MIN = 10_000_000
+GOODPUT_BANDS = ((LONG_MIN, 'Over 1 MB to 10 MB'), (LARGE_MIN, 'Over 10 MB'))
+GOODPUT_PERCENTILES = ((50, 'Median', '-'), (10, 'P10', ':'))
 MARKERS = ('o', 's', '^', 'D', 'v')
 OMEGA_COMPARISON = ('Omega', 'OrbUncoupled')
 PLOT_PROTOCOLS = {**PROTOCOLS, **DIAGNOSTIC_ONLY_PROTOCOLS}
@@ -96,12 +98,30 @@ def fct_percentile(results, boundary, size, percentile):
     return values
 
 
+def goodput_percentiles(results, seed):
+    values = {(lower, percentile): {} for lower, _ in GOODPUT_BANDS for percentile, _, _ in GOODPUT_PERCENTILES}
+    bands = dict(GOODPUT_BANDS)
+    for case, size_classes in results.items():
+        for size_class in size_classes:
+            lower = size_class['min_exclusive_bytes']
+            if lower not in bands:
+                continue
+            if size_class['unfinished']:
+                controller, k = case
+                print(f'Seed {seed}, {controller} K={k}: {size_class["unfinished"]}/{size_class["offered"]} '
+                      f'downloads ({bands[lower]}) unfinished at cutoff')
+            quantiles = size_class['goodput_mbps']['quantiles']
+            for percentile, _, _ in GOODPUT_PERCENTILES:
+                if percentile < len(quantiles):
+                    values[lower, percentile][case] = quantiles[percentile]
+    return {f'goodput_{lower}_p{percentile}': series for (lower, percentile), series in values.items()}
+
+
 def run_metrics(results, seed):
     return {
         'short_mean': flow_means(results, 'fct_seconds', lambda row: row['max_inclusive_bytes'] == SHORT_MAX,
                                  'short', seed),
-        'long_goodput': flow_means(results, 'goodput_mbps', lambda row: row['min_exclusive_bytes'] >= LONG_MIN,
-                                   'long', seed),
+        **goodput_percentiles(results, seed),
         'short_p95': fct_percentile(results, 'max_inclusive_bytes', SHORT_MAX, 95),
         'short_p99': fct_percentile(results, 'max_inclusive_bytes', SHORT_MAX, 99),
         'large_p95': fct_percentile(results, 'min_exclusive_bytes', LARGE_MIN, 95),
@@ -138,20 +158,21 @@ def average_metrics(by_seed):
     return averages, ranges
 
 
-def draw_curves(ax, values, title, ylabel, scale=1, spread=None):
-    ax.set(title=title, xlabel='Requested subflows (K)', ylabel=ylabel, xticks=SUBFLOW_COUNTS)
-    ax.grid(axis='y', alpha=0.25)
+def plot_k_series(ax, values, scale=1, spread=None, *, linestyle='-', single_linestyle='--'):
+    handles = {}
     for index, (controller, (_, _, label)) in enumerate(PROTOCOLS.items()):
         if controller == 'OrbSingle':
             if (controller, 1) in values:
                 if spread is not None:
                     low, high = spread[controller, 1]
                     ax.axhspan(low * scale, high * scale, color='0.3', alpha=0.12)
-                ax.axhline(values[controller, 1] * scale, color='0.3', linestyle='--', label=label)
+                handles[controller] = ax.axhline(values[controller, 1] * scale, color='0.3',
+                                                 linestyle=single_linestyle, label=label)
             continue
         points = [values.get((controller, k), math.nan) * scale for k in SUBFLOW_COUNTS]
         if any(math.isfinite(point) for point in points):
-            ax.plot(SUBFLOW_COUNTS, points, label=label, color=f'C{index}', marker=MARKERS[index])
+            handles[controller], = ax.plot(SUBFLOW_COUNTS, points, label=label, color=f'C{index}',
+                                           marker=MARKERS[index], linestyle=linestyle)
             if spread is not None:
                 ks = [k for k in SUBFLOW_COUNTS if (controller, k) in values]
                 means = [values[controller, k] for k in ks]
@@ -160,6 +181,13 @@ def draw_curves(ax, values, title, ylabel, scale=1, spread=None):
                             yerr=([(mean - low) * scale for mean, (low, _) in zip(means, limits)],
                                   [(high - mean) * scale for mean, (_, high) in zip(means, limits)]),
                             fmt='none', ecolor=f'C{index}', capsize=3)
+    return handles
+
+
+def draw_curves(ax, values, title, ylabel, scale=1, spread=None):
+    ax.set(title=title, xlabel='Requested subflows (K)', ylabel=ylabel, xticks=SUBFLOW_COUNTS)
+    ax.grid(axis='y', alpha=0.25)
+    plot_k_series(ax, values, scale, spread)
     if values:
         ax.set_ylim(bottom=0)
         ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.19), ncol=3, frameon=False)
@@ -191,14 +219,50 @@ def draw_short_tail(plt, path, metrics, workload_label, spreads):
     save_figure(plt, fig, path)
 
 
+def draw_goodput_bands(plt, path, metrics, workload_label, spreads):
+    from matplotlib.lines import Line2D
+
+    fig, axes = plt.subplots(1, 2, figsize=(9.5, 4.4))
+    fig.subplots_adjust(left=.085, right=.98, bottom=.30, top=.78, wspace=.30)
+    fig.suptitle(f'Goodput of completed downloads\n{workload_label}')
+    controllers = {}
+    for ax, (lower, title) in zip(axes, GOODPUT_BANDS):
+        ax.set(title=title, xlabel='Requested subflows (K)', ylabel='Goodput (Mb/s)', xticks=SUBFLOW_COUNTS)
+        ax.grid(axis='y', alpha=.25)
+        panel = {}
+        for percentile, _, style in GOODPUT_PERCENTILES:
+            key = f'goodput_{lower}_p{percentile}'
+            panel.update(plot_k_series(ax, metrics[key], spread=spreads.get(key), linestyle=style,
+                                       single_linestyle='--' if percentile == 50 else style))
+        if panel:
+            ax.set_ylim(bottom=0)
+        else:
+            ax.text(.5, .5, 'No completed downloads with saved percentiles',
+                    ha='center', transform=ax.transAxes, fontsize='small')
+            ax.set_yticks([])
+        controllers.update(panel)
+
+    if controllers:
+        controller_keys = [Line2D([], [], color=controllers[name].get_color(),
+                                  marker=controllers[name].get_marker(), linestyle='none',
+                                  label=PROTOCOLS[name][2]) if name != 'OrbSingle'
+                           else Line2D([], [], color='0.3', linestyle='--', label=PROTOCOLS[name][2])
+                           for name in PROTOCOLS if name in controllers]
+        statistic_keys = [Line2D([], [], color='0.2', linestyle=style, label=label)
+                          for _, label, style in GOODPUT_PERCENTILES]
+        fig.legend(handles=controller_keys, loc='lower center', bbox_to_anchor=(.5, .09),
+                   ncol=min(3, len(controller_keys)), frameon=False)
+        fig.legend(handles=statistic_keys, loc='lower center', bbox_to_anchor=(.5, .01), ncol=2, frameon=False)
+    save_figure(plt, fig, path)
+
+
 def draw_workload(plt, output, metrics, workload_label, spreads=None):
     output.mkdir(parents=True, exist_ok=True)
     spreads = spreads or {}
     subtitle = f'\n{workload_label}' if spreads else ''
     draw(plt, output / 'short_flow_fct.pdf', metrics['short_mean'],
          f'Short-flow completion time (≤100 kB){subtitle}', 'Mean FCT (ms)', 1000, spreads.get('short_mean'))
-    draw(plt, output / 'long_flow_goodput.pdf', metrics['long_goodput'],
-         f'Long-flow goodput (>1 MB){subtitle}', 'Mean goodput (Mb/s)', spread=spreads.get('long_goodput'))
+    draw_goodput_bands(plt, output / 'long_flow_goodput.pdf', metrics, workload_label, spreads)
     draw_short_tail(plt, output / 'short_flow_fct_tail.pdf', metrics, workload_label, spreads)
     draw(plt, output / 'large_flow_fct_p95.pdf', metrics['large_p95'],
          f'Large-flow completion time (>10 MB)\n{workload_label}', 'P95 FCT (s)', spread=spreads.get('large_p95'))

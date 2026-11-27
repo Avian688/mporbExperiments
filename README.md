@@ -325,6 +325,11 @@ single-path OrbCC uses rank 1. Eastbound routes and aggregate JSONs live under
 `simulations/plots/experimentWorkload/eastbound/`. Pass `--layout legacy` to
 any of the three scripts to use the original layout and its existing paths.
 
+`plotExperimentWorkload.py` uses the saved goodput percentiles for
+`long_flow_goodput.pdf`. It shows median and P10 versus requested K in two
+panels, for completed downloads over 1 MB through 10 MB and over 10 MB.
+The averaged figure reports the mean and min–max of each per-seed percentile.
+
 Generate the SCDP-style plots from all saved offered loads for one layout.
 
 ```bash
