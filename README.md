@@ -325,6 +325,25 @@ single-path OrbCC uses rank 1. Eastbound routes and aggregate JSONs live under
 `simulations/plots/experimentWorkload/eastbound/`. Pass `--layout legacy` to
 any of the three scripts to use the original layout and its existing paths.
 
+Generate the SCDP-style plots from all saved offered loads for one layout.
+
+```bash
+python3 plotWorkloadByLoad.py --layout eastbound --ks 5
+```
+
+`avg_fct_by_load.pdf` shows mean FCT for completed downloads up to 100 kB and
+over 100 kB through 1 MB. It averages per-seed means over seeds common to the
+plotted cases. One saved load gives one point per controller. The rank PDFs
+sort completed downloads over 1 MB through 10 MB by increasing goodput for
+one workload seed per load. New runs store their exact sorted rates. Older
+aggregates show only the ranks available from their saved percentiles, and
+diagnostic outcome CSVs can provide exact ranks.
+
+For the 180 s pilot, use
+`python3 plotWorkloadByLoad.py --layout eastbound76 --diagnostic --ks 5`.
+Add `--protocols Omega OrbUncoupled` for a head-to-head figure.
+Figures go under `simulations/plots/experimentWorkload/<layout>/workload_by_load/`.
+
 For a matched TCP diagnostic, run this from the same script folder:
 
 ```bash

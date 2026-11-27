@@ -7,7 +7,7 @@ import math
 from pathlib import Path
 
 from runExperimentWorkload import (
-    DURATION, DEFAULT_WORKLOAD_SEED, PROTOCOLS,
+    DURATION, DEFAULT_WORKLOAD_SEED, DIAGNOSTIC_ONLY_PROTOCOLS, PROTOCOLS,
     SUBFLOW_COUNTS, case_name, scenario_folder,
 )
 from workloadTopology import DEFAULT_LAYOUT, LAYOUT_NAMES, get_layout
@@ -18,16 +18,20 @@ LONG_MIN = 1_000_000
 LARGE_MIN = 10_000_000
 MARKERS = ('o', 's', '^', 'D', 'v')
 OMEGA_COMPARISON = ('Omega', 'OrbUncoupled')
+PLOT_PROTOCOLS = {**PROTOCOLS, **DIAGNOSTIC_ONLY_PROTOCOLS}
 CASES = tuple((controller, k) for controller in PROTOCOLS
               for k in ((1,) if controller == 'OrbSingle' else SUBFLOW_COUNTS))
+DIAGNOSTIC_CASES = CASES + tuple((controller, k) for controller in DIAGNOSTIC_ONLY_PROTOCOLS
+                                 for k in SUBFLOW_COUNTS)
 
 
-def read_results(folder, seed, layout):
+def read_cases(folder, seed, layout, *, diagnostic=False):
     results = {}
     schedule_hashes = set()
     scenario_values = {'offered_mbps': set(), 'duration_s': set()}
-    for controller, k in CASES:
-        path = folder / f'{case_name(controller, k, seed)}.json'
+    for controller, k in DIAGNOSTIC_CASES if diagnostic else CASES:
+        name = case_name(controller, k, seed)
+        path = (folder / name if diagnostic else folder) / f'{name}.json'
         if not path.is_file():
             continue
         with path.open(encoding='utf-8') as handle:
@@ -46,16 +50,21 @@ def read_results(folder, seed, layout):
         for key, values in scenario_values.items():
             if workload.get(key) is not None:
                 values.add(workload[key])
-        results[controller, k] = data['size_classes']
+        results[controller, k] = (data, path.parent)
     if not results:
         raise ValueError(f'No workload results for seed {seed} in {folder}. Run runExperimentWorkload.py first.')
     if len(schedule_hashes) > 1:
         raise ValueError(f'The selected results use different arrival schedules in {folder}')
     if any(len(values) > 1 for values in scenario_values.values()):
         raise ValueError(f'Seed {seed} uses different offered loads or durations in {folder}')
+    return results, {key: next(iter(values), None) for key, values in scenario_values.items()}
+
+
+def read_results(folder, seed, layout):
+    results, metadata = read_cases(folder, seed, layout)
     if len(results) < len(CASES):
         print(f'Seed {seed}: missing {len(CASES) - len(results)} of {len(CASES)} cases.')
-    return results, {key: next(iter(values), None) for key, values in scenario_values.items()}
+    return {case: data['size_classes'] for case, (data, _) in results.items()}, metadata
 
 
 def flow_means(results, metric, select_class, name, seed):
@@ -99,12 +108,15 @@ def run_metrics(results, seed):
     }
 
 
-def saved_seeds(folder):
-    prefixes = {case_name(controller, k, 0).removesuffix('_Seed0') for controller, k in CASES}
+def saved_seeds(folder, *, diagnostic=False):
+    cases = DIAGNOSTIC_CASES if diagnostic else CASES
+    prefixes = {case_name(controller, k, 0).removesuffix('_Seed0') for controller, k in cases}
     seeds = set()
-    for path in folder.glob('WebSearch_*_Seed*.json'):
+    pattern = 'WebSearch_*_Seed*' if diagnostic else 'WebSearch_*_Seed*.json'
+    for path in folder.glob(pattern):
         prefix, _, seed = path.stem.rpartition('_Seed')
-        if prefix in prefixes and seed.isascii() and seed.isdecimal():
+        if prefix in prefixes and seed.isascii() and seed.isdecimal() and (
+                not diagnostic or (path / f'{path.name}.json').is_file()):
             seeds.add(int(seed))
     return sorted(seeds)
 
@@ -237,7 +249,7 @@ def main():
     individual_metrics = run_metrics(individual_results, individual_seed)
     offered = individual_scenario['offered_mbps']
     if offered is None:
-        offered = args.offered_mbps
+        offered = offered_mbps
 
     import matplotlib
     matplotlib.use('Agg')
@@ -267,7 +279,7 @@ def main():
 
     averages, spreads = average_metrics(by_seed)
     mean_output = args.output_dir / 'averaged' if args.output_dir else layout.plots / scenario / 'averaged'
-    offered = next(iter(scenarios['offered_mbps']), args.offered_mbps)
+    offered = next(iter(scenarios['offered_mbps']), offered_mbps)
     seed_label = ', '.join(map(str, seeds))
     draw_workload_comparisons(plt, mean_output, averages,
                               f'{offered:g} Mb/s offered load · Seeds {seed_label} (mean and min–max)', spreads)

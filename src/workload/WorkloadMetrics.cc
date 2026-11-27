@@ -663,6 +663,16 @@ void WorkloadMetrics::finish()
         writeDistribution(out, aggregate.completionSeconds);
         out << ", \"goodput_mbps\": ";
         writeDistribution(out, aggregate.goodputMbps);
+        if (sizeBounds[index] == 10'000'000) {
+            // This distribution was sorted above. Keep exact ranks for the 1–10 MB session plot.
+            out << ", \"session_goodput_mbps\": [";
+            for (size_t rank = 0; rank < aggregate.goodputMbps.size(); ++rank) {
+                if (rank)
+                    out << ',';
+                out << aggregate.goodputMbps[rank];
+            }
+            out << ']';
+        }
         out << '}';
     }
     out << "\n  ],\n  \"endpoint_pairs\": [";
